@@ -1,121 +1,171 @@
-/* reset / existing styles ...existing code... */
+/* ========================================
+   MOPC DASHBOARD - ESTILOS MODERNOS
+   Diseño: Naranja & Blanco Moderno
+   ======================================== */
 
-/* Topbar fija y compacta */
+/* ===== TOPBAR MODERNA ===== */
 .topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 999;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 0 var(--spacing-lg);
+  background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-topbar);
+  border-bottom: 3px solid var(--primary-orange);
+  backdrop-filter: blur(10px);
+  transition: var(--transition-normal);
 }
+
+.topbar:hover {
+  box-shadow: var(--shadow-lg);
+}
+
 
 /* placeholders left / right */
 .topbar-left,
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-md);
   min-width: 120px;
 }
 
-/* logos en el lado izquierdo del topbar */
+/* logos en el lado izquierdo del topbar - MODERNOS */
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding-left: 16px;
-  z-index: 1001;
+  gap: var(--spacing-lg);
+  padding-left: var(--spacing-md);
+  z-index: calc(var(--z-topbar) + 2);
 }
 
 .dashboard-logos {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xs);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.dashboard-logos:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .dashboard-logos img {
-  height: 40px;
-  width: 88px;
+  height: 48px;
+  width: auto;
+  max-width: 100px;
   object-fit: contain;
+  transition: var(--transition-normal);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-/* logo centrado dentro de la topbar - ahora vacío */
+.dashboard-logos img:hover {
+  transform: scale(1.05);
+}
+
+
+/* logo centrado dentro de la topbar - MODERNO */
 .topbar-logo {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
+  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md);
   white-space: nowrap;
-  z-index: 1000;
-  display: none; /* Ocultar el contenedor naranja */
+  z-index: calc(var(--z-topbar) + 1);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: var(--transition-normal);
+}
+
+.topbar-logo:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: var(--shadow-lg);
 }
 
 .topbar-logo-img {
-  max-height: 40px;
-  max-width: 120px;
+  max-height: 45px;
+  max-width: 140px;
   width: auto;
   height: auto;
   object-fit: contain;
-}
-
-.dashboard-logos {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .dashboard-logo-left,
 .dashboard-logo-right {
-  max-height: 40px;
-  max-width: 88px;
+  max-height: 48px;
+  max-width: 100px;
   width: auto;
   height: auto;
   object-fit: contain;
 }
 
-/* Empuja el contenido justo debajo de la topbar */
+
+/* ===== DASHBOARD PRINCIPAL ===== */
 .dashboard {
-  padding-top: 64px;
+  padding-top: 88px;
   min-height: 100vh;
-  background: #fff;
+  background: linear-gradient(180deg, var(--cream) 0%, var(--off-white) 100%);
 }
 
-/* simple icon placeholders */
+/* ===== ICONOS MODERNOS ===== */
 .topbar-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  background: rgba(0,0,0,0.04);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--pale-orange) 0%, var(--tertiary-orange) 100%);
+  padding: var(--spacing-xs);
+  transition: var(--transition-normal);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Contenedor principal */
+.topbar-icon:hover {
+  background: linear-gradient(135deg, var(--tertiary-orange) 0%, var(--secondary-orange) 100%);
+  transform: translateY(-2px) scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+
+/* ===== CONTENEDOR PRINCIPAL MODERNO ===== */
 .dashboard-content {
-  padding: 8px 16px;
-  max-width: 1200px;
+  padding: var(--spacing-lg) var(--spacing-md);
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header: ahora subtítulo centrado y más grande */
+/* ===== HEADER MODERNO ===== */
 .dashboard-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   text-align: center;
   position: relative;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--white) 0%, var(--pale-orange) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .header-center { 
@@ -126,123 +176,234 @@
 
 .dashboard-subtitle {
   margin: 0;
-  font-size: 18px;
-  color: #444;
+  font-size: var(--font-size-xl);
+  color: var(--primary-orange-dark);
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(255, 122, 0, 0.1);
 }
 
-/* Estilos para notificaciones en el topbar */
+
+/* ===== NOTIFICACIONES MODERNAS ===== */
 .topbar-notification {
   position: relative;
   display: flex;
   align-items: center;
   cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-notification:hover {
+  background: var(--pale-orange);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .topbar-notification-icon {
-  transition: all 0.3s ease;
+  transition: var(--transition-normal);
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 2px 4px rgba(255, 122, 0, 0.3));
+}
+
+.topbar-notification:hover .topbar-notification-icon {
+  transform: rotate(15deg) scale(1.1);
 }
 
 .topbar-notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+  color: var(--white);
+  border-radius: var(--radius-pill);
+  padding: 2px 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
   animation: pulse 2s infinite;
+  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.5);
 }
 
 @keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
   }
   70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0);
   }
 }
 
-/* Nuevo encabezado encima del formulario */
+
+/* ===== ENCABEZADOS MODERNOS ===== */
 .records-header {
-  margin: 12px 0 8px;
-  font-size: 16px;
+  margin: var(--spacing-lg) 0 var(--spacing-md);
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  color: #222;
+  color: var(--primary-orange-dark);
+  padding: var(--spacing-md);
+  background: linear-gradient(90deg, var(--pale-orange) 0%, transparent 100%);
+  border-left: 4px solid var(--primary-orange);
+  border-radius: var(--radius-sm);
 }
 
-/* Controles (usuario/botones) dentro del topbar: */
+/* ===== USUARIO EN TOPBAR MODERNO ===== */
 .topbar-user {
-  padding: 6px 10px;
-  border-radius: 20px;
-  background: #f8f9fa;
-  color: #333;
-  font-size: 13px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--pale-orange) 0%, var(--white) 100%);
+  color: var(--primary-orange-dark);
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  margin-left: 8px;
+  margin-left: var(--spacing-sm);
   white-space: nowrap;
-  border: 1px solid #e0e0e0;
+  border: 2px solid var(--tertiary-orange);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
-/* Botones básicos */
+.topbar-user:hover {
+  background: linear-gradient(135deg, var(--tertiary-orange) 0%, var(--pale-orange) 100%);
+  border-color: var(--primary-orange);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ===== BOTONES MODERNOS ===== */
 .btn {
-  padding: 6px 10px;
+  padding: var(--spacing-sm) var(--spacing-lg);
   cursor: pointer;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 6px;
-  font-size: 13px;
-}
-.btn.primary {
-  background: #0b74de;
-  color: white;
-  border-color: #0b74de;
+  border: 2px solid var(--gray);
+  background: var(--white);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
-/* botones compactos dentro del topbar */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
+  color: var(--white);
+  border-color: var(--primary-orange);
+  font-weight: 600;
+}
+
+.btn.primary:hover {
+  background: linear-gradient(135deg, var(--primary-orange-dark) 0%, var(--primary-orange) 100%);
+  border-color: var(--primary-orange-dark);
+  box-shadow: var(--shadow-lg);
+}
+
+
+/* ===== BOTONES TOPBAR MODERNOS ===== */
 .topbar-btn {
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: #ff7a00;
-  color: white;
-  border: 1px solid #ff7a00;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
+  color: var(--white);
+  border: none;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.topbar-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: var(--transition-slow);
+}
+
+.topbar-btn:hover::before {
+  left: 100%;
 }
 
 .topbar-btn:hover {
-  background: #e66900;
-  border-color: #e66900;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, var(--primary-orange-dark) 0%, var(--primary-orange) 100%);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
 }
 
-/* GPS status badge */
+.topbar-btn:active {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+
+/* ===== GPS STATUS BADGE MODERNO ===== */
 .gps-status-badge {
-  padding: 6px 10px;
-  border-radius: 14px;
-  font-size: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-left: 8px;
-  cursor: default;
-  border: 1px solid rgba(0,0,0,0.06);
-  background: #f1f3f5;
-  color: #343a40;
+  gap: var(--spacing-sm);
+  margin-left: var(--spacing-sm);
+  cursor: pointer;
+  border: 2px solid;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .gps-status-badge.enabled {
-  background: #e9f7ef;
-  color: #1b7a3a;
-  border-color: rgba(40,167,69,0.15);
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  border-color: #28a745;
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+}
+
+.gps-status-badge.enabled:hover {
+  background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
 }
 
 .gps-status-badge.disabled {
-  background: #fff5f5;
-  color: #9a2b2b;
-  border-color: rgba(220,53,69,0.08);
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+  border-color: #dc3545;
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+}
+
+.gps-status-badge.disabled:hover {
+  background: linear-gradient(135deg, #f5c6cb 0%, #f1b0b7 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
 }
 
 
