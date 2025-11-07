@@ -75,27 +75,9 @@
 }
 
 
-/* logo centrado dentro de la topbar - MODERNO */
+/* logo centrado dentro de la topbar - OCULTO (elemento vacío) */
 .topbar-logo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-light) 100%);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-md);
-  white-space: nowrap;
-  z-index: calc(var(--z-topbar) + 1);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  transition: var(--transition-normal);
-}
-
-.topbar-logo:hover {
-  transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: var(--shadow-lg);
+  display: none !important;
 }
 
 .topbar-logo-img {
