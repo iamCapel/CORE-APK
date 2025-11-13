@@ -1,3 +1,265 @@
+/* ===================================
+   MOPC Dashboard - Sistema de Temas por Rol
+   =================================== */
+
+/* Variables CSS Dinámicas por Rol de Usuario */
+:root {
+  /* Tema por defecto (se sobrescribe dinámicamente según el rol) */
+  --user-primary: #ff6b35;
+  --user-primary-dark: #e55a2b;
+  --user-secondary: #ff8c61;
+  --user-tertiary: #ffe5cc;
+  --user-accent: #ffb899;
+  --user-shadow: rgba(255, 107, 53, 0.3);
+  --user-gradient-start: #ff6b35;
+  --user-gradient-end: #e55a2b;
+  
+  /* Tema Técnico (Verde) - Se aplica cuando role = 'tecnico' */
+  --tecnico-primary: #10b981;
+  --tecnico-primary-dark: #059669;
+  --tecnico-secondary: #34d399;
+  --tecnico-tertiary: #d1fae5;
+  --tecnico-accent: #6ee7b7;
+  --tecnico-shadow: rgba(16, 185, 129, 0.3);
+  
+  /* Tema Supervisor (Azul) - Se aplica cuando role = 'supervisor' */
+  --supervisor-primary: #3b82f6;
+  --supervisor-primary-dark: #2563eb;
+  --supervisor-secondary: #60a5fa;
+  --supervisor-tertiary: #dbeafe;
+  --supervisor-accent: #93c5fd;
+  --supervisor-shadow: rgba(59, 130, 246, 0.3);
+  
+  /* Tema Admin (Negro/Oscuro) - Se aplica cuando role = 'admin' */
+  --admin-primary: #1f2937;
+  --admin-primary-dark: #111827;
+  --admin-secondary: #374151;
+  --admin-tertiary: #f3f4f6;
+  --admin-accent: #6b7280;
+  --admin-shadow: rgba(31, 41, 55, 0.4);
+  
+  /* Variables de espaciado (sin cambios) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* Variables de fuente (sin cambios) */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  
+  /* Variables de bordes (sin cambios) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Sombras adaptativas al rol */
+  --shadow-sm: 0 1px 2px 0 var(--user-shadow);
+  --shadow-md: 0 4px 6px -1px var(--user-shadow);
+  --shadow-lg: 0 10px 15px -3px var(--user-shadow);
+  --shadow-xl: 0 20px 25px -5px var(--user-shadow);
+  
+  /* Transiciones (sin cambios) */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Colores de texto (sin cambios) */
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --text-light: #a0aec0;
+  
+  /* Colores de fondo (sin cambios) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7fafc;
+  --bg-tertiary: #edf2f7;
+  
+  /* Colores de estado (sin cambios) */
+  --success: #48bb78;
+  --warning: #ed8936;
+  --error: #f56565;
+  --info: #4299e1;
+  
+  /* Colores grises (sin cambios) */
+  --gray: #e2e8f0;
+  --dark-gray: #4a5568;
+  --off-white: #f7fafc;
+}
+
+/* ===================================
+   Clases de Rol del Body
+   Estas clases se aplican dinámicamente al <body>
+   =================================== */
+
+/* Técnico - Entorno Verde */
+body.role-tecnico {
+  --user-primary: var(--tecnico-primary);
+  --user-primary-dark: var(--tecnico-primary-dark);
+  --user-secondary: var(--tecnico-secondary);
+  --user-tertiary: var(--tecnico-tertiary);
+  --user-accent: var(--tecnico-accent);
+  --user-shadow: var(--tecnico-shadow);
+  --user-gradient-start: var(--tecnico-primary);
+  --user-gradient-end: var(--tecnico-primary-dark);
+}
+
+body.role-tecnico .topbar {
+  background: linear-gradient(135deg, var(--tecnico-primary) 0%, var(--tecnico-primary-dark) 100%);
+  box-shadow: 0 4px 12px var(--tecnico-shadow);
+}
+
+body.role-tecnico .sidebar {
+  border-right: 3px solid var(--tecnico-primary);
+}
+
+body.role-tecnico .sidebar-item.active {
+  background: linear-gradient(135deg, var(--tecnico-tertiary) 0%, var(--tecnico-secondary) 100%);
+  border-left: 4px solid var(--tecnico-primary);
+  color: var(--tecnico-primary-dark);
+}
+
+body.role-tecnico .btn-primary,
+body.role-tecnico .primary-button {
+  background: linear-gradient(135deg, var(--tecnico-primary) 0%, var(--tecnico-primary-dark) 100%);
+  box-shadow: 0 4px 6px var(--tecnico-shadow);
+}
+
+body.role-tecnico .card,
+body.role-tecnico .stat-card {
+  border-top: 3px solid var(--tecnico-primary);
+}
+
+/* Supervisor - Entorno Azul */
+body.role-supervisor {
+  --user-primary: var(--supervisor-primary);
+  --user-primary-dark: var(--supervisor-primary-dark);
+  --user-secondary: var(--supervisor-secondary);
+  --user-tertiary: var(--supervisor-tertiary);
+  --user-accent: var(--supervisor-accent);
+  --user-shadow: var(--supervisor-shadow);
+  --user-gradient-start: var(--supervisor-primary);
+  --user-gradient-end: var(--supervisor-primary-dark);
+}
+
+body.role-supervisor .topbar {
+  background: linear-gradient(135deg, var(--supervisor-primary) 0%, var(--supervisor-primary-dark) 100%);
+  box-shadow: 0 4px 12px var(--supervisor-shadow);
+}
+
+body.role-supervisor .sidebar {
+  border-right: 3px solid var(--supervisor-primary);
+}
+
+body.role-supervisor .sidebar-item.active {
+  background: linear-gradient(135deg, var(--supervisor-tertiary) 0%, var(--supervisor-secondary) 100%);
+  border-left: 4px solid var(--supervisor-primary);
+  color: var(--supervisor-primary-dark);
+}
+
+body.role-supervisor .btn-primary,
+body.role-supervisor .primary-button {
+  background: linear-gradient(135deg, var(--supervisor-primary) 0%, var(--supervisor-primary-dark) 100%);
+  box-shadow: 0 4px 6px var(--supervisor-shadow);
+}
+
+body.role-supervisor .card,
+body.role-supervisor .stat-card {
+  border-top: 3px solid var(--supervisor-primary);
+}
+
+/* Admin - Entorno Oscuro */
+body.role-admin {
+  --user-primary: var(--admin-primary);
+  --user-primary-dark: var(--admin-primary-dark);
+  --user-secondary: var(--admin-secondary);
+  --user-tertiary: var(--admin-tertiary);
+  --user-accent: var(--admin-accent);
+  --user-shadow: var(--admin-shadow);
+  --user-gradient-start: var(--admin-primary);
+  --user-gradient-end: var(--admin-primary-dark);
+}
+
+body.role-admin .topbar {
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
+  box-shadow: 0 4px 12px var(--admin-shadow);
+}
+
+body.role-admin .sidebar {
+  border-right: 3px solid var(--admin-accent);
+  background: #1a1a1a;
+}
+
+body.role-admin .sidebar-item {
+  color: #d1d5db;
+}
+
+body.role-admin .sidebar-item.active {
+  background: linear-gradient(135deg, var(--admin-secondary) 0%, var(--admin-primary) 100%);
+  border-left: 4px solid var(--admin-accent);
+  color: white;
+}
+
+body.role-admin .btn-primary,
+body.role-admin .primary-button {
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
+  box-shadow: 0 4px 6px var(--admin-shadow);
+  color: white;
+}
+
+body.role-admin .card,
+body.role-admin .stat-card {
+  border-top: 3px solid var(--admin-accent);
+}
+
+body.role-admin .topbar-title {
+  color: white;
+}
+
+/* ===================================
+   Clases auxiliares para temas
+   =================================== */
+
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.tecnico {
+  background: linear-gradient(135deg, var(--tecnico-secondary) 0%, var(--tecnico-primary) 100%);
+  color: white;
+  box-shadow: 0 2px 4px var(--tecnico-shadow);
+}
+
+.role-badge.supervisor {
+  background: linear-gradient(135deg, var(--supervisor-secondary) 0%, var(--supervisor-primary) 100%);
+  color: white;
+  box-shadow: 0 2px 4px var(--supervisor-shadow);
+}
+
+.role-badge.admin {
+  background: linear-gradient(135deg, var(--admin-secondary) 0%, var(--admin-primary) 100%);
+  color: white;
+  box-shadow: 0 2px 4px var(--admin-shadow);
+}
+
+/* ===================================
+   App Component Styles
+   =================================== */
+
 .App {
   text-align: center;
 }

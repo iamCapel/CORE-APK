@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ComposedChart, Line } from 'recharts';
+import DetailedReportView from './DetailedReportView';
 import './ReportsPage.css';
 
 interface User {
@@ -45,6 +46,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
   const [provincesData, setProvincesData] = useState<ProvinceData[]>([]);
   const [regionCandleData, setRegionCandleData] = useState<CandleData[]>([]);
   const [viewMode, setViewMode] = useState<'overview' | 'province-detail'>('overview');
+  const [showDetailedReport, setShowDetailedReport] = useState(false);
 
   useEffect(() => {
     // Datos simulados de provincias del Paraguay
@@ -228,17 +230,19 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
       <div className="reports-header">
         <div className="header-left">
           <button className="back-button" onClick={onBack}>
-            ← Volver al Dashboard
+            <span className="btn-icon">←</span>
+            <span>Atrás</span>
           </button>
           <h1 className="page-title">
-            📊 Informes y Estadísticas por Provincias
+            <span className="title-icon">📊</span>
+            <span>Estadísticas</span>
           </h1>
         </div>
         <div className="header-right">
-          <div className="user-info">
-            <span className="welcome-text">Bienvenido, {user.name}</span>
-            <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
-          </div>
+          <button className="detail-report-button" onClick={() => setShowDetailedReport(true)}>
+            <span className="btn-icon">📄</span>
+            <span>Informe Detallado</span>
+          </button>
         </div>
       </div>
 
@@ -319,50 +323,13 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
               <span>Volumen</span>
             </div>
           </div>
-
-          {/* Resumen Estadístico */}
-          <div className="summary-stats">
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon">🎯</div>
-                <div className="stat-info">
-                  <h3>Total Intervenciones</h3>
-                  <p className="stat-value">
-                    {provincesData.reduce((sum, province) => sum + province.total, 0)}
-                  </p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">✅</div>
-                <div className="stat-info">
-                  <h3>Completadas</h3>
-                  <p className="stat-value">
-                    {provincesData.reduce((sum, province) => sum + province.completed, 0)}
-                  </p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">⏳</div>
-                <div className="stat-info">
-                  <h3>En Progreso</h3>
-                  <p className="stat-value">
-                    {provincesData.reduce((sum, province) => sum + province.inProgress, 0)}
-                  </p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">📋</div>
-                <div className="stat-info">
-                  <h3>Pendientes</h3>
-                  <p className="stat-value">
-                    {provincesData.reduce((sum, province) => sum + province.pending, 0)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
+      {/* Modal de Informe Detallado */}
+      {showDetailedReport && (
+        <DetailedReportView onClose={() => setShowDetailedReport(false)} />
+      )}
     </div>
   );
 };

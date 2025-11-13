@@ -16,6 +16,7 @@ interface ReportFormProps {
   municipiosPorProvincia: Record<string, string[]>;
   sectoresPorProvincia: Record<string, string[]>;
   distritosPorProvincia: Record<string, string[]>;
+  distritosPorMunicipio: Record<string, string[]>;
   opcionesIntervencion: string[];
   canalOptions: string[];
   plantillasPorIntervencion: Record<string, Field[]>;
@@ -33,6 +34,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
   municipiosPorProvincia,
   sectoresPorProvincia,
   distritosPorProvincia,
+  distritosPorMunicipio,
   opcionesIntervencion,
   canalOptions,
   plantillasPorIntervencion,
@@ -48,8 +50,11 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const [sector, setSector] = useState('');
   const [sectorPersonalizado, setSectorPersonalizado] = useState('');
   const [mostrarSectorPersonalizado, setMostrarSectorPersonalizado] = useState(false);
+  const [distritoPersonalizado, setDistritoPersonalizado] = useState('');
+  const [mostrarDistritoPersonalizado, setMostrarDistritoPersonalizado] = useState(false);
   const [tipoIntervencion, setTipoIntervencion] = useState('');
   const [subTipoCanal, setSubTipoCanal] = useState('');
+  const [observaciones, setObservaciones] = useState('');
 
   const [plantillaFields, setPlantillaFields] = useState<Field[]>(plantillaDefault);
   const [plantillaValues, setPlantillaValues] = useState<Record<string, string>>({});
@@ -85,12 +90,13 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   // Lógica de habilitación de campos
   const provinciasDisponibles = region ? provinciasPorRegion[region] || [] : [];
-  const distritosDisponibles = provincia ? distritosPorProvincia[provincia] || [] : [];
   const municipiosDisponibles = provincia ? municipiosPorProvincia[provincia] || [] : [];
+  const distritosDisponibles = municipio ? distritosPorMunicipio[municipio] || [] : [];
   const sectoresDisponibles = provincia ? sectoresPorProvincia[provincia] || [] : [];
   
   // Verificar si todos los campos geográficos están completos
-  const camposGeograficosCompletos = region && provincia && distrito && municipio && (sector || (sector === 'otros' && sectorPersonalizado));
+  const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
+  const camposGeograficosCompletos = region && provincia && distritoFinal && municipio && (sector || (sector === 'otros' && sectorPersonalizado));
 
   // Cargar intervención para editar si se proporciona
   useEffect(() => {
@@ -124,6 +130,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
       
       setTipoIntervencion(tipoBase);
       setSubTipoCanal(subTipo);
+      
+      // Cargar observaciones
+      setObservaciones(interventionToEdit.observaciones || '');
       
       // Cargar valores de plantilla
       const valoresPlantilla: Record<string, string> = {};
@@ -219,6 +228,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setProvincia('');
     setMunicipio('');
     setDistrito('');
+    setDistritoPersonalizado('');
+    setMostrarDistritoPersonalizado(false);
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -230,6 +241,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setProvincia(e.target.value);
     setMunicipio('');
     setDistrito('');
+    setDistritoPersonalizado('');
+    setMostrarDistritoPersonalizado(false);
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -240,6 +253,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const handleMunicipioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setMunicipio(e.target.value);
     setDistrito('');
+    setDistritoPersonalizado('');
+    setMostrarDistritoPersonalizado(false);
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -248,7 +263,14 @@ const ReportForm: React.FC<ReportFormProps> = ({
   };
 
   const handleDistritoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setDistrito(e.target.value);
+    const value = e.target.value;
+    setDistrito(value);
+    if (value === 'otros') {
+      setMostrarDistritoPersonalizado(true);
+    } else {
+      setMostrarDistritoPersonalizado(false);
+      setDistritoPersonalizado('');
+    }
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -285,25 +307,34 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setRegion('');
     setProvincia('');
     setDistrito('');
+    setDistritoPersonalizado('');
+    setMostrarDistritoPersonalizado(false);
     setMunicipio('');
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
     setTipoIntervencion('');
     setSubTipoCanal('');
+    setObservaciones('');
     setPlantillaValues({});
   };
 
   const guardarIntervencion = () => {
     const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
+    const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
     
-    if (!region || !provincia || !distrito || !sectorFinal || !tipoIntervencion) {
+    if (!region || !provincia || !distritoFinal || !sectorFinal || !tipoIntervencion) {
       alert('Por favor complete todos los campos requeridos');
       return;
     }
 
     if (sector === 'otros' && !sectorPersonalizado.trim()) {
       alert('Por favor ingrese el nombre del sector personalizado');
+      return;
+    }
+
+    if (distrito === 'otros' && !distritoPersonalizado.trim()) {
+      alert('Por favor ingrese el nombre del distrito municipal personalizado');
       return;
     }
 
@@ -317,11 +348,12 @@ const ReportForm: React.FC<ReportFormProps> = ({
       timestamp: new Date().toISOString(),
       region,
       provincia,
-      distrito,
+      distrito: distritoFinal,
       municipio,
       sector: sectorFinal,
       tipoIntervencion: tipoIntervencion === 'Canalización' ? `${tipoIntervencion}:${subTipoCanal}` : tipoIntervencion,
       usuario: user?.name || 'Desconocido',
+      observaciones: observaciones || '',
       ...plantillaValues
     };
 
@@ -545,7 +577,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   // Función para verificar si todos los campos de "Registros de obras realizadas" están completos
   const areAllRegistrosCompleted = () => {
-    const basicFieldsCompleted = region && provincia && distrito && sector && tipoIntervencion;
+    const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
+    const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
+    const basicFieldsCompleted = region && provincia && distritoFinal && sectorFinal && tipoIntervencion;
     
     if (tipoIntervencion === 'Canalización') {
       return basicFieldsCompleted && subTipoCanal;
@@ -681,19 +715,39 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
             <div className="form-group">
               <label htmlFor="distrito">Distrito Municipal</label>
-              <select 
-                id="distrito"
-                value={distrito}
-                onChange={handleDistritoChange}
-                className="form-input"
-                disabled={!municipio}
-                required
-              >
-                <option value="">Seleccionar distrito municipal</option>
-                {distritosDisponibles.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <select 
+                  id="distrito"
+                  value={distrito}
+                  onChange={handleDistritoChange}
+                  className="form-input"
+                  disabled={!municipio}
+                  required
+                >
+                  <option value="">Seleccionar distrito municipal</option>
+                  {distritosDisponibles.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                  <option value="otros">➕ Agregar nuevo distrito municipal</option>
+                </select>
+              </div>
+              
+              {mostrarDistritoPersonalizado && (
+                <div style={{ marginTop: '8px' }}>
+                  <input
+                    type="text"
+                    value={distritoPersonalizado}
+                    onChange={(e) => setDistritoPersonalizado(e.target.value)}
+                    placeholder="Escriba el nombre del distrito municipal"
+                    className="form-input"
+                    style={{ 
+                      borderColor: 'var(--primary-orange)',
+                      backgroundColor: 'var(--pale-orange)'
+                    }}
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -912,6 +966,41 @@ const ReportForm: React.FC<ReportFormProps> = ({
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Separador antes de observaciones */}
+              <div className="template-separator" style={{ marginTop: '40px', marginBottom: '30px' }}>
+                <div className="separator-line"></div>
+                <span className="separator-text">OBSERVACIONES Y ACCIONES ADICIONALES</span>
+                <div className="separator-line"></div>
+              </div>
+
+              {/* Campo de observaciones */}
+              <div className="template-field-card" style={{ gridColumn: '1 / -1' }}>
+                <div className="field-header">
+                  <span className="field-number">➕</span>
+                  <label className="field-label" htmlFor="observaciones">
+                    Observaciones, acciones realizadas o comentarios adicionales
+                  </label>
+                </div>
+                <div className="field-input-container">
+                  <textarea
+                    id="observaciones"
+                    value={observaciones}
+                    onChange={(e) => setObservaciones(e.target.value)}
+                    className="field-input"
+                    rows={6}
+                    placeholder="Describa cualquier observación relevante, acciones adicionales realizadas o comentarios sobre la intervención..."
+                    style={{
+                      width: '100%',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      padding: '12px'
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Footer del template */}

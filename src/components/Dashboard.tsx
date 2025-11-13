@@ -6,6 +6,7 @@ import UsersPage from './UsersPage';
 import GoogleMapView from './GoogleMapView';
 import LeafletMapView from './LeafletMapView';
 import PendingReportsModal from './PendingReportsModal';
+import { UserRole, applyUserTheme, getRoleConfig, getRoleBadge, UserWithRole } from '../types/userRoles';
 import './Dashboard.css';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
@@ -13,6 +14,12 @@ type Field = { key: string; label: string; type: 'text' | 'number'; unit: string
 interface User {
   username: string;
   name: string;
+  profilePhoto?: string;
+  fullName?: string;
+  birthDate?: string;
+  idCardPhoto?: string;
+  profileCompleted?: boolean;
+  role?: UserRole; // Agregar rol al usuario
 }
 
 const plantillaDefault: Field[] = [
@@ -42,24 +49,31 @@ const plantillaDefault: Field[] = [
 ];
 
 const regionesRD = [
-  'Cibao Norte','Cibao Sur','Cibao Nordeste','Cibao Noroeste','Cibao Centro',
-  'Valdesia','Enriquillo','El Valle','Higuamo','Ozama','Yuma','Valle','Metropolitana'
+  'Ozama o Metropolitana',
+  'Cibao Norte',
+  'Cibao Sur',
+  'Cibao Nordeste',
+  'Cibao Noroeste',
+  'Santiago',
+  'Valdesia',
+  'Enriquillo',
+  'El Valle',
+  'Yuma',
+  'Higuamo'
 ];
 
 const provinciasPorRegion: Record<string, string[]> = {
-  'Cibao Norte': ['Puerto Plata', 'Espaillat', 'Santiago'],
+  'Ozama o Metropolitana': ['Distrito Nacional', 'Santo Domingo'],
+  'Cibao Norte': ['Puerto Plata', 'Espaillat'],
   'Cibao Sur': ['La Vega', 'Monseñor Nouel', 'Sánchez Ramírez'],
-  'Cibao Nordeste': ['Duarte', 'María Trinidad Sánchez', 'Samaná'],
+  'Cibao Nordeste': ['Duarte', 'María Trinidad Sánchez', 'Samaná', 'Hermanas Mirabal'],
   'Cibao Noroeste': ['Valverde', 'Monte Cristi', 'Dajabón', 'Santiago Rodríguez'],
-  'Cibao Centro': ['Hermanas Mirabal', 'Salcedo'],
+  'Santiago': ['Santiago'],
   'Valdesia': ['San Cristóbal', 'Peravia', 'San José de Ocoa'],
   'Enriquillo': ['Barahona', 'Pedernales', 'Independencia', 'Bahoruco'],
-  'El Valle': ['Azua', 'San Juan', 'Elías Piña'],
-  'Higuamo': ['San Pedro de Macorís', 'Hato Mayor', 'El Seibo'],
-  'Ozama': ['Distrito Nacional', 'Santo Domingo'],
-  'Yuma': ['La Altagracia', 'La Romana'],
-  'Valle': ['Monte Plata'],
-  'Metropolitana': ['Distrito Nacional', 'Santo Domingo Este', 'Santo Domingo Oeste', 'Santo Domingo Norte']
+  'El Valle': ['San Juan', 'Elías Piña', 'Azua'],
+  'Yuma': ['La Altagracia', 'La Romana', 'El Seibo'],
+  'Higuamo': ['San Pedro de Macorís', 'Hato Mayor', 'Monte Plata']
 };
 
 // Municipios por Provincia de República Dominicana
@@ -86,7 +100,7 @@ const municipiosPorProvincia: Record<string, string[]> = {
   'Valverde': ['Mao', 'Esperanza', 'Laguna Salada'],
   
   // Cibao Centro
-  'Hermanas Mirabal': ['Salcedo (Tenares)', 'Tenares', 'Villa Tapia'],
+  'Hermanas Mirabal': ['Salcedo', 'Tenares', 'Villa Tapia'],
   
   // Valdesia
   'San Cristóbal': ['San Cristóbal', 'Bajos de Haina', 'Cambita Garabitos', 'Los Cacaos', 'Sabana Grande de Palenque', 'San Gregorio de Nigua', 'Villa Altagracia', 'Yaguate'],
@@ -175,59 +189,254 @@ const sectoresPorProvincia: Record<string, string[]> = {
   'Santo Domingo': ['Los Alcarrizos Centro', 'Pedro Brand Centro', 'San Antonio Centro', 'Boca Chica Centro', 'Pantoja', 'Villa Mella']
 };
 
-const distritosPorProvincia: Record<string, string[]> = {
-  // Cibao Norte
-  'Puerto Plata': ['Puerto Plata', 'Altamira', 'Guananico', 'Imbert', 'Los Hidalgos', 'Luperón', 'Villa Isabela', 'Villa Montellano'],
-  'Espaillat': ['Moca', 'Cayetano Germosén', 'Gaspar Hernández', 'Jamao al Norte', 'San Víctor'],
-  'Santiago': ['Santiago de los Caballeros', 'Baitoa', 'Jánico', 'Licey al Medio', 'Puñal', 'Sabana Iglesia', 'San José de las Matas', 'Tamboril', 'Villa Bisonó', 'Villa González'],
-
-  // Cibao Sur  
-  'La Vega': ['La Vega', 'Constanza', 'Jarabacoa', 'Jima Abajo'],
-  'Monseñor Nouel': ['Bonao', 'Maimón', 'Piedra Blanca'],
-  'Sánchez Ramírez': ['Cotuí', 'Cevicos', 'Fantino', 'La Mata'],
-
-  // Cibao Nordeste
-  'Duarte': ['San Francisco de Macorís', 'Arenoso', 'Castillo', 'Hostos', 'Las Guáranas', 'Pimentel', 'Villa Riva'],
-  'María Trinidad Sánchez': ['Nagua', 'Cabrera', 'El Factor', 'Río San Juan'],
-  'Samaná': ['Samaná', 'Las Terrenas', 'Sánchez'],
-  'Hermanas Mirabal': ['Salcedo', 'Tenares', 'Villa Tapia'],
-
-  // Cibao Noroeste
-  'Valverde': ['Mao', 'Esperanza', 'Laguna Salada'],
-  'Monte Cristi': ['Monte Cristi', 'Castañuelas', 'Guayubín', 'Las Matas de Santa Cruz', 'Pepillo Salcedo', 'Villa Vásquez'],
-  'Dajabón': ['Dajabón', 'El Pino', 'Loma de Cabrera', 'Partido', 'Restauración'],
-  'Santiago Rodríguez': ['Sabaneta', 'Monción', 'Villa Los Almácigos'],
-
-  // Valdesia
-  'San Cristóbal': ['San Cristóbal', 'Cambita Garabitos', 'Haina', 'Los Cacaos', 'Nigua', 'Sabana Grande de Palenque', 'Villa Altagracia', 'Yaguate'],
-  'Peravia': ['Baní', 'Matanzas', 'Nizao'],
-  'San José de Ocoa': ['San José de Ocoa', 'Rancho Arriba', 'Sabana Larga'],
-
-  // Enriquillo
-  'Barahona': ['Barahona', 'Cabral', 'El Peñón', 'Enriquillo', 'Fundación', 'Jaquimeyes', 'La Ciénaga', 'Las Salinas', 'Paraíso', 'Polo', 'Vicente Noble'],
-  'Pedernales': ['Pedernales', 'Oviedo'],
-  'Independencia': ['Jimaní', 'Cristóbal', 'Duvergé', 'La Descubierta', 'Mella', 'Postrer Río'],
-  'Bahoruco': ['Neiba', 'Galván', 'Los Ríos', 'Tamayo', 'Villa Jaragua'],
-
-  // El Valle
-  'Azua': ['Azua', 'Estebanía', 'Guayabal', 'Las Charcas', 'Las Yayas de Viajama', 'Padre Las Casas', 'Peralta', 'Pueblo Viejo', 'Sabana Yegua', 'Tábara Arriba'],
-  'San Juan': ['San Juan', 'Bohechío', 'El Cercado', 'Juan de Herrera', 'Las Matas de Farfán', 'Vallejuelo'],
-  'Elías Piña': ['Comendador', 'Bánica', 'El Llano', 'Hondo Valle', 'Juan Santiago', 'Pedro Santana'],
-
-  // Higuamo
-  'San Pedro de Macorís': ['San Pedro de Macorís', 'Consuelo', 'Guayacanes', 'Los Llanos', 'Quisqueya', 'Ramón Santana'],
-  'Hato Mayor': ['Hato Mayor', 'El Valle', 'Sabana de la Mar'],
-  'Monte Plata': ['Monte Plata', 'Bayaguana', 'Peralvillo', 'Sabana Grande de Boyá', 'Yamasá'],
-
-  // Yuma
-  'La Altagracia': ['Higüey', 'San Rafael del Yuma'],
-  'La Romana': ['La Romana', 'Guaymate', 'Villa Hermosa'],
-  'El Seibo': ['El Seibo', 'Miches'],
-
-  // Ozama
-  'Distrito Nacional': ['Santo Domingo'],
-  'Santo Domingo': ['Santo Domingo Este', 'Santo Domingo Norte', 'Santo Domingo Oeste', 'Boca Chica', 'Los Alcarrizos', 'Pedro Brand', 'San Antonio de Guerra']
+// Distritos municipales organizados por municipio
+const distritosPorMunicipio: Record<string, string[]> = {
+  // REGIÓN OZAMA O METROPOLITANA
+  // Distrito Nacional
+  'Santo Domingo': [],
+  'Distrito Nacional': [],
+  
+  // Santo Domingo
+  'Santo Domingo Este': ['San Luis', 'Mendoza', 'San Isidro'],
+  'Santo Domingo Norte': ['La Victoria', 'Villa Mella'],
+  'Santo Domingo Oeste': ['Hato Nuevo', 'Altos de Arroyo Hondo'],
+  'Boca Chica': ['La Caleta'],
+  'Los Alcarrizos': ['Palmarejo-Villa Linda'],
+  'Pedro Brand': [],
+  'San Antonio de Guerra': [],
+  
+  // Monte Plata
+  'Monte Plata': ['Chirino', 'Don Juan'],
+  'Bayaguana': ['Monte Bonito'],
+  'Peralvillo': [],
+  'Sabana Grande de Boyá': ['Gonzalo'],
+  'Yamasá': [],
+  
+  // REGIÓN CIBAO NORTE
+  // Puerto Plata
+  'Puerto Plata': ['Yásica Arriba'],
+  'Altamira': ['Río Grande'],
+  'Guananico': [],
+  'Imbert': [],
+  'Los Hidalgos': [],
+  'Luperón': ['La Isabela', 'Belloso'],
+  'Sosúa': ['Sabaneta de Yásica'],
+  'Villa Isabela': [],
+  'Villa Montellano': [],
+  
+  // Espaillat
+  'Moca': ['José Contreras', 'San Víctor', 'Juan López'],
+  'Cayetano Germosén': [],
+  'Gaspar Hernández': ['Veragua'],
+  'Jamao al Norte': [],
+  
+  // REGIÓN SANTIAGO
+  // Santiago
+  'Santiago de los Caballeros': ['Pedro García', 'El Limón'],
+  'Santiago': ['Pedro García', 'El Limón'],
+  'Baitoa': [],
+  'Bisonó': [],
+  'Bisonó (Navarrete)': [],
+  'Jánico': ['El Caimito'],
+  'Licey al Medio': ['Las Palomas'],
+  'Puñal': ['Guayabal'],
+  'Sabana Iglesia': [],
+  'San José de las Matas': ['El Rubio', 'La Cuesta'],
+  'Tamboril': ['Canca la Reyna'],
+  'Villa González': ['Palmar Arriba'],
+  
+  // REGIÓN CIBAO SUR
+  // La Vega
+  'La Vega': ['Río Verde Arriba', 'El Ranchito'],
+  'Constanza': ['Tireo', 'La Sabina'],
+  'Jarabacoa': ['Manabao', 'Buena Vista'],
+  'Jima Abajo': [],
+  
+  // Monseñor Nouel
+  'Bonao': ['Sabana del Puerto', 'Jayaco'],
+  'Maimón': [],
+  'Piedra Blanca': [],
+  
+  // Sánchez Ramírez
+  'Cotuí': [],
+  'Cevicos': ['La Cueva'],
+  'Fantino': [],
+  'La Mata': [],
+  
+  // REGIÓN CIBAO NORDESTE
+  // Duarte
+  'San Francisco de Macorís': ['La Peña', 'Cenoví'],
+  'Arenoso': ['Las Coles', 'El Aguacate'],
+  'Castillo': [],
+  'Eugenio María de Hostos': ['Sabana Grande'],
+  'Las Guáranas': [],
+  'Pimentel': [],
+  'Villa Riva': ['Agua Santa del Yuna'],
+  
+  // María Trinidad Sánchez
+  'Nagua': ['Las Gordas', 'San José de Matanzas'],
+  'Cabrera': ['Arroyo Salado'],
+  'El Factor': ['El Pozo'],
+  'Río San Juan': [],
+  
+  // Samaná
+  'Samaná': ['El Limón', 'Arroyo Barril', 'Las Galeras'],
+  'Las Terrenas': [],
+  'Sánchez': [],
+  
+  // Hermanas Mirabal
+  'Salcedo': ['Jamao Afuera', 'Blanco'],
+  'Tenares': [],
+  'Villa Tapia': [],
+  
+  // REGIÓN CIBAO NOROESTE
+  // Valverde
+  'Mao': ['Guatapanal', 'Jaibón', 'Amina'],
+  'Esperanza': ['Maizal', 'Jicomé'],
+  'Laguna Salada': ['Jaibón'],
+  
+  // Monte Cristi
+  'Monte Cristi': ['Villa Elisa'],
+  'Castañuelas': ['Palo Verde'],
+  'Guayubín': ['Hatillo Palma', 'Cana Chapetón'],
+  'Las Matas de Santa Cruz': [],
+  'Pepillo Salcedo': [],
+  'Pepillo Salcedo (Manzanillo)': [],
+  'Villa Vásquez': [],
+  
+  // Dajabón
+  'Dajabón': [],
+  'El Pino': [],
+  'Loma de Cabrera': ['Capotillo'],
+  'Partido': [],
+  'Restauración': [],
+  
+  // Santiago Rodríguez
+  'Sabaneta': [],
+  'San Ignacio de Sabaneta': [],
+  'Monción': [],
+  'Villa Los Almácigos': [],
+  'Los Almácigos': [],
+  
+  // REGIÓN VALDESIA
+  // San Cristóbal
+  'San Cristóbal': [],
+  'Bajos de Haina': ['El Carril'],
+  'Cambita Garabitos': ['Medina'],
+  'Los Cacaos': [],
+  'Sabana Grande de Palenque': [],
+  'San Gregorio de Nigua': [],
+  'Villa Altagracia': ['San José del Puerto', 'La Guinea'],
+  'Yaguate': ['Doña Ana'],
+  
+  // Peravia
+  'Baní': ['El Cañafístol', 'Villa Fundación', 'Paya', 'Villa Sombrero', 'El Limonal', 'Los Almácigos'],
+  'Nizao': ['Pizarrete'],
+  'Matanzas': ['Santana'],
+  'Sabana Buey': [],
+  
+  // San José de Ocoa
+  'San José de Ocoa': [],
+  'Rancho Arriba': [],
+  'Sabana Larga': [],
+  
+  // REGIÓN ENRIQUILLO
+  // Barahona
+  'Barahona': [],
+  'Cabral': [],
+  'El Peñón': [],
+  'Enriquillo': ['Arroyo Dulce'],
+  'Fundación': ['Pescadería'],
+  'Jaquimeyes': ['Palo Alto'],
+  'La Ciénaga': [],
+  'Las Salinas': [],
+  'Paraíso': ['Los Patos', 'Canoa'],
+  'Polo': [],
+  'Vicente Noble': [],
+  
+  // Pedernales
+  'Pedernales': ['José Francisco Peña Gómez'],
+  'Oviedo': ['Juancho'],
+  
+  // Independencia
+  'Jimaní': ['El Limón'],
+  'Cristóbal': ['Batey 8'],
+  'Duvergé': [],
+  'La Descubierta': ['Boca de Cachón'],
+  'Mella': ['La Colonia'],
+  'Postrer Río': ['Guayabal'],
+  
+  // Bahoruco
+  'Neiba': [],
+  'Galván': ['El Palmar'],
+  'Los Ríos': ['Las Clavellinas'],
+  'Tamayo': ['Cabral', 'Uvilla'],
+  'Villa Jaragua': [],
+  
+  // REGIÓN EL VALLE
+  // San Juan
+  'San Juan': ['El Rosario', 'Hato del Padre', 'La Jagua', 'Las Maguanas-Hato Nuevo'],
+  'San Juan de la Maguana': ['El Rosario', 'Hato del Padre', 'La Jagua', 'Las Maguanas-Hato Nuevo'],
+  'Bohechío': ['Arroyo Cano', 'Yaque'],
+  'El Cercado': ['Batista'],
+  'Juan de Herrera': ['Jínova'],
+  'Las Matas de Farfán': ['Matayaya', 'Carrera de Yegua'],
+  'Vallejuelo': ['Jorjillo'],
+  
+  // Elías Piña
+  'Comendador': ['Guayajayuco', 'Sabana Cruz', 'Sabana Larga', 'Guanito'],
+  'Bánica': ['Sabana Higüero', 'Sabana Cruz'],
+  'El Llano': ['Guayabo'],
+  'Hondo Valle': ['Rancho de la Guardia'],
+  'Juan Santiago': ['Las Caobas'],
+  'Pedro Santana': ['Río Limpio'],
+  
+  // Azua
+  'Azua': ['Barro Arriba', 'Las Barias-La Estancia', 'Los Jovillos'],
+  'Azua de Compostela': ['Barro Arriba', 'Las Barias-La Estancia', 'Los Jovillos'],
+  'Estebanía': [],
+  'Guayabal': [],
+  'Las Charcas': [],
+  'Las Yayas de Viajama': ['Villarpando'],
+  'Padre Las Casas': ['Las Lagunas', 'Palmar de Ocoa'],
+  'Peralta': [],
+  'Pueblo Viejo': [],
+  'Sabana Yegua': ['Proyeto 4'],
+  'Sabana de la Mar': ['Elupina Cordero'],
+  'Tábara Arriba': ['Amiama Gómez', 'Tábara Abajo', 'Los Toros'],
+  
+  // REGIÓN HIGUAMO
+  // San Pedro de Macorís
+  'San Pedro de Macorís': [],
+  'Consuelo': [],
+  'Guayacanes': ['El Puerto'],
+  'Los Llanos': [],
+  'Quisqueya': [],
+  'Ramón Santana': [],
+  
+  // Hato Mayor
+  'Hato Mayor': ['Mata Palacio', 'Guayabo Dulce'],
+  'Hato Mayor del Rey': ['Mata Palacio', 'Guayabo Dulce'],
+  'El Valle': [],
+  'Yerba Buena': [],
+  
+  // REGIÓN YUMA
+  // La Altagracia
+  'Higüey': ['La Otra Banda'],
+  'San Rafael del Yuma': ['Boca de Yuma', 'Bayahibe'],
+  
+  // La Romana
+  'La Romana': ['Caleta'],
+  'Guaymate': [],
+  'Villa Hermosa': ['Cumayasa'],
+  
+  // El Seibo
+  'El Seibo': ['Pedro Sánchez'],
+  'Miches': ['El Cedro', 'La Gina']
 };
+
+// Mantener compatibilidad: distritosPorProvincia ahora devuelve todos los municipios de la provincia
+const distritosPorProvincia: Record<string, string[]> = municipiosPorProvincia;
 
 const opcionesIntervencion = [
   'Rehabilitación Camino Vecinal',
@@ -297,6 +506,20 @@ const Dashboard: React.FC = () => {
   // Estado para el contador de notificaciones
   const [pendingCount, setPendingCount] = useState(0);
   const [showPendingModal, setShowPendingModal] = useState(false);
+  
+  // Estado para el menú desplegable del usuario
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  
+  // Estados para el formulario de completar perfil
+  const [profilePhoto, setProfilePhoto] = useState<string>('');
+  const [fullName, setFullName] = useState<string>('');
+  const [birthDate, setBirthDate] = useState<string>('');
+  const [idCardPhoto, setIdCardPhoto] = useState<string>('');
+  const [showProfileIncompleteNotification, setShowProfileIncompleteNotification] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
 
   // Función para actualizar el contador de pendientes
   const updatePendingCount = () => {
@@ -386,6 +609,55 @@ const Dashboard: React.FC = () => {
     };
   }, []);
 
+  // Cerrar menú desplegable al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showUserMenu && !target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
+
+  // Verificar si el perfil del usuario está completo
+  useEffect(() => {
+    if (user) {
+      const profileData = localStorage.getItem(`profile_${user.username}`);
+      if (profileData) {
+        const profile = JSON.parse(profileData);
+        setProfilePhoto(profile.profilePhoto || '');
+        setFullName(profile.fullName || '');
+        setBirthDate(profile.birthDate || '');
+        setIdCardPhoto(profile.idCardPhoto || '');
+        
+        // Verificar si todos los campos están completos
+        const isComplete = profile.profilePhoto && profile.fullName && profile.birthDate && profile.idCardPhoto;
+        setShowProfileIncompleteNotification(!isComplete);
+        setIsProfileComplete(isComplete);
+      } else {
+        setShowProfileIncompleteNotification(true);
+        setIsProfileComplete(false);
+      }
+    }
+  }, [user]);
+
+  // Aplicar tema según el rol del usuario
+  useEffect(() => {
+    if (user && user.role) {
+      // Aplicar tema del rol
+      applyUserTheme(user.role);
+    } else {
+      // Si no hay rol definido, usar rol por defecto (Admin para compatibilidad)
+      applyUserTheme(UserRole.ADMIN);
+    }
+  }, [user]);
+
+
   // Solicitar permisos GPS al cargar la aplicación
   useEffect(() => {
     const requestGpsPermission = async () => {
@@ -450,19 +722,117 @@ const Dashboard: React.FC = () => {
     await new Promise(r => setTimeout(r, 1000));
 
     try {
+      // Asignar rol según el usuario (simulación temporal)
+      let userRole: UserRole = UserRole.ADMIN;
+      let userName = `Usuario ${loginUser}`;
+      
+      // Usuarios de prueba con roles específicos
+      if (loginUser.toLowerCase() === 'admin') {
+        userRole = UserRole.ADMIN;
+        userName = 'Miguel Administrador';
+      } else if (loginUser.toLowerCase() === 'eng') {
+        userRole = UserRole.ADMIN;
+        userName = 'Engineer User';
+      } else if (loginUser.toLowerCase() === 'supervisor' || loginUser.toLowerCase().startsWith('sup')) {
+        userRole = UserRole.SUPERVISOR;
+        userName = `${loginUser} Supervisor`;
+      } else if (loginUser.toLowerCase() === 'tecnico' || loginUser.toLowerCase().startsWith('tec')) {
+        userRole = UserRole.TECNICO;
+        userName = `${loginUser} Técnico`;
+      }
+      
       const newUser: User = {
         username: loginUser,
-        name: loginUser === 'admin' ? 'Miguel Administrador' : `Usuario ${loginUser}`
+        name: userName,
+        role: userRole
       };
+      
       localStorage.setItem('mopc_user', JSON.stringify(newUser));
       setUser(newUser);
       setLoginUser('');
       setLoginPass('');
+      
+      // Usuario "eng" tiene perfil pre-verificado
+      if (loginUser.toLowerCase() === 'eng') {
+        const verifiedProfile = {
+          profilePhoto: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Ccircle cx=%22100%22 cy=%22100%22 r=%2280%22 fill=%22%234CAF50%22/%3E%3Ctext x=%22100%22 y=%22120%22 font-size=%2280%22 text-anchor=%22middle%22 fill=%22white%22%3EE%3C/text%3E%3C/svg%3E',
+          fullName: 'Engineer User',
+          birthDate: '1990-01-01',
+          idCardPhoto: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22250%22%3E%3Crect width=%22400%22 height=%22250%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%22200%22 y=%22125%22 font-size=%2224%22 text-anchor=%22middle%22%3EC%C3%A9dula Verificada%3C/text%3E%3C/svg%3E',
+          profileCompleted: true
+        };
+        localStorage.setItem('mopc_user_profile', JSON.stringify(verifiedProfile));
+        setProfilePhoto(verifiedProfile.profilePhoto);
+        setFullName(verifiedProfile.fullName);
+        setBirthDate(verifiedProfile.birthDate);
+        setIdCardPhoto(verifiedProfile.idCardPhoto);
+        setIsProfileComplete(true);
+      }
+      
+      console.log(`✅ Usuario autenticado como: ${getRoleBadge(userRole)}`);
     } catch (err) {
       setLoginError('Error al iniciar sesión');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Funciones para manejar el perfil del usuario
+  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleIdCardPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdCardPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    if (!user) return;
+
+    // Validar que todos los campos estén completos
+    if (!profilePhoto || !fullName || !birthDate || !idCardPhoto) {
+      alert('⚠️ Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    // Guardar en localStorage
+    const profileData = {
+      profilePhoto,
+      fullName,
+      birthDate,
+      idCardPhoto,
+      profileCompleted: true
+    };
+
+    localStorage.setItem(`profile_${user.username}`, JSON.stringify(profileData));
+    
+    // Actualizar el usuario con los datos del perfil
+    const updatedUser = {
+      ...user,
+      ...profileData
+    };
+    setUser(updatedUser);
+    localStorage.setItem('mopc_user', JSON.stringify(updatedUser));
+
+    // Actualizar estados de verificación de perfil
+    setShowProfileIncompleteNotification(false);
+    setIsProfileComplete(true);
+    setShowCompleteProfileModal(false);
+    alert('✅ Perfil completado exitosamente. Ahora puede acceder a todas las funcionalidades.');
   };
 
   const handleLogout = () => {
@@ -473,6 +843,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowReports = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
     setShowReportsPage(true);
     setShowReportForm(false);
     setShowExportPage(false);
@@ -480,6 +854,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowReportForm = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
     setShowReportForm(true);
     setShowReportsPage(false);
     setShowExportPage(false);
@@ -490,6 +868,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowExportPage = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
     setShowExportPage(true);
     setShowReportsPage(false);
     setShowReportForm(false);
@@ -499,6 +881,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowUsersPage = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
     setShowUsersPage(true);
     setShowReportsPage(false);
     setShowReportForm(false);
@@ -508,6 +894,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowGoogleMap = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
     setShowGoogleMapView(true);
     setShowReportsPage(false);
     setShowReportForm(false);
@@ -515,6 +905,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleShowLeafletMap = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
     setShowLeafletMapView(true);
     setShowReportsPage(false);
     setShowReportForm(false);
@@ -558,6 +952,7 @@ const Dashboard: React.FC = () => {
         municipiosPorProvincia={municipiosPorProvincia}
         sectoresPorProvincia={sectoresPorProvincia}
         distritosPorProvincia={distritosPorProvincia}
+        distritosPorMunicipio={distritosPorMunicipio}
         opcionesIntervencion={opcionesIntervencion}
         canalOptions={canalOptions}
         plantillasPorIntervencion={plantillasPorIntervencion}
@@ -663,20 +1058,8 @@ const Dashboard: React.FC = () => {
           <div className="topbar-icon" aria-hidden />
           <div className="topbar-icon" aria-hidden />
 
-          {/* GPS status badge */}
-          <div className={`gps-status-badge ${isGpsEnabled ? 'enabled' : 'disabled'}`} title={isGpsEnabled && gpsPosition ? `GPS: ${gpsPosition.lat.toFixed(6)}, ${gpsPosition.lon.toFixed(6)}` : 'GPS inactivo'}>
-            {isGpsEnabled ? 'GPS: ON' : 'GPS: OFF'}
-          </div>
-
-
-
           {user ? (
             <>
-              <div className="user-badge topbar-user" title={user.name}>
-                {user.name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase()} &nbsp; {user.name}
-              </div>
-              <button onClick={handleLogout} title="Cerrar sesión" className="btn topbar-btn">🔓</button>
-              
               {/* Icono de notificaciones en el topbar */}
               <div className="notification-container topbar-notification">
                 <img 
@@ -731,12 +1114,88 @@ const Dashboard: React.FC = () => {
                   </span>
                 ) : null}
               </div>
+
+              {/* Menú desplegable del usuario */}
+              <div className="user-menu-container" style={{ position: 'relative' }}>
+                <div 
+                  className="topbar-notification"
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <span style={{ fontSize: '24px' }}>⚙️</span>
+                </div>
+
+                {showUserMenu && (
+                  <div className="user-dropdown-menu">
+                    {/* Información del usuario con badge de rol */}
+                    <div className="user-dropdown-header">
+                      <div className="user-dropdown-avatar">
+                        {profilePhoto ? (
+                          <img src={profilePhoto} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <span style={{ fontSize: '32px' }}>👤</span>
+                        )}
+                      </div>
+                      <div className="user-dropdown-info">
+                        <div className="user-dropdown-name">{user.name}</div>
+                        {user.role && (
+                          <span className={`role-badge ${user.role}`}>
+                            {getRoleBadge(user.role)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="user-dropdown-divider"></div>
+                    <div className="user-dropdown-item" onClick={() => {
+                      setShowUserMenu(false);
+                      setShowCompleteProfileModal(true);
+                    }}>
+                      <span>👤</span>
+                      <span>Mi Perfil</span>
+                    </div>
+                    <div className="user-dropdown-item" onClick={() => {
+                      setShowUserMenu(false);
+                      setShowSettingsModal(true);
+                    }}>
+                      <span>⚙️</span>
+                      <span>Configuración</span>
+                    </div>
+                    <div className="user-dropdown-divider"></div>
+                    <div className="user-dropdown-item" onClick={() => {
+                      setShowUserMenu(false);
+                      handleLogout();
+                    }}>
+                      <span>🚪</span>
+                      <span>Cerrar Sesión</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           ) : null}
         </div>
       </div>
 
       <div className="dashboard-content">
+        {/* Notificación de perfil incompleto */}
+        {showProfileIncompleteNotification && (
+          <div className="profile-incomplete-notification">
+            <div className="notification-content">
+              <span className="notification-icon">⚠️</span>
+              <div className="notification-text">
+                <strong>Verificar cuenta</strong>
+                <p>Complete su perfil para acceder a todas las funcionalidades</p>
+              </div>
+              <button 
+                className="notification-button"
+                onClick={() => setShowCompleteProfileModal(true)}
+              >
+                Completar ahora
+              </button>
+            </div>
+          </div>
+        )}
+
         <header className="dashboard-header centered-subtitle">
           <div className="header-center">
             <h2 className="dashboard-subtitle">DIRECCION DE COORDINACION REGIONAL</h2>
@@ -746,7 +1205,7 @@ const Dashboard: React.FC = () => {
         <div className="dashboard-main">
           <div className="dashboard-icons-grid">
             {/* Icono Registrar */}
-            <div className="dashboard-icon-card" onClick={handleShowReportForm}>
+            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
               <div className="dashboard-icon">
                 <img src="/images/register-icon.svg" alt="Registrar" style={{width: '64px', height: '64px'}} />
               </div>
@@ -754,10 +1213,11 @@ const Dashboard: React.FC = () => {
               <p className="dashboard-icon-description">
                 Registrar nuevas obras y intervenciones realizadas
               </p>
+              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
             {/* Icono Informes */}
-            <div className="dashboard-icon-card" onClick={handleShowReports}>
+            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
               <div className="dashboard-icon">
                 <img src="/images/reports-icon.svg" alt="Informes y Estadísticas" style={{width: '64px', height: '64px'}} />
               </div>
@@ -765,10 +1225,11 @@ const Dashboard: React.FC = () => {
               <p className="dashboard-icon-description">
                 Ver estadísticas, reportes y análisis de todas las intervenciones
               </p>
+              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
             {/* Icono Buscar */}
-            <div className="dashboard-icon-card" onClick={handleShowLeafletMap}>
+            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
               <div className="dashboard-icon">
                 <img src="/images/map-icon.svg" alt="Buscar en mapa" style={{width: '64px', height: '64px'}} />
               </div>
@@ -776,10 +1237,11 @@ const Dashboard: React.FC = () => {
               <p className="dashboard-icon-description">
                 Buscar y visualizar intervenciones en mapa interactivo con GPS
               </p>
+              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
             {/* Icono Usuarios - Activo */}
-            <div className="dashboard-icon-card" onClick={handleShowUsersPage}>
+            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
               <div className="dashboard-icon">
                 👥
               </div>
@@ -787,10 +1249,11 @@ const Dashboard: React.FC = () => {
               <p className="dashboard-icon-description">
                 Gestión de usuarios activos e inactivos del sistema
               </p>
+              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
             {/* Icono Exportar - Activo */}
-            <div className="dashboard-icon-card" onClick={handleShowExportPage}>
+            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
               <div className="dashboard-icon">
                 📤
               </div>
@@ -798,6 +1261,7 @@ const Dashboard: React.FC = () => {
               <p className="dashboard-icon-description">
                 Buscar y exportar reportes a Excel, PDF y Word
               </p>
+              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
             {/* Icono Ayuda - Futuro */}
@@ -811,37 +1275,6 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
           </div>
-
-          {/* Resumen de estadísticas rápidas */}
-          <div className="dashboard-stats">
-            <div className="stats-card">
-              <div className="stats-icon"></div>
-              <div className="stats-content">
-                <h4>Total Intervenciones</h4>
-                <p className="stats-number">
-                  {JSON.parse(localStorage.getItem('mopc_intervenciones') || '[]').length}
-                </p>
-              </div>
-            </div>
-
-            <div className="stats-card">
-              <div className="stats-icon"></div>
-              <div className="stats-content">
-                <h4>Regiones Activas</h4>
-                <p className="stats-number">
-                  {new Set(JSON.parse(localStorage.getItem('mopc_intervenciones') || '[]').map((i: any) => i.region).filter(Boolean)).size}
-                </p>
-              </div>
-            </div>
-
-            <div className="stats-card">
-              <div className="stats-icon">👤</div>
-              <div className="stats-content">
-                <h4>Usuario Actual</h4>
-                <p className="stats-text">{user?.name}</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -853,6 +1286,241 @@ const Dashboard: React.FC = () => {
         onEditReport={handleEditPendingReport}
         onDeleteReport={handleDeletePendingReport}
       />
+
+      {/* Modal de Perfil de Usuario */}
+      {showProfileModal && (
+        <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
+          <div className="modal-content profile-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>👤 Mi Perfil</h2>
+              <button className="modal-close" onClick={() => setShowProfileModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="profile-section">
+                <div className="profile-avatar-large">
+                  {user?.name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase()}
+                </div>
+                <div className="profile-info-group">
+                  <div className="profile-info-item">
+                    <label>👤 Nombre completo</label>
+                    <input type="text" value={user?.name || ''} readOnly className="form-input" />
+                  </div>
+                  <div className="profile-info-item">
+                    <label>🔑 Usuario</label>
+                    <input type="text" value={user?.username || ''} readOnly className="form-input" />
+                  </div>
+                  <div className="profile-info-item">
+                    <label>🏢 Departamento</label>
+                    <input type="text" value="Dirección de Coordinación Regional" readOnly className="form-input" />
+                  </div>
+                  <div className="profile-info-item">
+                    <label>📍 Región asignada</label>
+                    <input type="text" value="Todas las regiones" readOnly className="form-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowProfileModal(false)}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Configuración */}
+      {showSettingsModal && (
+        <div className="modal-overlay" onClick={() => setShowSettingsModal(false)}>
+          <div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>⚙️ Configuración</h2>
+              <button className="modal-close" onClick={() => setShowSettingsModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="settings-section">
+                <h3>🎨 Apariencia</h3>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" defaultChecked />
+                    Usar tema naranja
+                  </label>
+                </div>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" />
+                    Modo oscuro (próximamente)
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <h3>📍 GPS y Ubicación</h3>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" checked={isGpsEnabled} readOnly />
+                    GPS habilitado
+                  </label>
+                  <span className="setting-description">
+                    {isGpsEnabled ? '✅ GPS activo' : '❌ GPS desactivado'}
+                  </span>
+                </div>
+                {gpsPosition && (
+                  <div className="setting-item">
+                    <span className="setting-description">
+                      📍 Ubicación actual: {gpsPosition.lat.toFixed(6)}, {gpsPosition.lon.toFixed(6)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="settings-section">
+                <h3>🔔 Notificaciones</h3>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" defaultChecked />
+                    Notificaciones de reportes pendientes
+                  </label>
+                </div>
+                <div className="setting-item">
+                  <label>
+                    <input type="checkbox" defaultChecked />
+                    Alertas de aprobación
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <h3>💾 Datos</h3>
+                <div className="setting-item">
+                  <button className="btn btn-secondary" onClick={() => {
+                    const count = Object.keys(localStorage).filter(k => 
+                      k.startsWith('intervencion_') || k.startsWith('borrador_')
+                    ).length;
+                    alert(`Tienes ${count} reportes guardados localmente`);
+                  }}>
+                    Ver datos almacenados
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowSettingsModal(false)}>
+                Cerrar
+              </button>
+              <button className="btn btn-primary">
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Completar Perfil */}
+      {showCompleteProfileModal && (
+        <div className="modal-overlay" onClick={() => setShowCompleteProfileModal(false)}>
+          <div className="modal-content complete-profile-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>✨ Completar Perfil</h2>
+              <button className="modal-close" onClick={() => setShowCompleteProfileModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-description">Complete toda su información para verificar su cuenta</p>
+              
+              {/* Foto de Perfil */}
+              <div className="profile-field-section">
+                <label className="profile-field-label">📸 Foto de Perfil *</label>
+                <div className="profile-photo-upload">
+                  {profilePhoto ? (
+                    <div className="profile-photo-preview">
+                      <img src={profilePhoto} alt="Perfil" />
+                      <button className="change-photo-btn" onClick={() => setProfilePhoto('')}>
+                        Cambiar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="profile-photo-placeholder">
+                      <label htmlFor="profile-photo-input" className="upload-label">
+                        <span className="upload-icon">📷</span>
+                        <span>Click para subir foto</span>
+                        <input
+                          id="profile-photo-input"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePhotoUpload}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Nombre Completo */}
+              <div className="profile-field-section">
+                <label className="profile-field-label">👤 Nombre Completo *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Ej: Juan Pérez Gómez"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+
+              {/* Fecha de Nacimiento */}
+              <div className="profile-field-section">
+                <label className="profile-field-label">📅 Fecha de Nacimiento *</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                />
+              </div>
+
+              {/* Foto del Carnet */}
+              <div className="profile-field-section">
+                <label className="profile-field-label">🪪 Foto del Carnet de Identidad *</label>
+                <div className="id-card-upload">
+                  {idCardPhoto ? (
+                    <div className="id-card-preview">
+                      <img src={idCardPhoto} alt="Carnet" />
+                      <button className="change-photo-btn" onClick={() => setIdCardPhoto('')}>
+                        Cambiar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="id-card-placeholder">
+                      <label htmlFor="id-card-input" className="upload-label">
+                        <span className="upload-icon">🪪</span>
+                        <span>Click para subir foto del carnet</span>
+                        <input
+                          id="id-card-input"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleIdCardPhotoUpload}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <p className="required-fields-note">* Todos los campos son obligatorios</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowCompleteProfileModal(false)}>
+                Cancelar
+              </button>
+              <button className="btn btn-primary" onClick={handleSaveProfile}>
+                Guardar y Verificar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

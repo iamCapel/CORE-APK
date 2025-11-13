@@ -545,40 +545,6 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
             ))}
           </div>
         </div>
-
-        {/* Estadísticas generales */}
-        <div className="stats-section">
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon">👥</div>
-              <div className="stat-info">
-                <h3>Total Usuarios</h3>
-                <p className="stat-value">{users.length}</p>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">🟢</div>
-              <div className="stat-info">
-                <h3>Usuarios Activos</h3>
-                <p className="stat-value">{activeUsers.length}</p>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">⚫</div>
-              <div className="stat-info">
-                <h3>Usuarios Inactivos</h3>
-                <p className="stat-value">{inactiveUsers.length}</p>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">📋</div>
-              <div className="stat-info">
-                <h3>Reportes Totales</h3>
-                <p className="stat-value">{users.reduce((sum, u) => sum + u.reportsCount, 0)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
