@@ -23,15 +23,34 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Project specific
+# Backups and temporary files
 BACKUP_*
+PUNTOS_RESTAURACION/
 *.zip
 *.bat
+*.log
+
+# Android/Mobile (not needed for web version)
+/android
+/ios
+capacitor.config.ts
+
+# Documentation duplicates
 ESTADO_PROYECTO.md
 PROYECTO_VERIFICACION_FINAL.js
 VERIFICACION_PROYECTO.md
 MANUAL_INSTALACION.md
+INSTRUCCIONES_CODESPACES.md
+COMPILAR_*.md
+README_MOBILE.md
+README_MOPC.md
+RESUMEN_APK.md
+GUIA_APK.md
 
-# VS Code
+# IDE
 .vscode/
-*.log
+.idea/
+*.swp
+*.swo
+*~
+
