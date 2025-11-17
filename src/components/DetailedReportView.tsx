@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { reportStorage } from '../services/reportStorage';
 import './DetailedReportView.css';
 
 interface Report {
@@ -46,10 +47,10 @@ interface Region {
 }
 
 interface DetailedReportViewProps {
-  onClose: () => void;
+  onClose?: (() => void) | null;
 }
 
-const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose }) => {
+const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null }) => {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
@@ -58,171 +59,78 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose }) => {
   const [expandedProvinces, setExpandedProvinces] = useState<Set<string>>(new Set());
   const [expandedDistricts, setExpandedDistricts] = useState<Set<string>>(new Set());
 
-  // Datos de ejemplo de República Dominicana
-  const regionsData: Region[] = [
-    {
-      name: 'Región Cibao Norte',
-      interventions: 450,
-      provinces: [
-        {
-          name: 'Santiago',
-          interventions: 180,
-          districts: [
-            { name: 'Santiago', interventions: 120, reports: generateMockReports('Santiago', 'Santiago', 'Región Cibao Norte', 120) },
-            { name: 'Villa González', interventions: 30, reports: generateMockReports('Villa González', 'Santiago', 'Región Cibao Norte', 30) },
-            { name: 'Tamboril', interventions: 30, reports: generateMockReports('Tamboril', 'Santiago', 'Región Cibao Norte', 30) }
-          ]
-        },
-        {
-          name: 'Puerto Plata',
-          interventions: 150,
-          districts: [
-            { name: 'San Felipe de Puerto Plata', interventions: 90, reports: generateMockReports('San Felipe de Puerto Plata', 'Puerto Plata', 'Región Cibao Norte', 90) },
-            { name: 'Sosúa', interventions: 40, reports: generateMockReports('Sosúa', 'Puerto Plata', 'Región Cibao Norte', 40) },
-            { name: 'Cabarete', interventions: 20, reports: generateMockReports('Cabarete', 'Puerto Plata', 'Región Cibao Norte', 20) }
-          ]
-        },
-        {
-          name: 'Espaillat',
-          interventions: 120,
-          districts: [
-            { name: 'Moca', interventions: 80, reports: generateMockReports('Moca', 'Espaillat', 'Región Cibao Norte', 80) },
-            { name: 'Cayetano Germosén', interventions: 40, reports: generateMockReports('Cayetano Germosén', 'Espaillat', 'Región Cibao Norte', 40) }
-          ]
-        }
-      ]
-    },
-    {
-      name: 'Región Cibao Sur',
-      interventions: 280,
-      provinces: [
-        {
-          name: 'La Vega',
-          interventions: 150,
-          districts: [
-            { name: 'Concepción de La Vega', interventions: 100, reports: generateMockReports('Concepción de La Vega', 'La Vega', 'Región Cibao Sur', 100) },
-            { name: 'Jarabacoa', interventions: 50, reports: generateMockReports('Jarabacoa', 'La Vega', 'Región Cibao Sur', 50) }
-          ]
-        },
-        {
-          name: 'Sánchez Ramírez',
-          interventions: 130,
-          districts: [
-            { name: 'Cotuí', interventions: 90, reports: generateMockReports('Cotuí', 'Sánchez Ramírez', 'Región Cibao Sur', 90) },
-            { name: 'Fantino', interventions: 40, reports: generateMockReports('Fantino', 'Sánchez Ramírez', 'Región Cibao Sur', 40) }
-          ]
-        }
-      ]
-    },
-    {
-      name: 'Región Ozama',
-      interventions: 520,
-      provinces: [
-        {
-          name: 'Distrito Nacional',
-          interventions: 300,
-          districts: [
-            { name: 'Santo Domingo de Guzmán', interventions: 300, reports: generateMockReports('Santo Domingo de Guzmán', 'Distrito Nacional', 'Región Ozama', 300) }
-          ]
-        },
-        {
-          name: 'Santo Domingo',
-          interventions: 220,
-          districts: [
-            { name: 'Santo Domingo Este', interventions: 100, reports: generateMockReports('Santo Domingo Este', 'Santo Domingo', 'Región Ozama', 100) },
-            { name: 'Santo Domingo Oeste', interventions: 80, reports: generateMockReports('Santo Domingo Oeste', 'Santo Domingo', 'Región Ozama', 80) },
-            { name: 'Santo Domingo Norte', interventions: 40, reports: generateMockReports('Santo Domingo Norte', 'Santo Domingo', 'Región Ozama', 40) }
-          ]
-        }
-      ]
-    },
-    {
-      name: 'Región Este',
-      interventions: 340,
-      provinces: [
-        {
-          name: 'La Altagracia',
-          interventions: 200,
-          districts: [
-            { name: 'Salvaleón de Higüey', interventions: 150, reports: generateMockReports('Salvaleón de Higüey', 'La Altagracia', 'Región Este', 150) },
-            { name: 'Punta Cana', interventions: 50, reports: generateMockReports('Punta Cana', 'La Altagracia', 'Región Este', 50) }
-          ]
-        },
-        {
-          name: 'La Romana',
-          interventions: 140,
-          districts: [
-            { name: 'La Romana', interventions: 140, reports: generateMockReports('La Romana', 'La Romana', 'Región Este', 140) }
-          ]
-        }
-      ]
-    }
-  ];
+  // Cargar datos reales desde reportStorage
+  const [regionsData, setRegionsData] = useState<Region[]>([]);
 
-  function generateMockReports(district: string, province: string, region: string, count: number): Report[] {
-    const reports: Report[] = [];
-    const tiposIntervencion = ['Canales', 'Presas', 'Drenajes', 'Caminos', 'Puentes'];
-    const municipios = ['Centro', 'Norte', 'Sur', 'Este', 'Oeste'];
-    const sectores = ['Urbano', 'Rural', 'Semi-Urbano'];
+  useEffect(() => {
+    // Cargar todos los reportes y organizarlos por jerarquía
+    const allReports = reportStorage.getAllReports();
     
-    for (let i = 1; i <= count; i++) {
-      const tipoIntervencion = tiposIntervencion[Math.floor(Math.random() * tiposIntervencion.length)];
-      const subTipo = tipoIntervencion === 'Canales' ? ['Limpieza', 'Revestimiento', 'Construcción'][Math.floor(Math.random() * 3)] : '';
+    // Estructura jerárquica: Región > Provincia > Distrito > Reportes
+    const hierarchyMap: Record<string, Record<string, Record<string, any[]>>> = {};
+    
+    allReports.forEach(report => {
+      const region = report.region || 'Sin región';
+      const provincia = report.provincia || 'Sin provincia';
+      const distrito = report.distrito || 'Sin distrito';
       
-      // Generar datos métricos según el tipo de intervención
-      const metricData: Record<string, string> = {};
-      if (tipoIntervencion === 'Canales') {
-        metricData.longitud_limpiada = `${(Math.random() * 500 + 100).toFixed(2)}`;
-        metricData.ancho_canal = `${(Math.random() * 5 + 2).toFixed(2)}`;
-        metricData.profundidad_canal = `${(Math.random() * 3 + 1).toFixed(2)}`;
-        metricData.volumen_excavado = `${(Math.random() * 200 + 50).toFixed(2)}`;
-      } else if (tipoIntervencion === 'Presas') {
-        metricData.altura_presa = `${(Math.random() * 20 + 5).toFixed(2)}`;
-        metricData.longitud_cresta = `${(Math.random() * 100 + 20).toFixed(2)}`;
-        metricData.capacidad_almacenamiento = `${(Math.random() * 5000 + 1000).toFixed(2)}`;
-      } else if (tipoIntervencion === 'Drenajes') {
-        metricData.longitud_drenaje = `${(Math.random() * 300 + 50).toFixed(2)}`;
-        metricData.diametro_tuberia = `${(Math.random() * 2 + 0.5).toFixed(2)}`;
-      } else if (tipoIntervencion === 'Caminos') {
-        metricData.longitud_camino = `${(Math.random() * 1000 + 200).toFixed(2)}`;
-        metricData.ancho_camino = `${(Math.random() * 8 + 4).toFixed(2)}`;
-        metricData.espesor_capa = `${(Math.random() * 0.5 + 0.1).toFixed(2)}`;
-      } else if (tipoIntervencion === 'Puentes') {
-        metricData.longitud_puente = `${(Math.random() * 50 + 10).toFixed(2)}`;
-        metricData.ancho_puente = `${(Math.random() * 10 + 5).toFixed(2)}`;
-        metricData.numero_vanos = `${Math.floor(Math.random() * 5) + 1}`;
-      }
+      if (!hierarchyMap[region]) hierarchyMap[region] = {};
+      if (!hierarchyMap[region][provincia]) hierarchyMap[region][provincia] = {};
+      if (!hierarchyMap[region][provincia][distrito]) hierarchyMap[region][provincia][distrito] = [];
       
-      reports.push({
-        id: `${district}-${i}`,
-        reportNumber: `RPT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        createdBy: `Usuario ${Math.floor(Math.random() * 10) + 1}`,
-        date: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-        district,
-        province,
-        region,
-        municipio: municipios[Math.floor(Math.random() * municipios.length)],
-        sector: sectores[Math.floor(Math.random() * sectores.length)],
-        totalInterventions: Math.floor(Math.random() * 10) + 1,
-        tipoIntervencion: tipoIntervencion + (subTipo ? `: ${subTipo}` : ''),
-        subTipoCanal: subTipo || undefined,
-        metricData,
-        gpsData: {
-          punto_inicial: { 
-            lat: 18.5 + Math.random() * 0.5, 
-            lon: -69.9 + Math.random() * 0.5 
-          },
-          punto_alcanzado: { 
-            lat: 18.5 + Math.random() * 0.5, 
-            lon: -69.9 + Math.random() * 0.5 
-          }
-        },
-        images: Math.random() > 0.5 ? [`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>`] : undefined,
-        observations: Math.random() > 0.5 ? `Observaciones del reporte #${i}` : undefined
+      // Convertir reporte al formato esperado
+      hierarchyMap[region][provincia][distrito].push({
+        id: report.id,
+        reportNumber: report.numeroReporte,
+        createdBy: report.creadoPor,
+        date: new Date(report.fechaCreacion).toLocaleDateString(),
+        district: report.distrito,
+        province: report.provincia,
+        region: report.region,
+        municipio: report.municipio,
+        sector: report.sector,
+        totalInterventions: 1,
+        tipoIntervencion: report.tipoIntervencion,
+        subTipoCanal: report.subTipoCanal,
+        metricData: report.metricData || {},
+        gpsData: report.gpsData,
+        observations: report.observaciones
       });
-    }
-    return reports;
-  }
+    });
+    
+    // Construir estructura de regiones
+    const regionNames = [
+      'Ozama o Metropolitana', 'Cibao Norte', 'Cibao Sur', 'Cibao Nordeste',
+      'Cibao Noroeste', 'Santiago', 'Valdesia', 'Enriquillo',
+      'El Valle', 'Yuma', 'Higuamo'
+    ];
+    
+    const regions: Region[] = regionNames.map(regionName => {
+      const provincesMap = hierarchyMap[regionName] || {};
+      const provinces: Province[] = Object.keys(provincesMap).map(provinceName => {
+        const districtsMap = provincesMap[provinceName];
+        const districts: District[] = Object.keys(districtsMap).map(districtName => ({
+          name: districtName,
+          interventions: districtsMap[districtName].length,
+          reports: districtsMap[districtName]
+        }));
+        
+        return {
+          name: provinceName,
+          interventions: districts.reduce((sum, d) => sum + d.interventions, 0),
+          districts
+        };
+      });
+      
+      return {
+        name: regionName,
+        interventions: provinces.reduce((sum, p) => sum + p.interventions, 0),
+        provinces
+      };
+    });
+    
+    setRegionsData(regions);
+  }, []);
 
   const toggleRegion = (regionName: string) => {
     const newExpanded = new Set(expandedRegions);
@@ -477,7 +385,7 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose }) => {
       <div className="detailed-report-container">
         <div className="detailed-report-header">
           <h2>📄 Informe Detallado por Regiones</h2>
-          <button className="close-btn" onClick={onClose}>✕</button>
+          {onClose && <button className="close-btn" onClick={onClose}>✕</button>}
         </div>
 
         <div className="detailed-report-content">
@@ -487,92 +395,74 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose }) => {
                 <div 
                   className="hierarchy-row"
                   onClick={() => toggleRegion(region.name)}
+                  data-count={region.interventions > 0 ? `${region.interventions} reportes` : 'Sin datos'}
                 >
                   <div className="hierarchy-info">
                     <span className="expand-icon">{expandedRegions.has(region.name) ? '▼' : '▶'}</span>
-                    <span className="hierarchy-name">🗺️ {region.name}</span>
-                  </div>
-                  <div className="progress-bar-container">
-                    <div 
-                      className="progress-bar"
-                      style={{ width: `${getProgressPercentage(region.interventions, maxRegionInterventions)}%` }}
-                    >
-                      <span className="progress-text">{region.interventions}</span>
-                    </div>
+                    <span className="hierarchy-name">{region.name}</span>
                   </div>
                 </div>
 
                 {expandedRegions.has(region.name) && (
                   <div className="hierarchy-children">
-                    {region.provinces.map((province) => (
-                      <div key={province.name} className="hierarchy-item province-item">
-                        <div 
-                          className="hierarchy-row"
-                          onClick={(e) => toggleProvince(province.name, e)}
-                        >
-                          <div className="hierarchy-info">
-                            <span className="expand-icon">{expandedProvinces.has(province.name) ? '▼' : '▶'}</span>
-                            <span className="hierarchy-name">📍 {province.name}</span>
-                          </div>
-                          <div className="progress-bar-container">
-                            <div 
-                              className="progress-bar province-bar"
-                              style={{ width: `${getProgressPercentage(province.interventions, getMaxProvinceInterventions(region.name))}%` }}
-                            >
-                              <span className="progress-text">{province.interventions}</span>
+                    {region.provinces.length === 0 ? (
+                      <div className="empty-folder">
+                        <span className="empty-icon">📭</span>
+                        <span className="empty-text">No hay datos registrados para esta región</span>
+                      </div>
+                    ) : (
+                      region.provinces.map((province) => (
+                        <div key={province.name} className="hierarchy-item province-item">
+                          <div 
+                            className="hierarchy-row"
+                            onClick={(e) => toggleProvince(province.name, e)}
+                            data-count={`${province.interventions} reportes`}
+                          >
+                            <div className="hierarchy-info">
+                              <span className="expand-icon">{expandedProvinces.has(province.name) ? '▼' : '▶'}</span>
+                              <span className="hierarchy-name">{province.name}</span>
                             </div>
                           </div>
-                        </div>
 
-                        {expandedProvinces.has(province.name) && (
-                          <div className="hierarchy-children">
-                            {province.districts.map((district) => (
-                              <div key={district.name} className="hierarchy-item district-item">
-                                <div 
-                                  className="hierarchy-row"
-                                  onClick={(e) => toggleDistrict(district.name, e)}
-                                >
-                                  <div className="hierarchy-info">
-                                    <span className="expand-icon">{expandedDistricts.has(district.name) ? '▼' : '▶'}</span>
-                                    <span className="hierarchy-name">🏘️ {district.name}</span>
-                                  </div>
-                                  <div className="progress-bar-container">
-                                    <div 
-                                      className="progress-bar district-bar"
-                                      style={{ width: `${getProgressPercentage(district.interventions, getMaxDistrictInterventions(region.name, province.name))}%` }}
-                                    >
-                                      <span className="progress-text">{district.interventions}</span>
+                          {expandedProvinces.has(province.name) && (
+                            <div className="hierarchy-children">
+                              {province.districts.map((district) => (
+                                <div key={district.name} className="hierarchy-item district-item">
+                                  <div 
+                                    className="hierarchy-row"
+                                    onClick={(e) => toggleDistrict(district.name, e)}
+                                    data-count={`${district.interventions} reportes`}
+                                  >
+                                    <div className="hierarchy-info">
+                                      <span className="expand-icon">{expandedDistricts.has(district.name) ? '▼' : '▶'}</span>
+                                      <span className="hierarchy-name">{district.name}</span>
                                     </div>
                                   </div>
-                                </div>
 
-                                {expandedDistricts.has(district.name) && (
-                                  <div className="reports-list">
-                                    <div className="reports-list-header">
-                                      <span>📋 Reportes de {district.name}</span>
-                                    </div>
-                                    {district.reports.map((report) => (
-                                      <div 
-                                        key={report.id}
-                                        className="report-item"
-                                        onClick={(e) => viewReport(report, e)}
-                                      >
-                                        <div className="report-info">
-                                          <span className="report-number">#{report.reportNumber}</span>
-                                          <span className="report-creator">👤 {report.createdBy}</span>
-                                          <span className="report-date">📅 {report.date}</span>
+                                  {expandedDistricts.has(district.name) && (
+                                    <div className="reports-list">
+                                      {district.reports.map((report) => (
+                                        <div 
+                                          key={report.id}
+                                          className="report-item"
+                                          onClick={(e) => viewReport(report, e)}
+                                        >
+                                          <div className="report-info">
+                                            <span className="report-number">#{report.reportNumber}</span>
+                                            <span className="report-creator">{report.createdBy}</span>
+                                            <span className="report-date">{report.date}</span>
+                                          </div>
                                         </div>
-                                        <div className="report-arrow">→</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 )}
               </div>

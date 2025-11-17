@@ -6,6 +6,96 @@
   font-family: var(--font-family);
 }
 
+/* Topbar moderno y compacto */
+.reports-topbar {
+  background: white;
+  padding: 12px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e8eaed;
+}
+
+/* Botón de volver */
+.topbar-back-btn {
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.topbar-back-btn:hover {
+  background: #f5f5f5;
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateX(-2px);
+}
+
+/* Contenedor de botones de acción */
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+  background: #f5f5f5;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+/* Botones del topbar */
+.topbar-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.topbar-btn .btn-icon {
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.topbar-btn:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.topbar-btn:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+/* Botón activo */
+.topbar-btn.active {
+  background: white;
+  color: #667eea;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.topbar-btn.active .btn-icon {
+  transform: scale(1.05);
+}
+
+/* Estilos legacy (por si acaso) */
 .reports-header {
   background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
   padding: 1.2rem 2.5rem;
@@ -267,6 +357,33 @@
 
 /* Responsive para el topbar */
 @media (max-width: 768px) {
+  .reports-topbar {
+    padding: 10px 16px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .topbar-back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .topbar-actions {
+    width: 100%;
+  }
+
+  .topbar-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .topbar-btn .btn-icon {
+    font-size: 14px;
+  }
+
+  /* Legacy responsive */
   .reports-header {
     padding: 1rem 1.5rem;
     flex-direction: column;
@@ -299,6 +416,19 @@
 }
 
 @media (max-width: 480px) {
+  .topbar-btn span:not(.btn-icon) {
+    display: none;
+  }
+
+  .topbar-btn .btn-icon {
+    font-size: 18px;
+  }
+
+  .topbar-back-btn span:not(.btn-icon) {
+    font-size: 12px;
+  }
+
+  /* Legacy responsive */
   .page-title {
     font-size: 1.5rem;
   }
@@ -308,6 +438,51 @@
     padding: 0.65rem 1rem;
     font-size: 0.85rem;
   }
+}
+
+/* Página de Informe Detallado como vista completa */
+.detailed-report-page {
+  min-height: calc(100vh - 60px);
+  background: white;
+  animation: fadeInPage 0.3s ease-in-out;
+}
+
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailed-report-page .detailed-report-modal {
+  position: relative;
+  background: transparent;
+  backdrop-filter: none;
+  animation: none;
+  display: block;
+  height: auto;
+}
+
+.detailed-report-page .detailed-report-container {
+  width: 100%;
+  max-width: 100%;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+}
+
+.detailed-report-page .detailed-report-header {
+  border-radius: 0;
+}
+
+/* Animación para el contenido de estadísticas */
+.reports-content {
+  animation: fadeInPage 0.3s ease-in-out;
 }
 
 .view-controls {

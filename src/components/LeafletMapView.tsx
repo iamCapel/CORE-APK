@@ -254,36 +254,85 @@ const LeafletMapView: React.FC<LeafletMapViewProps> = ({ user, onBack }) => {
 
   return (
     <div style={{ padding: '20px', height: '100vh', backgroundColor: '#f8f9fa' }}>
-      <div style={{ 
+      {/* Topbar */}
+      <div style={{
         display: 'flex', 
-        justifyContent: 'space-between', 
         alignItems: 'center', 
-        marginBottom: '20px',
+        justifyContent: 'space-between',
         backgroundColor: 'white',
-        padding: '15px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        color: '#2c3e50',
+        padding: '12px 20px',
+        marginBottom: '20px',
+        borderRadius: '0',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000
       }}>
-        <h1 style={{ margin: 0, color: '#2c3e50' }}>
-          🗺️ Mapa de Intervenciones MOPC (OpenStreetMap)
-        </h1>
-        <button 
-          onClick={onBack}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          ← Volver al Dashboard
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <button 
+            onClick={onBack}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 12px',
+              backgroundColor: '#f8f9fa',
+              color: '#2c3e50',
+              border: '1px solid #dee2e6',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#e9ecef';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#f8f9fa';
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>←</span>
+            Volver
+          </button>
+          <div style={{
+            width: '1px',
+            height: '24px',
+            backgroundColor: '#dee2e6'
+          }}></div>
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#2c3e50'
+          }}>
+            🗺️ Mapa de Intervenciones MOPC
+          </h1>
+        </div>
+        {/* Ícono de notificaciones - posicionado a la derecha */}
+        <div style={{ position: 'relative', cursor: 'pointer' }}>
+          <img 
+            src="/images/notification-bell-icon.svg" 
+            alt="Notificaciones" 
+            style={{
+              width: '24px', 
+              height: '24px',
+              filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
+            }}
+          />
+        </div>
+      </div>      <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
         {/* Panel de control */}
         <div style={{ 
           width: '300px', 
@@ -348,89 +397,8 @@ const LeafletMapView: React.FC<LeafletMapViewProps> = ({ user, onBack }) => {
               Presione Enter para buscar y ubicar en el mapa
             </p>
           </div>
-          
-          <div style={{ marginBottom: '20px' }}>
-            <p style={{ margin: '10px 0', fontWeight: 'bold' }}>
-              📈 Total: {filteredInterventions.length} intervenciones
-            </p>
-          </div>
 
-          <h4 style={{ color: '#34495e', marginBottom: '15px' }}>Tipos de Intervención:</h4>
-          
-          <div style={{ marginBottom: '15px' }}>
-            <button
-              onClick={() => setSelectedTypes(allTypes)}
-              style={{
-                padding: '8px 12px',
-                backgroundColor: '#27ae60',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginRight: '8px',
-                fontSize: '12px'
-              }}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setSelectedTypes([])}
-              style={{
-                padding: '8px 12px',
-                backgroundColor: '#e74c3c',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              Ninguno
-            </button>
-          </div>
 
-          {allTypes.map(type => {
-            const count = interventions.filter(i => i.tipoIntervencion === type).length;
-            return (
-              <div key={type} style={{ marginBottom: '8px' }}>
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer',
-                  padding: '8px',
-                  borderRadius: '4px',
-                  backgroundColor: selectedTypes.includes(type) ? '#ecf0f1' : 'transparent'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedTypes.includes(type)}
-                    onChange={() => toggleType(type)}
-                    style={{ marginRight: '8px' }}
-                  />
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: getTypeColor(type),
-                    marginRight: '8px',
-                    border: '1px solid #fff',
-                    boxShadow: '0 0 0 1px rgba(0,0,0,0.2)'
-                  }}></div>
-                  <span style={{ fontSize: '14px', flex: 1 }}>{type}</span>
-                  <span style={{ 
-                    fontSize: '12px', 
-                    color: '#7f8c8d',
-                    backgroundColor: '#ecf0f1',
-                    padding: '2px 6px',
-                    borderRadius: '10px',
-                    fontWeight: 'bold'
-                  }}>
-                    {count}
-                  </span>
-                </label>
-              </div>
-            );
-          })}
         </div>
 
         {/* Mapa */}

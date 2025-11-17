@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { reportStorage } from '../services/reportStorage';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
 
@@ -58,6 +59,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   const [plantillaFields, setPlantillaFields] = useState<Field[]>(plantillaDefault);
   const [plantillaValues, setPlantillaValues] = useState<Record<string, string>>({});
+
+  // Estado para animación de guardado
+  const [showSaveAnimation, setShowSaveAnimation] = useState(false);
 
   // GPS state
   const [gpsEnabled, setGpsEnabled] = useState(parentGpsEnabled);
@@ -343,37 +347,48 @@ const ReportForm: React.FC<ReportFormProps> = ({
       return;
     }
 
-    const intervencion = {
-      id: interventionToEdit?.id || Date.now(),
-      timestamp: new Date().toISOString(),
-      region,
-      provincia,
-      distrito: distritoFinal,
-      municipio,
-      sector: sectorFinal,
-      tipoIntervencion: tipoIntervencion === 'Canalización' ? `${tipoIntervencion}:${subTipoCanal}` : tipoIntervencion,
-      usuario: user?.name || 'Desconocido',
-      observaciones: observaciones || '',
-      ...plantillaValues
-    };
+    // Mostrar animación de guardado
+    setShowSaveAnimation(true);
 
-    // Guardar en localStorage
-    let intervenciones = JSON.parse(localStorage.getItem('mopc_intervenciones') || '[]');
-    
-    if (interventionToEdit) {
-      // Actualizar intervención existente
-      intervenciones = intervenciones.map((inv: any) => 
-        inv.id === interventionToEdit.id ? intervencion : inv
-      );
-    } else {
-      // Agregar nueva intervención
-      intervenciones.push(intervencion);
-    }
-    
-    localStorage.setItem('mopc_intervenciones', JSON.stringify(intervenciones));
+    // Simular proceso de guardado con delay
+    setTimeout(() => {
+      const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
+      const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
+      
+      // Guardar usando reportStorage
+      const reportData = {
+        id: interventionToEdit?.id,
+        creadoPor: user?.name || 'Desconocido',
+        usuarioId: user?.username || 'desconocido',
+        region,
+        provincia,
+        distrito: distritoFinal,
+        municipio,
+        sector: sectorFinal,
+        tipoIntervencion: tipoIntervencion === 'Canalización' ? `${tipoIntervencion}:${subTipoCanal}` : tipoIntervencion,
+        subTipoCanal: tipoIntervencion === 'Canalización' ? subTipoCanal : undefined,
+        observaciones: observaciones || undefined,
+        metricData: plantillaValues,
+        gpsData: autoGpsFields,
+        estado: 'completado' as const,
+        modificadoPor: interventionToEdit ? user?.name : undefined
+      };
 
-    limpiarFormulario();
-    alert(`Intervención ${interventionToEdit ? 'actualizada' : 'guardada'} exitosamente`);
+      try {
+        const savedReport = reportStorage.saveReport(reportData);
+        console.log('Reporte guardado:', savedReport);
+
+        // Ocultar animación después de 2 segundos
+        setTimeout(() => {
+          setShowSaveAnimation(false);
+          limpiarFormulario();
+        }, 2000);
+      } catch (error) {
+        console.error('Error al guardar reporte:', error);
+        setShowSaveAnimation(false);
+        alert('Error al guardar el reporte. Por favor intente nuevamente.');
+      }
+    }, 500);
   };
 
   // Función para guardar plantilla como predeterminada
@@ -593,14 +608,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
       {/* Topbar similar al dashboard principal */}
       <div className="topbar">
         <div className="topbar-left">
-          <div className="dashboard-logos">
-            <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="dashboard-logo-right" />
-          </div>
-        </div>
-
-        <div className="topbar-logo" aria-hidden></div>
-
-        <div className="topbar-right">
           <button 
             onClick={onBack}
             title="Volver al Dashboard" 
@@ -608,18 +615,32 @@ const ReportForm: React.FC<ReportFormProps> = ({
           >
             ← Volver
           </button>
-          <div className={`gps-status-badge ${gpsEnabled ? 'enabled' : 'disabled'}`} title={gpsEnabled ? gpsStatus || 'GPS habilitado' : 'GPS inactivo'}>
-            {gpsEnabled ? 'GPS: ON' : 'GPS: OFF'}
-          </div>
+        </div>
 
-          {/* GPS toggle */}
-          <div className="gps-wrapper">
-            <button onClick={toggleGps} title="Activar/desactivar GPS" className={`btn topbar-btn gps-btn ${gpsEnabled ? 'active' : ''}`}>🛰️</button>
-            {gpsStatus && <div className="gps-status" title={gpsStatus}>{gpsStatus.startsWith('OK') ? 'GPS ✔' : 'GPS ✱'}</div>}
-          </div>
+        <div className="topbar-logo" aria-hidden></div>
 
-          <div className="user-badge topbar-user" title={user.name}>
-            {user.name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase()} &nbsp; {user.name}
+        <div className="topbar-right" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+          {/* Ícono de notificaciones - posicionado en el extremo derecho */}
+          <div style={{ position: 'relative', cursor: 'pointer', marginRight: '0' }}>
+            <img 
+              src="/images/notification-bell-icon.svg" 
+              alt="Notificaciones" 
+              style={{
+                width: '24px', 
+                height: '24px',
+                filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
+              }}
+            />
           </div>
         </div>
       </div>
@@ -978,7 +999,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
               {/* Campo de observaciones */}
               <div className="template-field-card" style={{ gridColumn: '1 / -1' }}>
                 <div className="field-header">
-                  <span className="field-number">➕</span>
                   <label className="field-label" htmlFor="observaciones">
                     Observaciones, acciones realizadas o comentarios adicionales
                   </label>
@@ -1145,6 +1165,121 @@ const ReportForm: React.FC<ReportFormProps> = ({
           </div>
         </form>
       </div>
+      
+      {/* Animación de guardado exitoso */}
+      {showSaveAnimation && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000,
+          animation: 'fadeIn 0.3s ease-in'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '20px',
+            padding: '40px 60px',
+            textAlign: 'center',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            animation: 'scaleIn 0.5s ease-out'
+          }}>
+            {/* Icono de check animado */}
+            <div style={{
+              width: '100px',
+              height: '100px',
+              margin: '0 auto 20px',
+              borderRadius: '50%',
+              backgroundColor: '#28a745',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'checkBounce 0.6s ease-out'
+            }}>
+              <svg 
+                width="60" 
+                height="60" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{
+                  animation: 'checkDraw 0.5s ease-out 0.3s forwards',
+                  strokeDasharray: 50,
+                  strokeDashoffset: 50
+                }}
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            
+            <h2 style={{
+              color: '#28a745',
+              fontSize: '28px',
+              fontWeight: '700',
+              margin: '0 0 10px 0',
+              animation: 'fadeInUp 0.5s ease-out 0.2s both'
+            }}>
+              ¡Guardado Exitoso!
+            </h2>
+            
+            <p style={{
+              color: '#666',
+              fontSize: '16px',
+              margin: 0,
+              animation: 'fadeInUp 0.5s ease-out 0.3s both'
+            }}>
+              El reporte ha sido guardado correctamente
+            </p>
+          </div>
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+          from { 
+            transform: scale(0.5);
+            opacity: 0;
+          }
+          to { 
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes checkBounce {
+          0% { transform: scale(0); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+        
+        @keyframes checkDraw {
+          to { stroke-dashoffset: 0; }
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };

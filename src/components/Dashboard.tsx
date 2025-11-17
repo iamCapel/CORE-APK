@@ -25,7 +25,7 @@ interface User {
 const plantillaDefault: Field[] = [
   { key: 'punto_inicial', label: 'Punto inicial de la intervención', type: 'text', unit: 'Coordenadas decimales' },
   { key: 'punto_alcanzado', label: 'Punto alcanzado en la intervención', type: 'text', unit: 'Coordenadas decimales' },
-  { key: 'longitud_intervencion', label: 'Longitud de intervención', type: 'number', unit: 'ml' },
+  { key: 'longitud_intervencion', label: 'Longitud de intervención', type: 'number', unit: 'km' },
   { key: 'limpieza_superficie', label: 'Limpieza de superficie', type: 'number', unit: 'm²' },
   { key: 'perfilado_superficie', label: 'Perfilado de superficie', type: 'number', unit: 'm²' },
   { key: 'compactado_superficie', label: 'Compactado de superficie', type: 'number', unit: 'm²' },
@@ -457,7 +457,30 @@ const opcionesIntervencion = [
 const canalOptions = ['Río', 'Arroyo', 'Cañada'];
 
 const plantillasPorIntervencion: Record<string, Field[]> = {
-  'Rehabilitación Camino Vecinal': [...plantillaDefault],
+  'Rehabilitación Camino Vecinal': [
+    { key: 'nombre_camino', label: 'Nombre del camino vecinal', type: 'text', unit: '' },
+    { key: 'punto_inicial', label: 'Punto inicial de la intervención', type: 'text', unit: 'Coordenadas decimales' },
+    { key: 'punto_alcanzado', label: 'Punto alcanzado en la intervención', type: 'text', unit: 'Coordenadas decimales' },
+    { key: 'longitud_intervencion', label: 'Longitud de intervención', type: 'number', unit: 'km' },
+    { key: 'limpieza_superficie', label: 'Limpieza de superficie de rodadura (Incluye Cunetas)', type: 'number', unit: 'm²' },
+    { key: 'perfilado_superficie', label: 'Perfilado de superficie', type: 'number', unit: 'm²' },
+    { key: 'extraccion_material', label: 'Extracción de material inservible', type: 'number', unit: 'm³' },
+    { key: 'bote_material', label: 'Bote de material inservible', type: 'number', unit: 'm³' },
+    { key: 'conformacion_plataforma', label: 'Conformación de plataforma', type: 'number', unit: 'm²' },
+    { key: 'zafra_material', label: 'Zafra de material', type: 'number', unit: 'm³' },
+    { key: 'motonivelacion_superficie', label: 'Motonivelación de superficie', type: 'number', unit: 'm²' },
+    { key: 'suministro_extension_material', label: 'Suministro y extensión de material', type: 'number', unit: 'm³' },
+    { key: 'suministro_colocacion_grava', label: 'Suministro y colocación de grava', type: 'number', unit: 'm³' },
+    { key: 'nivelacion_compactacion_grava', label: 'Nivelación y compactación de grava', type: 'number', unit: 'm²' },
+    { key: 'reparacion_alcantarillas', label: 'Reparación de alcantarillas existentes', type: 'number', unit: 'und' },
+    { key: 'construccion_alcantarillas', label: 'Construcción de alcantarillas', type: 'number', unit: 'und' },
+    { key: 'limpieza_alcantarillas', label: 'Limpieza de alcantarillas', type: 'number', unit: 'und' },
+    { key: 'limpieza_cauces', label: 'Limpieza de cauces y cañadas', type: 'number', unit: 'ml' },
+    { key: 'obras_drenaje', label: 'Obras de drenaje', type: 'number', unit: 'ml' },
+    { key: 'construccion_terraplenes', label: 'Construcción de terraplenes', type: 'number', unit: 'm³' },
+    { key: 'relleno_compactacion', label: 'Relleno y compactación de material', type: 'number', unit: 'm³' },
+    { key: 'conformacion_taludes', label: 'Conformación de taludes', type: 'number', unit: 'm²' }
+  ],
   'Rehabilitación acceso a mina': [{ key: 'nombre_mina', label: 'Nombre mina', type: 'text', unit: '' }, ...plantillaDefault],
   'Restauración Calles comunidad': [...plantillaDefault],
   'Confección de cabezal de puente': [...plantillaDefault],
@@ -1216,17 +1239,19 @@ const Dashboard: React.FC = () => {
               {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
-            {/* Icono Informes */}
-            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
-              <div className="dashboard-icon">
-                <img src="/images/reports-icon.svg" alt="Informes y Estadísticas" style={{width: '64px', height: '64px'}} />
+            {/* Icono Informes - Oculto para usuarios técnicos */}
+            {user?.role !== UserRole.TECNICO && (
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
+                <div className="dashboard-icon">
+                  <img src="/images/reports-icon.svg" alt="Informes y Estadísticas" style={{width: '64px', height: '64px'}} />
+                </div>
+                <h3 className="dashboard-icon-title">Informes y Estadísticas</h3>
+                <p className="dashboard-icon-description">
+                  Ver estadísticas, reportes y análisis de todas las intervenciones
+                </p>
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
-              <h3 className="dashboard-icon-title">Informes y Estadísticas</h3>
-              <p className="dashboard-icon-description">
-                Ver estadísticas, reportes y análisis de todas las intervenciones
-              </p>
-              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
-            </div>
+            )}
 
             {/* Icono Buscar */}
             <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
@@ -1240,17 +1265,19 @@ const Dashboard: React.FC = () => {
               {!isProfileComplete && <div className="locked-overlay">🔒</div>}
             </div>
 
-            {/* Icono Usuarios - Activo */}
-            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
-              <div className="dashboard-icon">
-                👥
+            {/* Icono Usuarios - Oculto para usuarios técnicos */}
+            {user?.role !== UserRole.TECNICO && (
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
+                <div className="dashboard-icon">
+                  👥
+                </div>
+                <h3 className="dashboard-icon-title">Usuarios</h3>
+                <p className="dashboard-icon-description">
+                  Gestión de usuarios activos e inactivos del sistema
+                </p>
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
-              <h3 className="dashboard-icon-title">Usuarios</h3>
-              <p className="dashboard-icon-description">
-                Gestión de usuarios activos e inactivos del sistema
-              </p>
-              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
-            </div>
+            )}
 
             {/* Icono Exportar - Activo */}
             <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>

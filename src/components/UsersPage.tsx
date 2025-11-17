@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { reportStorage } from '../services/reportStorage';
 import './UsersPage.css';
+import PendingReportsModal from './PendingReportsModal';
 
 interface User {
   username: string;
@@ -23,6 +25,7 @@ interface UserProfile {
   department: string;
   reportsCount: number;
   joinDate: string;
+  pendingReportsCount?: number;
   currentLocation: {
     province: string;
     municipality: string;
@@ -48,203 +51,96 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [userReports, setUserReports] = useState<UserReport[]>([]);
   const [showUserDetail, setShowUserDetail] = useState(false);
-  const [gpsUpdateNotification, setGpsUpdateNotification] = useState('');
+  const [gpsUpdateNotification, setGpsUpdateNotification] = useState<string | null>(null);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [showAdminUserModal, setShowAdminUserModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAdminUser, setSelectedAdminUser] = useState<UserProfile | null>(null);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [selectedPendingReport, setSelectedPendingReport] = useState<UserReport | null>(null);
+  const [showPendingReportPreview, setShowPendingReportPreview] = useState(false);
+  
+  // Estados para notificaciones
+  const [pendingCount, setPendingCount] = useState(0);
+  const [showPendingModal, setShowPendingModal] = useState(false);
 
-  // Datos simulados de usuarios con geolocalización
-  const mockUsers: UserProfile[] = [
-    {
-      id: 'u1',
-      username: 'carlos.martinez',
-      name: 'Carlos Martínez',
-      email: 'carlos.martinez@mopc.gov.py',
-      role: 'Supervisor de Obras',
-      isActive: true,
-      lastSeen: 'Ahora',
-      department: 'Infraestructura Vial',
-      reportsCount: 23,
-      joinDate: '2024-01-15',
-      currentLocation: {
-        province: 'Central',
-        municipality: 'Asunción',
-        coordinates: { lat: -25.2637, lng: -57.5759 },
-        lastUpdated: 'Hace 2 min'
-      }
-    },
-    {
-      id: 'u2',
-      username: 'maria.gonzalez',
-      name: 'María González',
-      email: 'maria.gonzalez@mopc.gov.py',
-      role: 'Ingeniera Civil',
-      isActive: true,
-      lastSeen: 'Hace 5 min',
-      department: 'Proyectos Especiales',
-      reportsCount: 18,
-      joinDate: '2024-02-20',
-      currentLocation: {
-        province: 'Central',
-        municipality: 'San Lorenzo',
-        coordinates: { lat: -25.3371, lng: -57.5044 },
-        lastUpdated: 'Hace 5 min'
-      }
-    },
-    {
-      id: 'u3',
-      username: 'admin',
-      name: 'Administrador Sistema',
-      email: 'admin@mopc.gov.py',
-      role: 'Administrador',
-      isActive: true,
-      lastSeen: 'Ahora',
-      department: 'Tecnología',
-      reportsCount: 45,
-      joinDate: '2023-12-01',
-      currentLocation: {
-        province: 'Central',
-        municipality: 'Asunción',
-        coordinates: { lat: -25.2637, lng: -57.5759 },
-        lastUpdated: 'Ahora'
-      }
-    },
-    {
-      id: 'u4',
-      username: 'jose.rodriguez',
-      name: 'José Rodríguez',
-      email: 'jose.rodriguez@mopc.gov.py',
-      role: 'Técnico de Campo',
-      isActive: false,
-      lastSeen: 'Hace 2 horas',
-      department: 'Mantenimiento',
-      reportsCount: 31,
-      joinDate: '2024-03-10',
-      currentLocation: {
-        province: 'Alto Paraná',
-        municipality: 'Ciudad del Este',
-        coordinates: { lat: -25.5138, lng: -54.6158 },
-        lastUpdated: 'Hace 2 horas'
-      }
-    },
-    {
-      id: 'u5',
-      username: 'ana.lopez',
-      name: 'Ana López',
-      email: 'ana.lopez@mopc.gov.py',
-      role: 'Coordinadora Regional',
-      isActive: false,
-      lastSeen: 'Ayer',
-      department: 'Gestión Regional',
-      reportsCount: 27,
-      joinDate: '2024-01-25',
-      currentLocation: {
-        province: 'Itapúa',
-        municipality: 'Encarnación',
-        coordinates: { lat: -27.3300, lng: -55.8663 },
-        lastUpdated: 'Ayer'
-      }
-    },
-    {
-      id: 'u6',
-      username: 'pedro.silva',
-      name: 'Pedro Silva',
-      email: 'pedro.silva@mopc.gov.py',
-      role: 'Inspector de Calidad',
-      isActive: true,
-      lastSeen: 'Hace 1 min',
-      department: 'Control de Calidad',
-      reportsCount: 19,
-      joinDate: '2024-04-05',
-      currentLocation: {
-        province: 'Central',
-        municipality: 'Luque',
-        coordinates: { lat: -25.2650, lng: -57.4942 },
-        lastUpdated: 'Hace 1 min'
-      }
-    },
-    {
-      id: 'u7',
-      username: 'lucia.fernandez',
-      name: 'Lucía Fernández',
-      email: 'lucia.fernandez@mopc.gov.py',
-      role: 'Analista de Datos',
-      isActive: false,
-      lastSeen: 'Hace 3 días',
-      department: 'Planificación',
-      reportsCount: 12,
-      joinDate: '2024-05-12',
-      currentLocation: {
-        province: 'Cordillera',
-        municipality: 'Caacupé',
-        coordinates: { lat: -25.3864, lng: -57.1439 },
-        lastUpdated: 'Hace 3 días'
-      }
-    },
-    {
-      id: 'u8',
-      username: 'miguel.torres',
-      name: 'Miguel Torres',
-      email: 'miguel.torres@mopc.gov.py',
-      role: 'Jefe de Proyecto',
-      isActive: true,
-      lastSeen: 'Hace 15 min',
-      department: 'Gestión de Proyectos',
-      reportsCount: 34,
-      joinDate: '2023-11-20',
-      currentLocation: {
-        province: 'Paraguarí',
-        municipality: 'Paraguarí',
-        coordinates: { lat: -25.6117, lng: -57.1286 },
-        lastUpdated: 'Hace 15 min'
-      }
-    }
-  ];
-
-  // Datos simulados de reportes por usuario
-  const mockReportsByUser: Record<string, UserReport[]> = {
-    'u1': [
-      { id: 'r1', title: 'Reparación Ruta 1 - Tramo Norte', date: '2025-10-15', status: 'Completado', province: 'Central', type: 'Mantenimiento' },
-      { id: 'r2', title: 'Inspección Puente Yabebyry', date: '2025-10-10', status: 'En Progreso', province: 'Paraguarí', type: 'Inspección' },
-      { id: 'r3', title: 'Evaluación Estructura Vial', date: '2025-10-05', status: 'Completado', province: 'Central', type: 'Evaluación' }
-    ],
-    'u2': [
-      { id: 'r4', title: 'Diseño Puente Peatonal', date: '2025-10-12', status: 'En Progreso', province: 'Asunción', type: 'Diseño' },
-      { id: 'r5', title: 'Supervisión Obra Civil', date: '2025-10-08', status: 'Completado', province: 'Central', type: 'Supervisión' }
-    ],
-    'u3': [
-      { id: 'r6', title: 'Auditoría Sistemas MOPC', date: '2025-10-18', status: 'En Progreso', province: 'Asunción', type: 'Auditoría' },
-      { id: 'r7', title: 'Implementación Dashboard', date: '2025-10-01', status: 'Completado', province: 'Asunción', type: 'Tecnología' },
-      { id: 'r8', title: 'Backup Sistemas Críticos', date: '2025-09-28', status: 'Completado', province: 'Asunción', type: 'Mantenimiento' }
-    ],
-    'u4': [
-      { id: 'r9', title: 'Mantenimiento Ruta 7', date: '2025-10-14', status: 'Pendiente', province: 'Caaguazú', type: 'Mantenimiento' },
-      { id: 'r10', title: 'Reparación Señalización', date: '2025-10-11', status: 'Completado', province: 'Itapúa', type: 'Señalización' }
-    ],
-    'u5': [
-      { id: 'r11', title: 'Coordinación Regional Este', date: '2025-10-13', status: 'En Progreso', province: 'Alto Paraná', type: 'Coordinación' },
-      { id: 'r12', title: 'Planificación Trimestral', date: '2025-10-09', status: 'Completado', province: 'Itapúa', type: 'Planificación' }
-    ],
-    'u6': [
-      { id: 'r13', title: 'Control Calidad Pavimento', date: '2025-10-16', status: 'En Progreso', province: 'Central', type: 'Control de Calidad' },
-      { id: 'r14', title: 'Inspección Materiales', date: '2025-10-07', status: 'Completado', province: 'Asunción', type: 'Inspección' }
-    ],
-    'u7': [
-      { id: 'r15', title: 'Análisis Estadístico Obras', date: '2025-10-06', status: 'Completado', province: 'Asunción', type: 'Análisis' },
-      { id: 'r16', title: 'Reporte Mensual KPIs', date: '2025-09-30', status: 'Completado', province: 'Asunción', type: 'Reporte' }
-    ],
-    'u8': [
-      { id: 'r17', title: 'Gestión Proyecto Ruta 2', date: '2025-10-17', status: 'En Progreso', province: 'Central', type: 'Gestión' },
-      { id: 'r18', title: 'Seguimiento Cronograma', date: '2025-10-14', status: 'Completado', province: 'Central', type: 'Seguimiento' },
-      { id: 'r19', title: 'Reunión Stakeholders', date: '2025-10-12', status: 'Completado', province: 'Asunción', type: 'Reunión' }
-    ]
+  // Función para actualizar el contador de pendientes
+  const updatePendingCount = () => {
+    const pendientes = Object.keys(localStorage).filter(key => 
+      key.startsWith('intervencion_pendiente_') || key.startsWith('borrador_intervencion')
+    ).length;
+    setPendingCount(pendientes);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Función para obtener lista detallada de reportes pendientes
+  const getPendingReports = () => {
+    const pendingKeys = Object.keys(localStorage).filter(key => 
+      key.startsWith('intervencion_pendiente_') || key.startsWith('borrador_intervencion')
+    );
+
+    return pendingKeys.map(key => {
+      try {
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        return {
+          id: key,
+          reportNumber: key.includes('pendiente_') ? 
+            `RPT-${key.split('_').pop()?.slice(-6) || '000000'}` : 
+            `BRR-${Date.now().toString().slice(-6)}`,
+          timestamp: data.timestamp || new Date().toISOString(),
+          estado: data.estado || (key.includes('borrador') ? 'borrador' : 'pendiente'),
+          region: data.region || 'N/A',
+          provincia: data.provincia || 'N/A',
+          municipio: data.municipio || 'N/A',
+          tipoIntervencion: data.tipoIntervencion || 'No especificado'
+        };
+      } catch {
+        return {
+          id: key,
+          reportNumber: `ERR-${Date.now().toString().slice(-6)}`,
+          timestamp: new Date().toISOString(),
+          estado: 'error',
+          region: 'Error',
+          provincia: 'Error',
+          municipio: 'Error',
+          tipoIntervencion: 'Error al cargar'
+        };
+      }
+    });
+  };
+
+  // Función para eliminar un reporte pendiente
+  const handleDeletePendingReport = (reportId: string) => {
+    localStorage.removeItem(reportId);
+    updatePendingCount();
+    // Actualizar la vista del modal
+    setShowPendingModal(false);
+    setTimeout(() => setShowPendingModal(true), 100);
+  };
+
+  // Actualizar contador al cargar y cada vez que cambie localStorage
   useEffect(() => {
-    setUsers(mockUsers);
+    updatePendingCount();
+    
+    // Escuchar cambios en localStorage
+    const handleStorageChange = () => {
+      updatePendingCount();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // También verificar periódicamente por si hay cambios internos
+    const interval = setInterval(updatePendingCount, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleUserClick = (clickedUser: UserProfile) => {
     setSelectedUser(clickedUser);
-    setUserReports(mockReportsByUser[clickedUser.id] || []);
+    // En lugar de datos simulados, aquí se cargarían los reportes reales del usuario desde localStorage
+    setUserReports([]);
     setShowUserDetail(true);
   };
 
@@ -311,6 +207,14 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
 
   const activeUsers = users.filter(u => u.isActive);
   const inactiveUsers = users.filter(u => !u.isActive);
+  const usersWithPendingReports = users.filter(u => u.pendingReportsCount && u.pendingReportsCount > 0);
+
+  // Filtrar usuarios en búsqueda del modal de administración
+  const filteredUsers = users.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (showUserDetail && selectedUser) {
     return (
@@ -328,6 +232,55 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
             <div className="user-info">
               <span className="welcome-text">Bienvenido, {user.name}</span>
               <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
+            </div>
+            {/* Ícono de notificaciones - posicionado a la derecha */}
+            <div className="notification-container" style={{ position: 'relative', cursor: 'pointer', marginLeft: '15px' }}>
+              <img 
+                src="/images/notification-bell-icon.svg" 
+                alt="Notificaciones" 
+                style={{
+                  width: '24px', 
+                  height: '24px',
+                  filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => setShowPendingModal(true)}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
+                }}
+              />
+              {/* Contador de notificaciones */}
+              {pendingCount > 0 && (
+                <span 
+                  className="notification-badge"
+                  style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-6px',
+                    backgroundColor: '#e74c3c',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    animation: pendingCount > 0 ? 'pulse 2s infinite' : 'none'
+                  }}
+                >
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -448,24 +401,71 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
 
   return (
     <div className="users-page">
-      <div className="users-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Volver al Dashboard
-          </button>
-          <h1 className="page-title">
-            👥 Gestión de Usuarios
-          </h1>
-        </div>
-        <div className="header-right">
-          <div className="user-info">
-            <span className="welcome-text">Bienvenido, {user.name}</span>
-            <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
-          </div>
+      {/* Topbar compacto y fijo */}
+      <div className="users-topbar">
+        <button className="topbar-back-button" onClick={onBack}>
+          <span className="back-icon">←</span>
+          <span>Volver</span>
+        </button>
+        <div className="topbar-divider"></div>
+        <h1 className="topbar-title">👥 Gestión de Usuarios</h1>
+        <div className="topbar-spacer"></div>
+        <div className="topbar-notification notification-container" style={{ position: 'relative' }}>
+          <img 
+            src="/images/notification-bell-icon.svg" 
+            alt="Notificaciones" 
+            className="notification-icon"
+            onClick={() => setShowPendingModal(true)}
+            style={{ cursor: 'pointer' }}
+          />
+          {/* Contador de notificaciones */}
+          {pendingCount > 0 && (
+            <span 
+              className="notification-badge"
+              style={{
+                position: 'absolute',
+                top: '-6px',
+                right: '-6px',
+                backgroundColor: '#e74c3c',
+                color: 'white',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                border: '2px solid white',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                animation: pendingCount > 0 ? 'pulse 2s infinite' : 'none'
+              }}
+            >
+              {pendingCount > 99 ? '99+' : pendingCount}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="users-content">
+      {/* Contenedor principal agrupado */}
+      <div className="users-main-container">
+        {/* Panel de control - Acciones principales */}
+        <div className="users-control-panel">
+          <div className="control-panel-header">
+            <h2 className="control-title">Panel de Control</h2>
+            <p className="control-description">Gestiona y administra los usuarios del sistema</p>
+          </div>
+          <div className="control-actions">
+            <button className="action-button create-user-btn" onClick={() => setShowCreateUserModal(true)}>
+              <span className="action-icon">➕</span>
+              <span className="action-text">Crear Usuario</span>
+            </button>
+            <button className="action-button admin-user-btn" onClick={() => setShowAdminUserModal(true)}>
+              <span className="action-icon">⚙️</span>
+              <span className="action-text">Administrar Usuario</span>
+            </button>
+          </div>
+        </div>      <div className="users-content">
         {/* Usuarios Activos */}
         <div className="users-section">
           <div className="section-header">
@@ -545,7 +545,916 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
             ))}
           </div>
         </div>
+
+        {/* Usuarios con Reportes Pendientes */}
+        <div className="users-section">
+          <div className="section-header">
+            <h2 className="section-title">⚠️ Usuarios con Reportes Pendientes ({usersWithPendingReports.length})</h2>
+            <p className="section-description">
+              Usuarios que tienen reportes en progreso por completar
+            </p>
+          </div>
+
+          <div className="users-grid">
+            {usersWithPendingReports.map((userProfile) => (
+              <div 
+                key={userProfile.id} 
+                className="user-card pending"
+                onClick={() => handleUserClick(userProfile)}
+              >
+                <div className="user-avatar-container">
+                  <div className="user-avatar-circle">
+                    {userProfile.avatar ? (
+                      <img src={userProfile.avatar} alt={userProfile.name} />
+                    ) : (
+                      <span className="user-initials">{getInitials(userProfile.name)}</span>
+                    )}
+                  </div>
+                  <div className="status-indicator pending"></div>
+                </div>
+                <div className="user-details">
+                  <h3 className="user-name">{userProfile.name}</h3>
+                  <p className="user-location">📍 {userProfile.currentLocation.province}, {userProfile.currentLocation.municipality}</p>
+                  <p className="user-department">{userProfile.department}</p>
+                  <div className="user-stats">
+                    <span className="reports-count">📋 {userProfile.reportsCount} reportes</span>
+                    <span className="pending-count" style={{ color: '#ff9800', fontWeight: 'bold' }}>
+                      ⚠️ {userProfile.pendingReportsCount} pendientes
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+      </div>
+      
+      {/* Modal de Crear Usuario */}
+      {showCreateUserModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 2000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '20px',
+            width: '500px',
+            maxHeight: '90vh',
+            position: 'relative',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Botón de cerrar (X) */}
+            <button 
+              onClick={() => setShowCreateUserModal(false)}
+              style={{
+                position: 'absolute',
+                top: '15px',
+                right: '15px',
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#6c757d',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e9ecef';
+                e.currentTarget.style.color = '#495057';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.color = '#6c757d';
+              }}
+            >
+              ×
+            </button>
+            
+            {/* Formulario de Crear Usuario */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '20px 0',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ flex: 1 }}>
+                <h2 style={{
+                  margin: '0 0 20px 0',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  color: '#333',
+                  textAlign: 'center'
+                }}>
+                  Crear Nuevo Usuario
+                </h2>
+                
+                <div style={{
+                  display: 'grid',
+                  gap: '15px'
+                }}>
+                  {/* Nombres */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '5px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      Nombres
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ingrese los nombres"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* Apellidos */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '5px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      Apellidos
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ingrese los apellidos"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* Número de Cédula */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '5px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      Número de Cédula
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej: 12345678-9"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* Usuario */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '5px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      Usuario
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nombre de usuario"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* Contraseña */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '5px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      Contraseña
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Ingrese la contraseña"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* Nivel de Usuario */}
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '5px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      Nivel de Usuario
+                    </label>
+                    <select
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        backgroundColor: 'white',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="">Seleccionar nivel...</option>
+                      <option value="TECNICO">Técnico</option>
+                      <option value="SUPERVISOR">Supervisor</option>
+                      <option value="ADMIN">Administrador</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones */}
+              <div style={{
+                display: 'flex',
+                gap: '10px',
+                justifyContent: 'flex-end',
+                marginTop: '20px'
+              }}>
+                <button
+                  onClick={() => setShowCreateUserModal(false)}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#5a6268';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#6c757d';
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#0056b3';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#007bff';
+                  }}
+                >
+                  Crear Usuario
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Administrar Usuario */}
+      {showAdminUserModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 2000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '20px',
+            width: '600px',
+            maxHeight: '90vh',
+            position: 'relative',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Botón de cerrar (X) */}
+            <button 
+              onClick={() => {
+                setShowAdminUserModal(false);
+                setSearchQuery('');
+                setSelectedAdminUser(null);
+                setEditingUser(null);
+              }}
+              style={{
+                position: 'absolute',
+                top: '15px',
+                right: '15px',
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#6c757d',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e9ecef';
+                e.currentTarget.style.color = '#495057';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.color = '#6c757d';
+              }}
+            >
+              ×
+            </button>
+            
+            {/* Contenido del Modal */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '20px 0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px'
+            }}>
+              <h2 style={{
+                margin: '0 0 10px 0',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                color: '#333',
+                textAlign: 'center'
+              }}>
+                Administrar Usuarios
+              </h2>
+              
+              {/* Barra de búsqueda */}
+              <div style={{
+                position: 'relative',
+                width: '100%'
+              }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Buscar usuario por nombre, usuario o correo..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 15px',
+                    border: '2px solid #ddd',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#007bff';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#ddd';
+                  }}
+                />
+              </div>
+
+              {/* Lista de usuarios filtrados */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                maxHeight: '400px',
+                overflowY: 'auto'
+              }}>
+                {!selectedAdminUser ? (
+                  <>
+                    {users
+                      .filter(u => 
+                        searchQuery === '' ||
+                        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map(userItem => (
+                        <div
+                          key={userItem.id}
+                          style={{
+                            padding: '15px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            border: '2px solid transparent'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#e9ecef';
+                            e.currentTarget.style.borderColor = '#007bff';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f8f9fa';
+                            e.currentTarget.style.borderColor = 'transparent';
+                          }}
+                          onClick={() => {
+                            // Cargar los datos del usuario para editar
+                            setSelectedAdminUser(userItem);
+                            setEditingUser({ ...userItem });
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {/* Avatar */}
+                            <div style={{
+                              width: '45px',
+                              height: '45px',
+                              borderRadius: '50%',
+                              backgroundColor: '#007bff',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 'bold',
+                              fontSize: '16px',
+                              flexShrink: 0
+                            }}>
+                              {getInitials(userItem.name)}
+                            </div>
+                            
+                            {/* Información del usuario */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontWeight: '600',
+                                fontSize: '15px',
+                                color: '#2c3e50',
+                                marginBottom: '3px'
+                              }}>
+                                {userItem.name}
+                              </div>
+                              <div style={{
+                                fontSize: '13px',
+                                color: '#6c757d'
+                              }}>
+                                @{userItem.username} • {userItem.email}
+                              </div>
+                              <div style={{
+                                fontSize: '12px',
+                                color: '#495057',
+                                marginTop: '3px'
+                              }}>
+                                {userItem.role} • {userItem.department}
+                              </div>
+                            </div>
+
+                            {/* Estado activo */}
+                            <div style={{
+                              padding: '4px 10px',
+                              borderRadius: '20px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              backgroundColor: userItem.isActive ? '#d4edda' : '#f8d7da',
+                              color: userItem.isActive ? '#155724' : '#721c24'
+                            }}>
+                              {userItem.isActive ? 'Activo' : 'Inactivo'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  
+                    {/* Mensaje si no hay resultados */}
+                    {users.filter(u => 
+                      searchQuery === '' ||
+                      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).length === 0 && (
+                      <div style={{
+                        padding: '40px',
+                        textAlign: 'center',
+                        color: '#6c757d',
+                        fontSize: '14px'
+                      }}>
+                        No se encontraron usuarios que coincidan con la búsqueda
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Panel de edición del usuario */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {/* Botón de volver */}
+                    <button
+                      onClick={() => {
+                        setSelectedAdminUser(null);
+                        setEditingUser(null);
+                      }}
+                      style={{
+                        alignSelf: 'flex-start',
+                        padding: '8px 15px',
+                        backgroundColor: '#6c757d',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#5a6268';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#6c757d';
+                      }}
+                    >
+                      ← Volver a la lista
+                    </button>
+
+                    {/* Datos editables del usuario */}
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '20px',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '15px'
+                    }}>
+                      <h3 style={{ margin: 0, color: '#2c3e50', fontSize: '18px' }}>
+                        Información del Usuario
+                      </h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        {/* Nombre */}
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '5px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>
+                            Nombre completo
+                          </label>
+                          <input
+                            type="text"
+                            value={editingUser?.name || ''}
+                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, name: e.target.value } : null)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              outline: 'none',
+                              transition: 'border-color 0.2s',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+
+                        {/* Usuario */}
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '5px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>
+                            Usuario
+                          </label>
+                          <input
+                            type="text"
+                            value={editingUser?.username || ''}
+                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, username: e.target.value } : null)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              outline: 'none',
+                              transition: 'border-color 0.2s',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '5px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>
+                            Correo electrónico
+                          </label>
+                          <input
+                            type="email"
+                            value={editingUser?.email || ''}
+                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, email: e.target.value } : null)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              outline: 'none',
+                              transition: 'border-color 0.2s',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+
+                        {/* Rol */}
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '5px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>
+                            Rol
+                          </label>
+                          <input
+                            type="text"
+                            value={editingUser?.role || ''}
+                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, role: e.target.value } : null)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              outline: 'none',
+                              transition: 'border-color 0.2s',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+
+                        {/* Departamento */}
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '5px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>
+                            Departamento
+                          </label>
+                          <input
+                            type="text"
+                            value={editingUser?.department || ''}
+                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, department: e.target.value } : null)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              outline: 'none',
+                              transition: 'border-color 0.2s',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
+
+                        {/* Estado */}
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            marginBottom: '5px',
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#495057'
+                          }}>
+                            Estado
+                          </label>
+                          <select
+                            value={editingUser?.isActive ? 'true' : 'false'}
+                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, isActive: e.target.value === 'true' } : null)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              border: '1px solid #ddd',
+                              borderRadius: '8px',
+                              fontSize: '14px',
+                              outline: 'none',
+                              backgroundColor: 'white',
+                              transition: 'border-color 0.2s',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reportes del usuario */}
+                    <div style={{
+                      backgroundColor: '#f8f9fa',
+                      padding: '20px',
+                      borderRadius: '12px'
+                    }}>
+                      <h3 style={{ margin: '0 0 15px 0', color: '#2c3e50', fontSize: '18px' }}>
+                        Reportes del Usuario (0)
+                      </h3>
+                      
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        maxHeight: '200px',
+                        overflowY: 'auto'
+                      }}>
+                        <div style={{
+                          padding: '20px',
+                          textAlign: 'center',
+                          color: '#6c757d',
+                          fontSize: '13px'
+                        }}>
+                          Este usuario no tiene reportes registrados
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botones de acción */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '10px',
+                      justifyContent: 'flex-end'
+                    }}>
+                      <button
+                        onClick={() => {
+                          // Guardar cambios
+                          if (editingUser) {
+                            setUsers(prevUsers => 
+                              prevUsers.map(u => u.id === editingUser.id ? editingUser : u)
+                            );
+                            alert('Cambios guardados exitosamente');
+                            setSelectedAdminUser(null);
+                            setEditingUser(null);
+                          }
+                        }}
+                        style={{
+                          padding: '10px 20px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#218838';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#28a745';
+                        }}
+                      >
+                        Guardar Cambios
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm('¿Está seguro de que desea eliminar este usuario?')) {
+                            setUsers(prevUsers => prevUsers.filter(u => u.id !== selectedAdminUser.id));
+                            alert('Usuario eliminado exitosamente');
+                            setSelectedAdminUser(null);
+                            setEditingUser(null);
+                          }
+                        }}
+                        style={{
+                          padding: '10px 20px',
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#c82333';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#dc3545';
+                        }}
+                      >
+                        Eliminar Usuario
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal de Reportes Pendientes */}
+      <PendingReportsModal
+        isOpen={showPendingModal}
+        onClose={() => setShowPendingModal(false)}
+        reports={getPendingReports()}
+        onDeleteReport={handleDeletePendingReport}
+      />
     </div>
   );
 };

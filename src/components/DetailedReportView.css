@@ -76,67 +76,179 @@
   gap: var(--spacing-sm);
 }
 
-.hierarchy-item {
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  transition: var(--transition-normal);
-}
-
-.region-item {
-  background: linear-gradient(135deg, #fff9f5 0%, #ffe5cc 100%);
-  border: 2px solid var(--primary-orange);
-  box-shadow: var(--shadow-md);
-}
-
-.province-item {
-  background: linear-gradient(135deg, #ffffff 0%, #fff9f5 100%);
-  border: 2px solid var(--secondary-orange);
-  margin-left: var(--spacing-xl);
-  margin-top: var(--spacing-sm);
-}
-
-.district-item {
+/* Jerarquía con estilo de carpetas */
+.hierarchy-list {
+  padding: 8px;
   background: white;
-  border: 1px solid var(--tertiary-orange);
-  margin-left: calc(var(--spacing-xl) * 2);
-  margin-top: var(--spacing-sm);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  min-height: 400px;
+}
+
+.hierarchy-item {
+  margin-bottom: 1px;
 }
 
 .hierarchy-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-md);
+  padding: 4px 8px;
   cursor: pointer;
-  transition: var(--transition-fast);
-  gap: var(--spacing-md);
+  transition: all 0.1s ease;
+  border-radius: 3px;
+  user-select: none;
+  position: relative;
 }
 
 .hierarchy-row:hover {
-  background: rgba(255, 122, 0, 0.05);
-  transform: translateX(4px);
+  background: #f0f0f0;
+}
+
+.hierarchy-row:active {
+  background: #e0e0e0;
+}
+
+/* Efecto de selección */
+.hierarchy-item.selected > .hierarchy-row {
+  background: #e8f4ff;
+  border: 1px solid #c0e0ff;
 }
 
 .hierarchy-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 6px;
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
 }
 
 .expand-icon {
-  color: var(--primary-orange);
-  font-size: 14px;
-  transition: var(--transition-fast);
-  width: 20px;
-  display: inline-block;
+  color: #666;
+  font-size: 9px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
 }
 
 .hierarchy-name {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: var(--font-size-md);
+  font-size: 13px;
+  color: #000;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Iconos de tipo carpeta */
+.region-item > .hierarchy-row .hierarchy-name::before {
+  content: '📁';
+  font-size: 15px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+.province-item > .hierarchy-row .hierarchy-name::before {
+  content: '📂';
+  font-size: 14px;
+}
+
+.district-item > .hierarchy-row .hierarchy-name::before {
+  content: '📄';
+  font-size: 13px;
+}
+
+/* Eliminar iconos duplicados del HTML */
+.hierarchy-name > span:first-child {
+  display: none;
+}
+
+/* Contador de elementos */
+.hierarchy-row::after {
+  content: attr(data-count);
+  margin-left: auto;
+  font-size: 11px;
+  color: #888;
+  padding: 2px 6px;
+  background: transparent;
+  border-radius: 8px;
+  font-weight: 400;
+}
+
+.hierarchy-row:hover::after {
+  background: #e8e8e8;
+}
+
+/* Ocultar barra de progreso - usaremos contador */
+.progress-bar-container {
+  display: none;
+}
+
+/* Niveles de indentación */
+.hierarchy-children {
+  margin-left: 18px;
+  animation: expandFolder 0.15s ease;
+  border-left: 1px solid #f0f0f0;
+  padding-left: 2px;
+}
+
+@keyframes expandFolder {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 5000px;
+  }
+}
+
+/* Items de región */
+.region-item {
+  border-left: 2px solid transparent;
+}
+
+.region-item > .hierarchy-row {
+  font-weight: 500;
+  padding: 5px 8px;
+}
+
+/* Items de provincia */
+.province-item > .hierarchy-row {
+  font-weight: 400;
+}
+
+/* Items de distrito */
+.district-item > .hierarchy-row {
+  font-weight: 400;
+  color: #333;
+}
+
+/* Estado vacío */
+.empty-folder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  margin-left: 20px;
+  color: #999;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.empty-icon {
+  font-size: 16px;
+  opacity: 0.6;
+}
+
+.empty-text {
+  color: #999;
 }
 
 /* Barra de progreso */
@@ -183,73 +295,76 @@
   animation: slideDown 0.3s ease;
 }
 
-/* Lista de reportes */
+/* Lista de reportes estilo archivos */
 .reports-list {
-  margin-left: calc(var(--spacing-xl) * 3);
-  margin-top: var(--spacing-md);
-  background: var(--off-white);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--gray);
+  margin-left: 0;
+  margin-top: 1px;
 }
 
 .reports-list-header {
-  background: linear-gradient(135deg, var(--tertiary-orange) 0%, var(--pale-orange) 100%);
-  padding: var(--spacing-md);
-  font-weight: 700;
-  color: var(--primary-orange-dark);
-  border-bottom: 2px solid var(--secondary-orange);
+  display: none;
 }
 
 .report-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-md);
-  background: white;
-  border-bottom: 1px solid var(--gray);
+  padding: 4px 8px 4px 18px;
   cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.report-item:last-child {
-  border-bottom: none;
+  transition: all 0.1s ease;
+  border-radius: 3px;
+  margin-bottom: 1px;
+  position: relative;
 }
 
 .report-item:hover {
-  background: var(--pale-orange);
-  transform: translateX(4px);
-  box-shadow: var(--shadow-sm);
+  background: #e8f4ff;
+}
+
+.report-item:active {
+  background: #cce5ff;
+}
+
+.report-item::before {
+  content: '📝';
+  font-size: 13px;
+  margin-right: 6px;
+  position: absolute;
+  left: 0;
 }
 
 .report-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
-  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+  font-size: 12px;
+  color: #666;
 }
 
 .report-number {
-  font-weight: 700;
-  color: var(--primary-orange-dark);
-  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: #0066cc;
+  font-size: 12px;
 }
 
-.report-creator,
+.report-creator {
+  color: #666;
+  font-size: 11px;
+}
+
+.report-creator::before {
+  content: '• ';
+  color: #ccc;
+}
+
 .report-date {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
+  color: #999;
+  font-size: 11px;
+  margin-left: auto;
 }
 
 .report-arrow {
-  color: var(--primary-orange);
-  font-size: 24px;
-  font-weight: 700;
-  transition: var(--transition-fast);
-}
-
-.report-item:hover .report-arrow {
-  transform: translateX(4px);
+  display: none;
 }
 
 /* Visor de reporte completo */

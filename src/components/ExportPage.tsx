@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import PendingReportsModal from './PendingReportsModal';
+import { reportStorage } from '../services/reportStorage';
 import './ExportPage.css';
+import { UserRole } from '../types/userRoles';
 
 interface User {
   username: string;
   name: string;
+  role?: UserRole;
 }
 
 interface ExportPageProps {
@@ -18,6 +22,7 @@ interface ReportData {
   province: string;
   status: string;
   description: string;
+  createdBy: string; // Usuario que creó el reporte
 }
 
 const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
@@ -25,50 +30,83 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
   const [searchResult, setSearchResult] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  
+  // Estados para notificaciones
+  const [pendingCount, setPendingCount] = useState(0);
+  const [showPendingModal, setShowPendingModal] = useState(false);
 
-  // Datos simulados de reportes
-  const mockReports: ReportData[] = [
-    {
-      reportNumber: 'RPT-2025-001',
-      title: 'Reparación de Carretera Ruta 1',
-      date: '2025-01-15',
-      province: 'Central',
-      status: 'Completado',
-      description: 'Intervención de mantenimiento en la Ruta 1, tramo km 25-30'
-    },
-    {
-      reportNumber: 'RPT-2025-002',
-      title: 'Construcción de Puente Yabebyry',
-      date: '2025-02-10',
-      province: 'Paraguarí',
-      status: 'En Progreso',
-      description: 'Construcción de puente vehicular sobre el río Yabebyry'
-    },
-    {
-      reportNumber: 'RPT-2025-003',
-      title: 'Mantenimiento Ruta 7',
-      date: '2025-03-05',
-      province: 'Caaguazú',
-      status: 'Pendiente',
-      description: 'Mantenimiento preventivo de la Ruta 7, varios tramos'
-    },
-    {
-      reportNumber: 'RPT-2025-004',
-      title: 'Rehabilitación Ruta 2',
-      date: '2025-03-20',
-      province: 'Central',
-      status: 'Completado',
-      description: 'Rehabilitación completa de la Ruta 2, tramo Luque-Capiatá'
-    },
-    {
-      reportNumber: 'RPT-2025-005',
-      title: 'Pavimentación Acceso Norte',
-      date: '2025-04-01',
-      province: 'Asunción',
-      status: 'En Progreso',
-      description: 'Pavimentación del acceso norte de Asunción'
-    }
-  ];
+  // Función para actualizar el contador de pendientes
+  const updatePendingCount = () => {
+    const pendientes = Object.keys(localStorage).filter(key => 
+      key.startsWith('intervencion_pendiente_') || key.startsWith('borrador_intervencion')
+    ).length;
+    setPendingCount(pendientes);
+  };
+
+  // Función para obtener lista detallada de reportes pendientes
+  const getPendingReports = () => {
+    const pendingKeys = Object.keys(localStorage).filter(key => 
+      key.startsWith('intervencion_pendiente_') || key.startsWith('borrador_intervencion')
+    );
+
+    return pendingKeys.map(key => {
+      try {
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        return {
+          id: key,
+          reportNumber: key.includes('pendiente_') ? 
+            `RPT-${key.split('_').pop()?.slice(-6) || '000000'}` : 
+            `BRR-${Date.now().toString().slice(-6)}`,
+          timestamp: data.timestamp || new Date().toISOString(),
+          estado: data.estado || (key.includes('borrador') ? 'borrador' : 'pendiente'),
+          region: data.region || 'N/A',
+          provincia: data.provincia || 'N/A',
+          municipio: data.municipio || 'N/A',
+          tipoIntervencion: data.tipoIntervencion || 'No especificado'
+        };
+      } catch {
+        return {
+          id: key,
+          reportNumber: `ERR-${Date.now().toString().slice(-6)}`,
+          timestamp: new Date().toISOString(),
+          estado: 'error',
+          region: 'Error',
+          provincia: 'Error',
+          municipio: 'Error',
+          tipoIntervencion: 'Error al cargar'
+        };
+      }
+    });
+  };
+
+  // Función para eliminar un reporte pendiente
+  const handleDeletePendingReport = (reportId: string) => {
+    localStorage.removeItem(reportId);
+    updatePendingCount();
+    // Actualizar la vista del modal
+    setShowPendingModal(false);
+    setTimeout(() => setShowPendingModal(true), 100);
+  };
+
+  // Actualizar contador al cargar y cada vez que cambie localStorage
+  useEffect(() => {
+    updatePendingCount();
+    
+    // Escuchar cambios en localStorage
+    const handleStorageChange = () => {
+      updatePendingCount();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // También verificar periódicamente por si hay cambios internos
+    const interval = setInterval(updatePendingCount, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleSearch = () => {
     if (!searchNumber.trim()) return;
@@ -77,16 +115,60 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
     setNotFound(false);
     setSearchResult(null);
 
-    // Simular búsqueda con delay
+    // Buscar usando reportStorage
     setTimeout(() => {
-      const found = mockReports.find(report => 
-        report.reportNumber.toLowerCase().includes(searchNumber.toLowerCase())
-      );
-      
-      if (found) {
-        setSearchResult(found);
-        setNotFound(false);
-      } else {
+      try {
+        // Intentar búsqueda directa por número de reporte
+        const directMatch = reportStorage.getReportByNumber(searchNumber.trim());
+        
+        if (directMatch) {
+          // Verificar permisos según rol
+          if (user.role === UserRole.TECNICO && directMatch.usuarioId !== user.username) {
+            setSearchResult(null);
+            setNotFound(true);
+            setLoading(false);
+            return;
+          }
+          
+          setSearchResult({
+            reportNumber: directMatch.numeroReporte,
+            title: directMatch.tipoIntervencion || 'Sin título',
+            date: new Date(directMatch.fechaCreacion).toLocaleDateString(),
+            province: directMatch.provincia || 'N/A',
+            status: directMatch.estado || 'Completado',
+            description: `${directMatch.tipoIntervencion || 'Intervención'} - ${directMatch.municipio || ''}, ${directMatch.provincia || ''}`,
+            createdBy: directMatch.creadoPor || 'Sistema'
+          });
+          setNotFound(false);
+        } else {
+          // Búsqueda parcial en todos los reportes
+          const searchFilters = user.role === UserRole.TECNICO 
+            ? { creadoPor: user.username } 
+            : {};
+          
+          const allReports = reportStorage.searchReports(searchFilters);
+          const found = allReports.find(report => 
+            report.numeroReporte.toLowerCase().includes(searchNumber.toLowerCase())
+          );
+          
+          if (found) {
+            setSearchResult({
+              reportNumber: found.numeroReporte,
+              title: found.tipoIntervencion || 'Sin título',
+              date: new Date(found.fechaCreacion).toLocaleDateString(),
+              province: found.provincia || 'N/A',
+              status: found.estado || 'Completado',
+              description: `${found.tipoIntervencion || 'Intervención'} - ${found.municipio || ''}, ${found.provincia || ''}`,
+              createdBy: found.creadoPor || 'Sistema'
+            });
+            setNotFound(false);
+          } else {
+            setSearchResult(null);
+            setNotFound(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error en búsqueda:', error);
         setSearchResult(null);
         setNotFound(true);
       }
@@ -176,20 +258,110 @@ Documento generado el ${new Date().toLocaleString()} por ${user.name}
 
   return (
     <div className="export-page">
-      <div className="export-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Volver al Dashboard
+      {/* Topbar */}
+      <div style={{
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        backgroundColor: 'white',
+        color: '#2c3e50',
+        padding: '12px 20px',
+        marginBottom: '20px',
+        borderRadius: '0',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <button 
+            onClick={onBack}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 12px',
+              backgroundColor: '#f8f9fa',
+              color: '#2c3e50',
+              border: '1px solid #dee2e6',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#e9ecef';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#f8f9fa';
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>←</span>
+            Volver
           </button>
-          <h1 className="page-title">
+          <div style={{
+            width: '1px',
+            height: '24px',
+            backgroundColor: '#dee2e6'
+          }}></div>
+          <h1 style={{ 
+            margin: 0, 
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#2c3e50'
+          }}>
             📤 Exportar Reportes
           </h1>
         </div>
-        <div className="header-right">
-          <div className="user-info">
-            <span className="welcome-text">Bienvenido, {user.name}</span>
-            <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
-          </div>
+        {/* Ícono de notificaciones - posicionado a la derecha */}
+        <div className="notification-container" style={{ position: 'relative', cursor: 'pointer' }}>
+          <img 
+            src="/images/notification-bell-icon.svg" 
+            alt="Notificaciones" 
+            style={{
+              width: '24px', 
+              height: '24px',
+              filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onClick={() => setShowPendingModal(true)}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
+            }}
+          />
+          {/* Contador de notificaciones */}
+          {pendingCount > 0 && (
+            <span 
+              className="notification-badge"
+              style={{
+                position: 'absolute',
+                top: '-6px',
+                right: '-6px',
+                backgroundColor: '#e74c3c',
+                color: 'white',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                border: '2px solid white',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                animation: pendingCount > 0 ? 'pulse 2s infinite' : 'none'
+              }}
+            >
+              {pendingCount > 99 ? '99+' : pendingCount}
+            </span>
+          )}
         </div>
       </div>
 
@@ -227,7 +399,21 @@ Documento generado el ${new Date().toLocaleString()} por ${user.name}
           <div className="examples-container">
             <h3 className="examples-title">💡 Ejemplos de números de reporte:</h3>
             <div className="examples-grid">
-              {mockReports.slice(0, 3).map((report) => (
+              {(() => {
+                // Obtener reportes reales según el rol del usuario
+                const searchFilters = user.role === UserRole.TECNICO 
+                  ? { creadoPor: user.username } 
+                  : {};
+                
+                const availableReports = reportStorage.searchReports(searchFilters)
+                  .slice(0, 3)
+                  .map(report => ({
+                    reportNumber: report.numeroReporte,
+                    title: report.tipoIntervencion || 'Sin título'
+                  }));
+                
+                return availableReports;
+              })().map((report) => (
                 <div 
                   key={report.reportNumber}
                   className="example-item"
@@ -337,6 +523,14 @@ Documento generado el ${new Date().toLocaleString()} por ${user.name}
           </div>
         </div>
       </div>
+      
+      {/* Modal de Reportes Pendientes */}
+      <PendingReportsModal
+        isOpen={showPendingModal}
+        onClose={() => setShowPendingModal(false)}
+        reports={getPendingReports()}
+        onDeleteReport={handleDeletePendingReport}
+      />
     </div>
   );
 };
