@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { reportStorage } from '../services/reportStorage';
 import './ReportsPage.css';
 
@@ -24,13 +24,14 @@ interface RegionStats {
 }
 
 type ViewMode = 'intervenciones' | 'kilometraje';
+type PageMode = 'statistics' | 'detailed';
 
 const COLORS = [
   '#00C49F', '#FFBB28', '#FF8042', '#0088FE', '#8884d8', 
   '#82ca9d', '#ffc658', '#ff6b6b', '#4ecdc4', '#95e1d3', '#f38181', '#a29bfe'
 ];
 
-// Regiones de República Dominicana con sus iconos
+// Regiones de República Dominicana
 const REGIONES_RD = [
   { name: 'Ozama o Metropolitana', icon: '🏛️' },
   { name: 'Cibao Norte', icon: '🌆' },
@@ -45,136 +46,99 @@ const REGIONES_RD = [
   { name: 'Higuamo', icon: '🌿' }
 ];
 
+// Función para calcular distancia entre dos puntos GPS (Haversine)
+function calcularDistanciaKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Radio de la Tierra en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
   const [regionStats, setRegionStats] = useState<RegionStats[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('intervenciones');
+  const [currentPage, setCurrentPage] = useState<PageMode>('statistics');
   const [totalReports, setTotalReports] = useState(0);
   const [totalKilometers, setTotalKilometers] = useState(0);
 
-  // Función para calcular distancia entre dos coordenadas (fórmula de Haversine)
-  const calcularDistanciaKm = (coord1: string | { lat: number; lon: number }, coord2: string | { lat: number; lon: number }): number => {
-    try {
-      let lat1: number, lon1: number, lat2: number, lon2: number;
-
-      if (typeof coord1 === 'string') {
-        const [lat1Str, lon1Str] = coord1.split(',').map(s => s.trim());
-        lat1 = parseFloat(lat1Str);
-        lon1 = parseFloat(lon1Str);
-      } else {
-        lat1 = coord1.lat;
-        lon1 = coord1.lon;
-      }
-
-      if (typeof coord2 === 'string') {
-        const [lat2Str, lon2Str] = coord2.split(',').map(s => s.trim());
-        lat2 = parseFloat(lat2Str);
-        lon2 = parseFloat(lon2Str);
-      } else {
-        lat2 = coord2.lat;
-        lon2 = coord2.lon;
-      }
-      
-      if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
-        return 0;
-      }
-      
-      const R = 6371; // Radio de la Tierra en km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    } catch (e) {
-      console.error('Error al calcular distancia:', e);
-      return 0;
-    }
-  };
-
   useEffect(() => {
-    // Cargar estadísticas desde reportStorage
-    const loadStatistics = () => {
-      const stats = reportStorage.getStatistics();
-      const reports = reportStorage.getAllReports();
-      
-      console.log('📊 Estadísticas cargadas:', stats);
-      console.log('📋 Total de reportes:', reports.length);
-
-      // Crear estadísticas por región
-      const regionesData: RegionStats[] = REGIONES_RD.map(region => {
-        const regionData = stats.porRegion[region.name] || {
-          total: 0,
-          completados: 0,
-          pendientes: 0,
-          enProgreso: 0,
-          totalKm: 0
-        };
-
-        // Calcular kilómetros totales de intervenciones en esta región
-        let totalKm = 0;
-        const regionReports = reports.filter(r => r.region === region.name);
-        
-        regionReports.forEach(report => {
-          // Calcular distancia desde metricData o gpsData
-          if (report.metricData?.longitud_intervencion) {
-            // Si hay longitud directa en metros, convertir a km
-            const longitudMetros = parseFloat(report.metricData.longitud_intervencion);
-            if (!isNaN(longitudMetros)) {
-              totalKm += longitudMetros / 1000;
-            }
-          } else if (report.gpsData?.punto_inicial && report.gpsData?.punto_alcanzado) {
-            // Calcular desde coordenadas GPS
-            const distancia = calcularDistanciaKm(
-              report.gpsData.punto_inicial,
-              report.gpsData.punto_alcanzado
-            );
-            totalKm += distancia;
-          } else if (report.metricData?.punto_inicial && report.metricData?.punto_alcanzado) {
-            // Intentar desde metricData si son strings
-            const distancia = calcularDistanciaKm(
-              report.metricData.punto_inicial,
-              report.metricData.punto_alcanzado
-            );
-            totalKm += distancia;
-          }
-        });
-
-        return {
-          name: region.name,
-          total: regionData.total,
-          totalKm: Math.round(totalKm * 100) / 100, // Redondear a 2 decimales
-          completados: regionData.completados,
-          pendientes: regionData.pendientes,
-          enProgreso: regionData.enProgreso,
-          icon: region.icon
-        };
-      }).filter(region => region.total > 0); // Solo mostrar regiones con datos
-
-      setRegionStats(regionesData);
-      setTotalReports(stats.total);
-      setTotalKilometers(Math.round(regionesData.reduce((sum, r) => sum + r.totalKm, 0) * 100) / 100);
-    };
-
-    loadStatistics();
-
-    // Recargar cada 5 segundos por si hay cambios
-    const interval = setInterval(loadStatistics, 5000);
+    cargarEstadisticas();
+    const interval = setInterval(cargarEstadisticas, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Preparar datos para el gráfico según el modo seleccionado
-  const chartData = regionStats.map((region, index) => ({
-    name: `${region.icon} ${region.name}`,
-    value: viewMode === 'intervenciones' ? region.total : region.totalKm,
-    color: COLORS[index % COLORS.length],
-    completados: region.completados,
-    pendientes: region.pendientes,
-    enProgreso: region.enProgreso,
-    detalle: viewMode === 'intervenciones' 
-      ? `${region.total} intervenciones`
-      : `${region.totalKm.toFixed(2)} km`
-  }));
+  const cargarEstadisticas = () => {
+    const stats = reportStorage.getStatistics();
+    const allReports = reportStorage.getAllReports();
+    
+    // Calcular kilómetros totales
+    let kmTotal = 0;
+    allReports.forEach(report => {
+      if (report.gpsData?.start && report.gpsData?.end) {
+        const km = calcularDistanciaKm(
+          report.gpsData.start.latitude,
+          report.gpsData.start.longitude,
+          report.gpsData.end.latitude,
+          report.gpsData.end.longitude
+        );
+        kmTotal += km;
+      }
+    });
+
+    // Crear estadísticas por región
+    const regionesData: RegionStats[] = REGIONES_RD.map(region => {
+      const regionKey = region.name.toLowerCase();
+      const regionData = stats.porRegion[regionKey] || { total: 0, completados: 0, pendientes: 0, enProgreso: 0 };
+      
+      // Calcular km por región
+      const kmRegion = allReports
+        .filter(r => r.region?.toLowerCase() === regionKey)
+        .reduce((sum, report) => {
+          if (report.gpsData?.start && report.gpsData?.end) {
+            return sum + calcularDistanciaKm(
+              report.gpsData.start.latitude,
+              report.gpsData.start.longitude,
+              report.gpsData.end.latitude,
+              report.gpsData.end.longitude
+            );
+          }
+          return sum;
+        }, 0);
+
+      return {
+        name: region.name,
+        icon: region.icon,
+        total: regionData.total,
+        totalKm: kmRegion,
+        completados: regionData.completados,
+        pendientes: regionData.pendientes,
+        enProgreso: regionData.enProgreso
+      };
+    });
+
+    setRegionStats(regionesData);
+    setTotalReports(stats.total);
+    setTotalKilometers(kmTotal);
+  };
+
+  // Preparar datos para los gráficos
+  const chartData = regionStats
+    .filter(r => r.total > 0)
+    .map(region => ({
+      name: region.name,
+      value: viewMode === 'intervenciones' ? region.total : region.totalKm,
+      detalle: viewMode === 'intervenciones' 
+        ? `${region.total} intervenciones` 
+        : `${region.totalKm.toFixed(2)} km`,
+      completados: region.completados,
+      pendientes: region.pendientes,
+      enProgreso: region.enProgreso
+    }));
 
   // Tooltip personalizado
   const CustomTooltip = ({ active, payload }: any) => {
@@ -203,109 +167,88 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
 
   return (
     <div className="reports-page">
-      {/* Header */}
-      <div className="reports-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            <span className="btn-icon">←</span>
-            <span>Atrás</span>
+      <div className="reports-container">
+        {/* Topbar con navegación */}
+        <div className="reports-topbar">
+          <button className="topbar-back-btn" onClick={onBack}>
+            ← Volver al Dashboard
           </button>
-          <h1 className="page-title">
-            <span className="title-icon">📊</span>
-            <span>Estadísticas de Intervenciones</span>
-          </h1>
-        </div>
-        <div className="header-right">
-          <div className="stats-summary">
-            <div className="stat-item">
-              <span className="stat-label">Total Reportes:</span>
-              <span className="stat-value">{totalReports}</span>
-            </div>
-            {viewMode === 'kilometraje' && (
-              <div className="stat-item">
-                <span className="stat-label">Total Kilómetros:</span>
-                <span className="stat-value">{totalKilometers.toFixed(2)} km</span>
-              </div>
-            )}
+          
+          <div className="topbar-actions">
+            <button 
+              className={`topbar-action-btn ${currentPage === 'statistics' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('statistics')}
+            >
+              📊 Estadísticas
+            </button>
+            <button 
+              className={`topbar-action-btn ${currentPage === 'detailed' ? 'active' : ''}`}
+              onClick={() => setCurrentPage('detailed')}
+            >
+              📄 Informe Detallado
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="reports-content">
-        <div className="overview-content">
-          {/* Título de la sección */}
-          <div className="section-header">
-            <h2 className="section-title">
-              {viewMode === 'intervenciones' 
-                ? '📈 Estadísticas por Intervenciones' 
-                : '📏 Estadísticas por Kilometraje'}
-            </h2>
-            <p className="section-description">
-              {viewMode === 'intervenciones'
-                ? 'Cantidad total de intervenciones realizadas por región'
-                : 'Kilómetros totales de intervenciones por región'}
-            </p>
-          </div>
-
-          {/* Mensaje si no hay datos */}
-          {regionStats.length === 0 ? (
-            <div className="no-data-message">
-              <div className="no-data-icon">📊</div>
-              <h3>No hay datos disponibles</h3>
-              <p>Aún no se han registrado intervenciones en el sistema.</p>
-              <p>Los datos aparecerán aquí automáticamente cuando se guarden reportes.</p>
-            </div>
-          ) : (
-            <>
-              {/* Gráfico de Pastel */}
-              <div className="unified-chart-container">
-                <div className="unified-chart">
-                  <ResponsiveContainer width="100%" height={500}>
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={false}
-                        outerRadius={200}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
+        {/* PÁGINA DE ESTADÍSTICAS */}
+        {currentPage === 'statistics' && (
+          <div className="reports-content">
+            <div className="overview-content">
+              {/* Resumen General */}
+              <div className="stats-summary-cards">
+                <div className="summary-card total">
+                  <div className="card-icon">📊</div>
+                  <div className="card-info">
+                    <h3>Total Reportes</h3>
+                    <p className="card-value">{totalReports}</p>
+                  </div>
                 </div>
-
-                {/* Leyenda */}
-                <div className="unified-legend">
-                  {chartData.map((entry, index) => (
-                    <div key={index} className="unified-legend-item">
-                      <div className="legend-color" style={{ backgroundColor: entry.color }}></div>
-                      <span className="legend-text">
-                        {entry.name}: {entry.detalle}
-                      </span>
-                    </div>
-                  ))}
+                <div className="summary-card completed">
+                  <div className="card-icon">✅</div>
+                  <div className="card-info">
+                    <h3>Completados</h3>
+                    <p className="card-value">
+                      {regionStats.reduce((sum, r) => sum + r.completados, 0)}
+                    </p>
+                  </div>
+                </div>
+                <div className="summary-card pending">
+                  <div className="card-icon">⏳</div>
+                  <div className="card-info">
+                    <h3>Pendientes</h3>
+                    <p className="card-value">
+                      {regionStats.reduce((sum, r) => sum + r.pendientes, 0)}
+                    </p>
+                  </div>
+                </div>
+                <div className="summary-card progress">
+                  <div className="card-icon">🔄</div>
+                  <div className="card-info">
+                    <h3>En Progreso</h3>
+                    <p className="card-value">
+                      {regionStats.reduce((sum, r) => sum + r.enProgreso, 0)}
+                    </p>
+                  </div>
+                </div>
+                <div className="summary-card distance">
+                  <div className="card-icon">📏</div>
+                  <div className="card-info">
+                    <h3>Kilómetros Totales</h3>
+                    <p className="card-value">{totalKilometers.toFixed(2)} km</p>
+                  </div>
                 </div>
               </div>
 
               {/* Botones de modo de visualización */}
-              <div className="view-mode-controls">
-                <h3 className="controls-title">Modo de Visualización</h3>
-                <div className="view-mode-buttons">
+              <div className="view-mode-selector">
+                <h2 className="section-title">Visualización de Datos por Región</h2>
+                <div className="mode-buttons">
                   <button
                     className={`mode-button ${viewMode === 'intervenciones' ? 'active' : ''}`}
                     onClick={() => setViewMode('intervenciones')}
                   >
-                    <span className="mode-icon">📊</span>
+                    <span className="mode-icon">📋</span>
                     <span className="mode-label">Por Intervenciones</span>
-                    <span className="mode-description">Ver cantidad de trabajos realizados</span>
                   </button>
                   <button
                     className={`mode-button ${viewMode === 'kilometraje' ? 'active' : ''}`}
@@ -313,68 +256,148 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
                   >
                     <span className="mode-icon">📏</span>
                     <span className="mode-label">Por Kilometraje</span>
-                    <span className="mode-description">Ver distancia total trabajada</span>
                   </button>
                 </div>
               </div>
 
-              {/* Tabla de detalles */}
-              <div className="details-table-section">
-                <h3 className="table-title">
-                  {viewMode === 'intervenciones' 
-                    ? '📋 Desglose por Intervenciones' 
-                    : '📏 Desglose por Kilometraje'}
-                </h3>
-                <div className="details-table-container">
-                  <table className="details-table">
+              {/* Gráficos */}
+              {chartData.length > 0 && (
+                <div className="charts-container">
+                  {/* Gráfico de Pastel */}
+                  <div className="chart-card">
+                    <h3 className="chart-title">
+                      Distribución {viewMode === 'intervenciones' ? 'de Intervenciones' : 'de Kilómetros'}
+                    </h3>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <PieChart>
+                        <Pie
+                          data={chartData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
+                          outerRadius={120}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Gráfico de Barras */}
+                  <div className="chart-card">
+                    <h3 className="chart-title">
+                      Comparativa Regional {viewMode === 'intervenciones' ? '(Intervenciones)' : '(Kilómetros)'}
+                    </h3>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="name" 
+                          angle={-45} 
+                          textAnchor="end" 
+                          height={120}
+                          interval={0}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                        <Bar dataKey="value" fill="#ff7a00" name={viewMode === 'intervenciones' ? 'Intervenciones' : 'Kilómetros'} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Tabla Detallada */}
+              <div className="detailed-table-section">
+                <h3 className="section-title">Desglose Detallado por Región</h3>
+                <div className="table-container">
+                  <table className="stats-table">
                     <thead>
                       <tr>
                         <th>Región</th>
                         <th>Total</th>
-                        <th>Completados</th>
-                        <th>Pendientes</th>
-                        <th>En Progreso</th>
-                        {viewMode === 'kilometraje' && <th>Kilómetros</th>}
+                        <th>✅ Completados</th>
+                        <th>⏳ Pendientes</th>
+                        <th>🔄 En Progreso</th>
+                        {viewMode === 'kilometraje' && <th>📏 Kilómetros</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {regionStats.map((region, index) => (
-                        <tr key={index}>
-                          <td className="region-name">
-                            <span className="region-icon">{region.icon}</span>
-                            {region.name}
-                          </td>
-                          <td className="total-value">{region.total}</td>
-                          <td className="completed-value">✅ {region.completados}</td>
-                          <td className="pending-value">⏳ {region.pendientes}</td>
-                          <td className="inprogress-value">🔄 {region.enProgreso}</td>
-                          {viewMode === 'kilometraje' && (
-                            <td className="km-value">{region.totalKm.toFixed(2)} km</td>
-                          )}
-                        </tr>
-                      ))}
+                      {regionStats
+                        .filter(r => r.total > 0)
+                        .map((region, index) => (
+                          <tr key={index}>
+                            <td>
+                              <span className="region-icon">{region.icon}</span>
+                              {region.name}
+                            </td>
+                            <td><strong>{region.total}</strong></td>
+                            <td className="completados">{region.completados}</td>
+                            <td className="pendientes">{region.pendientes}</td>
+                            <td className="en-progreso">{region.enProgreso}</td>
+                            {viewMode === 'kilometraje' && (
+                              <td className="kilometros">{region.totalKm.toFixed(2)} km</td>
+                            )}
+                          </tr>
+                        ))
+                      }
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td><strong>TOTAL</strong></td>
+                        <td><strong>TOTALES</strong></td>
                         <td><strong>{totalReports}</strong></td>
                         <td><strong>✅ {regionStats.reduce((sum, r) => sum + r.completados, 0)}</strong></td>
                         <td><strong>⏳ {regionStats.reduce((sum, r) => sum + r.pendientes, 0)}</strong></td>
                         <td><strong>🔄 {regionStats.reduce((sum, r) => sum + r.enProgreso, 0)}</strong></td>
                         {viewMode === 'kilometraje' && (
-                          <td><strong>{totalKilometers.toFixed(2)} km</strong></td>
+                          <td><strong>📏 {totalKilometers.toFixed(2)} km</strong></td>
                         )}
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {/* PÁGINA DE INFORME DETALLADO */}
+        {currentPage === 'detailed' && (
+          <div className="reports-content">
+            <div className="overview-content">
+              <div className="section-header">
+                <h2 className="section-title">📄 Informe Detallado por Regiones</h2>
+                <p className="section-description">
+                  Desglose completo de todas las intervenciones organizadas jerárquicamente
+                </p>
+              </div>
+
+              <div className="detailed-info-message">
+                <div className="info-icon">📋</div>
+                <h3>Vista de Informe Detallado</h3>
+                <p>Esta vista mostrará un desglose jerárquico completo:</p>
+                <ul>
+                  <li>🗺️ Regiones → Provincias → Municipios → Distritos</li>
+                  <li>📊 Estadísticas detalladas por cada nivel</li>
+                  <li>📋 Listado completo de reportes individuales</li>
+                  <li>🔍 Información expandible por región</li>
+                </ul>
+                <p className="note">Esta funcionalidad se encuentra en desarrollo y estará disponible próximamente.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default ReportsPage; 
+export default ReportsPage;
