@@ -158,6 +158,9 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
 
     loadStatistics();
 
+    // Recargar cada 5 segundos por si hay cambios
+    const interval = setInterval(loadStatistics, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Preparar datos para el gráfico según el modo seleccionado
