@@ -135,31 +135,31 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
 
           {currentView === 'estadisticas' && (
             <div className="view-content">
-              <h2 className="stats-title">Regiones de República Dominicana</h2>
-              <p className="stats-subtitle">Selecciona una región para ver sus estadísticas detalladas</p>
-              
-              {/* Selector de modo de visualización */}
-              <div className="stats-mode-selector">
-                <button
-                  className={`mode-toggle-btn ${statsMode === 'intervenciones' ? 'active' : ''}`}
-                  onClick={() => setStatsMode('intervenciones')}
-                >
-                  <span className="mode-icon">📋</span>
-                  <span className="mode-text">
-                    <strong>Intervenciones</strong>
-                    <small>Total de reportes por región</small>
-                  </span>
-                </button>
-                <button
-                  className={`mode-toggle-btn ${statsMode === 'kilometraje' ? 'active' : ''}`}
-                  onClick={() => setStatsMode('kilometraje')}
-                >
-                  <span className="mode-icon">📏</span>
-                  <span className="mode-text">
-                    <strong>Kilometraje</strong>
-                    <small>Distancia recorrida por región</small>
-                  </span>
-                </button>
+              <div className="stats-header-section">
+                <div className="stats-header-left">
+                  <div>
+                    <h2 className="stats-title">Regiones de República Dominicana</h2>
+                    <p className="stats-subtitle">Selecciona una región para ver sus estadísticas detalladas</p>
+                  </div>
+                </div>
+                
+                {/* Selector de modo compacto */}
+                <div className="stats-mode-selector-compact">
+                  <button
+                    className={`mode-compact-btn ${statsMode === 'intervenciones' ? 'active' : ''}`}
+                    onClick={() => setStatsMode('intervenciones')}
+                    title="Ver intervenciones"
+                  >
+                    📋 Intervenciones
+                  </button>
+                  <button
+                    className={`mode-compact-btn ${statsMode === 'kilometraje' ? 'active' : ''}`}
+                    onClick={() => setStatsMode('kilometraje')}
+                    title="Ver kilometraje"
+                  >
+                    📏 Kilometraje
+                  </button>
+                </div>
               </div>
 
               <div className="regions-grid">

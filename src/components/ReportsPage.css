@@ -972,76 +972,64 @@
   font-weight: 700;
   color: #2c3e50;
   margin: 0 0 0.5rem 0;
-  text-align: center;
 }
 
 .stats-subtitle {
   font-size: 1.1rem;
   color: #7f8c8d;
-  margin: 0 0 2rem 0;
-  text-align: center;
+  margin: 0;
 }
 
-/* Selector de modo de estadísticas */
-.stats-mode-selector {
+/* Header con selector compacto */
+.stats-header-section {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 2rem;
 }
 
-.mode-toggle-btn {
-  background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 16px;
-  padding: 1.25rem 2rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.stats-header-left {
+  flex: 1;
+}
+
+/* Selector de modo compacto */
+.stats-mode-selector-compact {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  min-width: 240px;
+  gap: 0.5rem;
+  background: #f8f9fa;
+  padding: 0.35rem;
+  border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.mode-toggle-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(255, 122, 0, 0.15);
-  border-color: var(--primary-orange);
+.mode-compact-btn {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #7f8c8d;
+  white-space: nowrap;
 }
 
-.mode-toggle-btn.active {
+.mode-compact-btn:hover {
+  background: rgba(255, 122, 0, 0.1);
+  color: var(--primary-orange);
+}
+
+.mode-compact-btn.active {
   background: linear-gradient(135deg, var(--primary-orange) 0%, #ff9a3d 100%);
-  border-color: var(--primary-orange);
   color: white;
-  box-shadow: 0 6px 20px rgba(255, 122, 0, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(255, 122, 0, 0.3);
 }
 
-.mode-toggle-btn .mode-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.mode-toggle-btn .mode-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  text-align: left;
-}
-
-.mode-toggle-btn .mode-text strong {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.mode-toggle-btn .mode-text small {
-  font-size: 0.85rem;
-  opacity: 0.85;
-}
-
-.mode-toggle-btn.active .mode-text small {
-  opacity: 0.95;
+/* Ocultar selector grande anterior */
+.stats-mode-selector {
+  display: none;
 }
 
 /* Grid de regiones */
