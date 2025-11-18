@@ -966,6 +966,202 @@
   background: linear-gradient(135deg, #ff9a3d 0%, var(--primary-orange) 100%);
 }
 
+/* Títulos de estadísticas */
+.stats-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.stats-subtitle {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  margin: 0 0 2rem 0;
+  text-align: center;
+}
+
+/* Grid de regiones */
+.regions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.region-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--region-color, #ff7a00);
+  position: relative;
+  overflow: hidden;
+}
+
+.region-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--region-color, #ff7a00) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.region-card:hover::before {
+  opacity: 0.05;
+}
+
+.region-card:hover {
+  transform: translateY(-5px) translateX(5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-left-width: 6px;
+}
+
+.region-card.selected {
+  border-left-width: 6px;
+  box-shadow: 0 8px 24px var(--region-color);
+  transform: translateY(-3px);
+}
+
+.region-card.selected::before {
+  opacity: 0.1;
+}
+
+.region-icon {
+  font-size: 3rem;
+  line-height: 1;
+  min-width: 60px;
+  text-align: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.region-info {
+  flex: 1;
+}
+
+.region-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 0.75rem 0;
+}
+
+.region-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.region-stats .stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.region-stats .stat-label {
+  font-size: 0.75rem;
+  color: #95a5a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.region-stats .stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--region-color, #ff7a00);
+}
+
+.region-arrow {
+  font-size: 1.5rem;
+  color: #bdc3c7;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.region-card:hover .region-arrow {
+  opacity: 1;
+  transform: translateX(5px);
+}
+
+.region-card.selected .region-arrow {
+  opacity: 1;
+  color: var(--region-color, #ff7a00);
+}
+
+/* Panel de detalles de región */
+.region-details-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  animation: slideInUp 0.3s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.panel-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.close-btn {
+  background: #ecf0f1;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.25rem;
+  color: #7f8c8d;
+}
+
+.close-btn:hover {
+  background: #e74c3c;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.panel-content {
+  color: #7f8c8d;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
 
 .reports-content {
   padding: 2.5rem;
