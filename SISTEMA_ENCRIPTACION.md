@@ -9,16 +9,19 @@ El sistema utiliza **encriptación de números de reporte** como identificadores
 ## 🎯 Características Principales
 
 ### 1. Identificadores Encriptados
+
 - Cada reporte se guarda usando su número encriptado como clave/ID
 - Formato del ID: `MOPC_[Base64_Invertido]`
 - Ejemplo: `RPT-2025-000001` → `MOPC_MTAwMDAwLTUyMDItVFBS`
 
 ### 2. Búsqueda Optimizada
+
 - **Búsqueda Directa (O(1))**: Usando el ID encriptado
 - **Búsqueda Lineal (O(n))**: Como fallback para compatibilidad
 - Mejora de rendimiento: **~100x más rápido** en búsquedas directas
 
 ### 3. Compatibilidad Retroactiva
+
 - Soporta datos guardados en formato antiguo
 - Migración automática al nuevo formato
 - Búsqueda híbrida (primero optimizada, luego lineal)
@@ -31,8 +34,8 @@ El sistema utiliza **encriptación de números de reporte** como identificadores
 
 ```typescript
 interface ReportData {
-  id: string;                    // ID encriptado del número de reporte
-  numeroReporte: string;          // Formato: RPT-YYYY-XXXXXX
+  id: string; // ID encriptado del número de reporte
+  numeroReporte: string; // Formato: RPT-YYYY-XXXXXX
   timestamp: string;
   fechaCreacion: string;
   // ... otros campos
@@ -42,32 +45,38 @@ interface ReportData {
 ### Funciones de Encriptación
 
 #### `encryptReportNumber(reportNumber: string): string`
+
 Convierte un número de reporte en un ID encriptado.
 
 **Proceso:**
+
 1. Codifica el número en Base64
 2. Invierte el string resultante
 3. Reemplaza `=` por `_` (URL-safe)
 4. Agrega prefijo `MOPC_`
 
 **Ejemplo:**
+
 ```javascript
-encryptReportNumber('RPT-2025-000001')
+encryptReportNumber("RPT-2025-000001");
 // → 'MOPC_MTAwMDAwLTUyMDItVFBS'
 ```
 
 #### `decryptReportId(encryptedId: string): string`
+
 Recupera el número de reporte original desde el ID encriptado.
 
 **Proceso:**
+
 1. Remueve prefijo `MOPC_`
 2. Reemplaza `_` por `=`
 3. Invierte el string
 4. Decodifica desde Base64
 
 **Ejemplo:**
+
 ```javascript
-decryptReportId('MOPC_MTAwMDAwLTUyMDItVFBS')
+decryptReportId("MOPC_MTAwMDAwLTUyMDItVFBS");
 // → 'RPT-2025-000001'
 ```
 
@@ -80,6 +89,7 @@ decryptReportId('MOPC_MTAwMDAwLTUyMDItVFBS')
 Búsqueda optimizada por número de reporte.
 
 **Algoritmo:**
+
 ```
 1. Encriptar el número de reporte → obtener ID
 2. Buscar directamente en el objeto (O(1))
@@ -90,11 +100,12 @@ Búsqueda optimizada por número de reporte.
 ```
 
 **Ejemplo de uso:**
+
 ```typescript
-import { reportStorage } from './services/reportStorage';
+import { reportStorage } from "./services/reportStorage";
 
 // Búsqueda directa (instantánea)
-const report = reportStorage.getReportByNumber('RPT-2025-000001');
+const report = reportStorage.getReportByNumber("RPT-2025-000001");
 
 if (report) {
   console.log(`Reporte encontrado: ${report.tipoIntervencion}`);
@@ -107,11 +118,13 @@ if (report) {
 Vista previa optimizada para listados.
 
 **Ventajas:**
+
 - Retorna solo campos esenciales
 - Menor uso de memoria
 - Ideal para búsquedas en listas
 
 **Campos retornados:**
+
 - id
 - numeroReporte
 - timestamp
@@ -128,14 +141,14 @@ Vista previa optimizada para listados.
 
 ### Comparativa de Velocidad
 
-| Operación | Método Antiguo | Método Nuevo | Mejora |
-|-----------|---------------|--------------|--------|
-| Búsqueda por número | O(n) ~50ms | O(1) ~0.5ms | **100x** |
-| Encriptación | N/A | ~0.01ms | N/A |
-| Desencriptación | N/A | ~0.01ms | N/A |
-| Guardado | O(n) | O(1) | **Constante** |
+| Operación           | Método Antiguo | Método Nuevo | Mejora        |
+| ------------------- | -------------- | ------------ | ------------- |
+| Búsqueda por número | O(n) ~50ms     | O(1) ~0.5ms  | **100x**      |
+| Encriptación        | N/A            | ~0.01ms      | N/A           |
+| Desencriptación     | N/A            | ~0.01ms      | N/A           |
+| Guardado            | O(n)           | O(1)         | **Constante** |
 
-*Tiempos medidos con 10,000 reportes*
+_Tiempos medidos con 10,000 reportes_
 
 ### Benchmarks
 
@@ -158,18 +171,20 @@ Resultados típicos:
 const handleSearch = () => {
   // Búsqueda optimizada con ID encriptado
   const directMatch = reportStorage.getReportByNumber(searchNumber.trim());
-  
+
   if (directMatch) {
     // Verificar permisos
-    if (user.role === UserRole.TECNICO && 
-        directMatch.usuarioId !== user.username) {
+    if (
+      user.role === UserRole.TECNICO &&
+      directMatch.usuarioId !== user.username
+    ) {
       setNotFound(true);
       return;
     }
-    
+
     // Cargar vista previa
     setSearchResult(/* ... */);
-    console.log('✅ Búsqueda optimizada exitosa');
+    console.log("✅ Búsqueda optimizada exitosa");
   }
 };
 ```
@@ -185,7 +200,7 @@ const guardarIntervencion = () => {
     provincia,
     // ... otros campos
   };
-  
+
   const savedReport = reportStorage.saveReport(reportData);
   // savedReport.id será el número encriptado
   // savedReport.numeroReporte será RPT-YYYY-XXXXXX
@@ -206,7 +221,7 @@ const guardarIntervencion = () => {
     "MOPC_OTAwMDAwLTUyMDItVFBS": { /* ReportData */ },
     // ...
   },
-  
+
   // Índice para búsquedas rápidas
   "mopc_reports_index": [
     {
@@ -216,7 +231,7 @@ const guardarIntervencion = () => {
       // ... campos clave
     }
   ],
-  
+
   // Metadata del sistema
   "mopc_reports_metadata": {
     version: 1,
@@ -240,11 +255,13 @@ const guardarIntervencion = () => {
 ### Consideraciones
 
 ⚠️ **IMPORTANTE**: Este sistema NO debe usarse para:
+
 - Proteger datos sensibles
 - Cumplir requisitos de seguridad HIPAA/GDPR
 - Prevenir acceso no autorizado
 
 ✅ **Uso apropiado**:
+
 - Optimización de búsquedas
 - Organización de almacenamiento
 - Indexación rápida
@@ -255,9 +272,11 @@ const guardarIntervencion = () => {
 ## 🧪 Testing
 
 ### Archivo de Pruebas
+
 `test-encryption.html` - Suite completa de tests
 
 **Tests incluidos:**
+
 1. ✅ Encriptación/Desencriptación
 2. ✅ Búsqueda Optimizada vs Lineal
 3. ✅ Guardado y Recuperación
@@ -284,10 +303,10 @@ El sistema detecta y migra automáticamente datos en formato antiguo:
 ```typescript
 private migrateOldData(): void {
   const oldData = localStorage.getItem('mopc_intervenciones');
-  
+
   if (oldData) {
     const oldReports = JSON.parse(oldData);
-    
+
     oldReports.forEach(oldReport => {
       // Crear nuevo formato con ID encriptado
       const newReport = {
@@ -295,10 +314,10 @@ private migrateOldData(): void {
         numeroReporte: `RPT-${oldReport.id}`,
         // ... mapear campos
       };
-      
+
       this.saveReport(newReport);
     });
-    
+
     // Guardar backup
     localStorage.setItem('mopc_intervenciones_backup', oldData);
   }
@@ -351,10 +370,10 @@ Retornar ReportData o null
 const stats = reportStorage.getStatistics();
 
 console.log({
-  total: stats.total,                    // Total de reportes
-  byRegion: stats.byRegion,             // Agrupados por región
-  byProvincia: stats.byProvincia,       // Agrupados por provincia
-  metadata: stats.metadata              // Info del sistema
+  total: stats.total, // Total de reportes
+  byRegion: stats.byRegion, // Agrupados por región
+  byProvincia: stats.byProvincia, // Agrupados por provincia
+  metadata: stats.metadata, // Info del sistema
 });
 ```
 
@@ -363,21 +382,25 @@ console.log({
 ## 🎨 Ventajas del Sistema
 
 ### 1. **Rendimiento**
+
 - Búsquedas instantáneas O(1)
 - No requiere iteración completa
 - Escalable a miles de reportes
 
 ### 2. **Organización**
+
 - IDs únicos y predecibles
 - Estructura de datos limpia
 - Fácil depuración
 
 ### 3. **Compatibilidad**
+
 - Soporta datos antiguos
 - Migración automática
 - Fallback a búsqueda lineal
 
 ### 4. **Mantenibilidad**
+
 - Código simple y legible
 - Tests completos incluidos
 - Documentación detallada
@@ -423,6 +446,7 @@ console.log({
 ## 📞 Soporte
 
 Para preguntas o reportar issues:
+
 - GitHub: [iamCapel/MOPC-v0.1](https://github.com/iamCapel/MOPC-v0.1)
 - Documentación: Ver archivos `.md` en repositorio
 
