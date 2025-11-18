@@ -1227,6 +1227,134 @@
   line-height: 1.6;
 }
 
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #95a5a6;
+  font-style: italic;
+}
+
+/* Resumen de provincias */
+.provincias-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: #95a5a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-orange);
+}
+
+/* Lista de provincias */
+.provincias-list {
+  margin-top: 1.5rem;
+}
+
+.list-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 1.25rem 0;
+}
+
+.provincia-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--primary-orange);
+}
+
+.provincia-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: white;
+}
+
+.provincia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.provincia-nombre {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.provincia-badge {
+  background: linear-gradient(135deg, var(--primary-orange) 0%, #ff9a3d 100%);
+  color: white;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.provincia-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.provincia-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.provincia-stat:hover {
+  transform: scale(1.05);
+}
+
+.provincia-stat.highlight {
+  background: linear-gradient(135deg, #fff5e6 0%, #ffe4cc 100%);
+  border: 1px solid var(--primary-orange);
+}
+
+.provincia-stat .stat-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.provincia-stat .stat-text {
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+.provincia-stat .stat-text strong {
+  color: var(--primary-orange);
+  margin-right: 0.25rem;
+}
+
 
 .reports-content {
   padding: 2.5rem;

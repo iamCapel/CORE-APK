@@ -25,6 +25,16 @@ interface RegionData {
   pendientes: number;
   enProgreso: number;
   kilometraje: number;
+  provincias: ProvinciaData[];
+}
+
+interface ProvinciaData {
+  nombre: string;
+  total: number;
+  kilometraje: number;
+  completados: number;
+  pendientes: number;
+  enProgreso: number;
 }
 
 // Regiones de República Dominicana
@@ -80,8 +90,10 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
         enProgreso: 0 
       };
 
-      // Calcular kilometraje de la región
+      // Obtener reportes de la región
       const reportesRegion = allReports.filter(r => r.region?.toLowerCase() === regionKey);
+      
+      // Calcular kilometraje total de la región
       const kmTotal = reportesRegion.reduce((sum, report) => {
         if (report.gpsData?.start && report.gpsData?.end) {
           const km = calcularDistanciaKm(
@@ -95,13 +107,70 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
         return sum;
       }, 0);
 
+      // Agrupar por provincia
+      const provinciaMap = new Map<string, {
+        total: number;
+        completados: number;
+        pendientes: number;
+        enProgreso: number;
+        kilometraje: number;
+      }>();
+
+      reportesRegion.forEach(report => {
+        const provincia = report.provincia || 'Sin Provincia';
+        const current = provinciaMap.get(provincia) || {
+          total: 0,
+          completados: 0,
+          pendientes: 0,
+          enProgreso: 0,
+          kilometraje: 0
+        };
+
+        current.total++;
+        
+        if (report.estado === 'completado' || report.estado === 'aprobado') {
+          current.completados++;
+        } else if (report.estado === 'pendiente') {
+          current.pendientes++;
+        } else {
+          current.enProgreso++;
+        }
+
+        // Calcular kilometraje de este reporte
+        if (report.gpsData?.start && report.gpsData?.end) {
+          const km = calcularDistanciaKm(
+            report.gpsData.start.latitude,
+            report.gpsData.start.longitude,
+            report.gpsData.end.latitude,
+            report.gpsData.end.longitude
+          );
+          current.kilometraje += km;
+        }
+
+        provinciaMap.set(provincia, current);
+      });
+
+      // Convertir mapa a array
+      const provincias: ProvinciaData[] = Array.from(provinciaMap.entries()).map(([nombre, data]) => ({
+        nombre,
+        total: data.total,
+        kilometraje: data.kilometraje,
+        completados: data.completados,
+        pendientes: data.pendientes,
+        enProgreso: data.enProgreso
+      }));
+
+      // Ordenar provincias por total descendente
+      provincias.sort((a, b) => b.total - a.total);
+
       return {
         ...region,
         total: regionStats.total,
         completados: regionStats.completados,
         pendientes: regionStats.pendientes,
         enProgreso: regionStats.enProgreso,
-        kilometraje: kmTotal
+        kilometraje: kmTotal,
+        provincias
       };
     });
 
@@ -229,11 +298,76 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
               {selectedRegion && (
                 <div className="region-details-panel">
                   <div className="panel-header">
-                    <h3>Detalles de {regionesData.find(r => r.id === selectedRegion)?.name}</h3>
+                    <h3>
+                      {regionesData.find(r => r.id === selectedRegion)?.icon} {' '}
+                      {regionesData.find(r => r.id === selectedRegion)?.name}
+                    </h3>
                     <button className="close-btn" onClick={() => setSelectedRegion(null)}>✕</button>
                   </div>
                   <div className="panel-content">
-                    <p>Aquí se mostrarán las estadísticas detalladas, provincias, municipios y más...</p>
+                    {(() => {
+                      const region = regionesData.find(r => r.id === selectedRegion);
+                      if (!region || region.provincias.length === 0) {
+                        return <p className="no-data">No hay provincias registradas en esta región.</p>;
+                      }
+
+                      return (
+                        <>
+                          <div className="provincias-summary">
+                            <div className="summary-stat">
+                              <span className="summary-label">Total Provincias</span>
+                              <span className="summary-value">{region.provincias.length}</span>
+                            </div>
+                            <div className="summary-stat">
+                              <span className="summary-label">Total Intervenciones</span>
+                              <span className="summary-value">{region.total}</span>
+                            </div>
+                            <div className="summary-stat">
+                              <span className="summary-label">Kilometraje Total</span>
+                              <span className="summary-value">{region.kilometraje.toFixed(2)} km</span>
+                            </div>
+                          </div>
+
+                          <div className="provincias-list">
+                            <h4 className="list-title">Provincias de {region.name}</h4>
+                            {region.provincias.map((provincia, index) => (
+                              <div key={index} className="provincia-card">
+                                <div className="provincia-header">
+                                  <h5 className="provincia-nombre">{provincia.nombre}</h5>
+                                  <div className="provincia-badge">{provincia.total} reportes</div>
+                                </div>
+                                <div className="provincia-stats">
+                                  <div className="provincia-stat">
+                                    <span className="stat-icon">✅</span>
+                                    <span className="stat-text">
+                                      <strong>{provincia.completados}</strong> Completados
+                                    </span>
+                                  </div>
+                                  <div className="provincia-stat">
+                                    <span className="stat-icon">⏳</span>
+                                    <span className="stat-text">
+                                      <strong>{provincia.pendientes}</strong> Pendientes
+                                    </span>
+                                  </div>
+                                  <div className="provincia-stat">
+                                    <span className="stat-icon">🔄</span>
+                                    <span className="stat-text">
+                                      <strong>{provincia.enProgreso}</strong> En Progreso
+                                    </span>
+                                  </div>
+                                  <div className="provincia-stat highlight">
+                                    <span className="stat-icon">📏</span>
+                                    <span className="stat-text">
+                                      <strong>{provincia.kilometraje.toFixed(2)} km</strong> Recorridos
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
