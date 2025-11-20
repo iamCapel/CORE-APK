@@ -61,8 +61,8 @@ interface DetailedReportViewProps {
 }
 
 type ViewMode = 'hierarchy' | 'table' | 'stats';
-type FilterPeriod = 'todo' | 'hoy' | 'semana' | 'mes' | 'trimestre' | 'año' | 'personalizado';
-type SortField = 'fecha' | 'numero' | 'tipo' | 'provincia' | 'kilometraje';
+type FilterPeriod = 'todos' | 'hoy' | 'semana' | 'mes' | 'trimestre' | 'año' | 'personalizado';
+type SortField = 'reportNumber' | 'date' | 'tipo' | 'estado' | 'kilometraje';
 type SortOrder = 'asc' | 'desc';
 
 const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null, user }) => {
@@ -80,17 +80,17 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
 
   // Estados de filtros avanzados
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('mes');
-  const [filterTipo, setFilterTipo] = useState<string>('todos');
-  const [filterEstado, setFilterEstado] = useState<string>('todos');
-  const [filterRegion, setFilterRegion] = useState<string>('todas');
-  const [filterProvincia, setFilterProvincia] = useState<string>('todas');
-  const [filterUsuario, setFilterUsuario] = useState<string>('todos');
+  const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('todos');
+  const [filterTipo, setFilterTipo] = useState<string>('');
+  const [filterEstado, setFilterEstado] = useState<string>('');
+  const [filterRegion, setFilterRegion] = useState<string>('');
+  const [filterProvincia, setFilterProvincia] = useState<string>('');
+  const [filterUsuario, setFilterUsuario] = useState<string>('');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   
   // Estados de ordenamiento
-  const [sortField, setSortField] = useState<SortField>('fecha');
+  const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   // Cargar datos reales desde reportStorage
@@ -212,7 +212,7 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
     }
 
     // Filtro de período
-    if (filterPeriod !== 'todo' && filtered.length > 0) {
+    if (filterPeriod !== 'todos' && filtered.length > 0) {
       const now = new Date();
       let startDate: Date;
 
@@ -259,27 +259,27 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
     }
 
     // Filtro de tipo
-    if (filterTipo !== 'todos') {
+    if (filterTipo !== '') {
       filtered = filtered.filter(r => r.tipoIntervencion === filterTipo);
     }
 
     // Filtro de estado
-    if (filterEstado !== 'todos') {
+    if (filterEstado !== '') {
       filtered = filtered.filter(r => r.estado === filterEstado);
     }
 
     // Filtro de región
-    if (filterRegion !== 'todas') {
+    if (filterRegion !== '') {
       filtered = filtered.filter(r => r.region === filterRegion);
     }
 
     // Filtro de provincia
-    if (filterProvincia !== 'todas') {
+    if (filterProvincia !== '') {
       filtered = filtered.filter(r => r.province === filterProvincia);
     }
 
     // Filtro de usuario
-    if (filterUsuario !== 'todos') {
+    if (filterUsuario !== '') {
       filtered = filtered.filter(r => r.createdBy === filterUsuario);
     }
 
@@ -287,19 +287,19 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
     filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
-        case 'fecha':
+        case 'date':
           const dateA = new Date(a.fechaCreacion || a.date).getTime();
           const dateB = new Date(b.fechaCreacion || b.date).getTime();
           comparison = dateA - dateB;
           break;
-        case 'numero':
+        case 'reportNumber':
           comparison = (a.numeroReporte || a.reportNumber || '').localeCompare(b.numeroReporte || b.reportNumber || '');
           break;
         case 'tipo':
           comparison = (a.tipoIntervencion || '').localeCompare(b.tipoIntervencion || '');
           break;
-        case 'provincia':
-          comparison = (a.province || '').localeCompare(b.province || '');
+        case 'estado':
+          comparison = (a.estado || '').localeCompare(b.estado || '');
           break;
         case 'kilometraje':
           comparison = (a.kilometraje || 0) - (b.kilometraje || 0);
@@ -317,7 +317,7 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
     return {
       tipos: Array.from(new Set(allReportsFlat.map(r => r.tipoIntervencion).filter(Boolean))).sort(),
       estados: Array.from(new Set(allReportsFlat.map(r => r.estado).filter(Boolean))).sort(),
-      regiones: Array.from(new Set(allReportsFlat.map(r => r.region).filter(Boolean))).sort(),
+      regions: Array.from(new Set(allReportsFlat.map(r => r.region).filter(Boolean))).sort(),
       provincias: Array.from(new Set(allReportsFlat.map(r => r.province).filter(Boolean))).sort(),
       usuarios: Array.from(new Set(allReportsFlat.map(r => r.createdBy).filter(Boolean))).sort()
     };
@@ -343,12 +343,12 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
   // Funciones de utilidad
   const limpiarFiltros = () => {
     setSearchQuery('');
-    setFilterPeriod('mes');
-    setFilterTipo('todos');
-    setFilterEstado('todos');
-    setFilterRegion('todas');
-    setFilterProvincia('todas');
-    setFilterUsuario('todos');
+    setFilterPeriod('todos');
+    setFilterTipo('');
+    setFilterEstado('');
+    setFilterRegion('');
+    setFilterProvincia('');
+    setFilterUsuario('');
     setCustomStartDate('');
     setCustomEndDate('');
   };
@@ -698,8 +698,8 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
               type="text"
               className="filter-input-search"
               placeholder="🔎 Buscar en informes..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
