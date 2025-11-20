@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico UserStorage - MOPC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; text-align: center; }
+        .status { 
+            background: #e8f4f8; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 15px 0; 
+            border-left: 4px solid #3498db;
+        }
+        .success { 
+            background: #d4edda; 
+            border-left: 4px solid #28a745;
+        }
+        .error { 
+            background: #f8d7da; 
+            border-left: 4px solid #dc3545;
+        }
+        .warning { 
+            background: #fff3cd; 
+            border-left: 4px solid #ffc107;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #2980b9; }
+        .btn-create { background: #28a745; }
+        .btn-create:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        pre { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto; 
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico UserStorage</h1>
+        
+        <div id="mainStatus" class="status">
+            <h3>📊 Estado General del Sistema</h3>
+            <p id="statusText">Cargando diagnóstico...</p>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button onclick="runDiagnostic()">🔄 Actualizar Diagnóstico</button>
+            <button onclick="createSuperUser()" class="btn-create">👤 Crear Usuario Super</button>
+            <button onclick="testLogin()">🔐 Probar Login Super</button>
+            <button onclick="showRawData()">📋 Ver Datos Brutos</button>
+            <button onclick="clearStorage()" class="btn-danger">🗑️ Limpiar Todo</button>
+        </div>
+
+        <div id="usersTable" style="display: none;">
+            <h3>👥 Usuarios Registrados</h3>
+            <div id="usersTableContent"></div>
+        </div>
+
+        <div id="rawDataSection" style="display: none;">
+            <h3>📋 Datos Brutos del LocalStorage</h3>
+            <pre id="rawDataContent"></pre>
+        </div>
+
+        <div id="testResults" style="display: none;">
+            <h3>🧪 Resultados de Pruebas</h3>
+            <div id="testContent"></div>
+        </div>
+    </div>
+
+    <script>
+        function runDiagnostic() {
+            console.log('🔍 Iniciando diagnóstico...');
+            
+            try {
+                // Verificar localStorage keys
+                const userStorageData = localStorage.getItem('mopc_users_db');
+                const userIndexData = localStorage.getItem('mopc_users_index');
+                const userMetadataData = localStorage.getItem('mopc_users_metadata');
+                
+                let statusHTML = '';
+                let hasIssues = false;
+                
+                // Verificar si existe la base de datos
+                if (!userStorageData) {
+                    statusHTML += `<p class="error">❌ Base de datos no inicializada (mopc_users_db no existe)</p>`;
+                    hasIssues = true;
+                } else {
+                    try {
+                        const users = JSON.parse(userStorageData);
+                        const userCount = Object.keys(users).length;
+                        statusHTML += `<p class="success">✅ Base de datos encontrada con ${userCount} usuarios</p>`;
+                        
+                        // Buscar usuario super
+                        const superUser = Object.values(users).find(u => u.username === 'super');
+                        if (superUser) {
+                            statusHTML += `<p class="success">✅ Usuario "super" encontrado</p>`;
+                            statusHTML += `<p>   - Nombre: ${superUser.name}</p>`;
+                            statusHTML += `<p>   - Email: ${superUser.email}</p>`;
+                            statusHTML += `<p>   - Rol: ${superUser.role}</p>`;
+                            statusHTML += `<p>   - Activo: ${superUser.isActive ? 'Sí' : 'No'}</p>`;
+                            statusHTML += `<p>   - Verificado: ${superUser.isVerified ? 'Sí' : 'No'}</p>`;
+                        } else {
+                            statusHTML += `<p class="error">❌ Usuario "super" NO encontrado</p>`;
+                            hasIssues = true;
+                        }
+                        
+                        // Mostrar tabla de usuarios si hay usuarios
+                        if (userCount > 0) {
+                            showUsersTable(Object.values(users));
+                        }
+                        
+                    } catch (parseError) {
+                        statusHTML += `<p class="error">❌ Error al parsear datos de usuarios: ${parseError.message}</p>`;
+                        hasIssues = true;
+                    }
+                }
+                
+                // Verificar índice
+                if (!userIndexData) {
+                    statusHTML += `<p class="warning">⚠️ Índice no encontrado (mopc_users_index)</p>`;
+                } else {
+                    try {
+                        const index = JSON.parse(userIndexData);
+                        statusHTML += `<p class="success">✅ Índice encontrado con ${index.length} entradas</p>`;
+                    } catch (e) {
+                        statusHTML += `<p class="error">❌ Error en índice: ${e.message}</p>`;
+                    }
+                }
+                
+                // Verificar metadata
+                if (!userMetadataData) {
+                    statusHTML += `<p class="warning">⚠️ Metadata no encontrada (mopc_users_metadata)</p>`;
+                } else {
+                    try {
+                        const metadata = JSON.parse(userMetadataData);
+                        statusHTML += `<p class="success">✅ Metadata encontrada</p>`;
+                        statusHTML += `<p>   - Total usuarios: ${metadata.totalUsers || 0}</p>`;
+                        statusHTML += `<p>   - Usuarios activos: ${metadata.activeUsers || 0}</p>`;
+                    } catch (e) {
+                        statusHTML += `<p class="error">❌ Error en metadata: ${e.message}</p>`;
+                    }
+                }
+                
+                // Establecer clase del contenedor según el estado
+                const statusDiv = document.getElementById('mainStatus');
+                if (hasIssues) {
+                    statusDiv.className = 'status error';
+                    statusHTML = '<h3>❌ Problemas Detectados</h3>' + statusHTML;
+                } else {
+                    statusDiv.className = 'status success';
+                    statusHTML = '<h3>✅ Sistema Funcionando Correctamente</h3>' + statusHTML;
+                }
+                
+                document.getElementById('statusText').innerHTML = statusHTML;
+                
+            } catch (error) {
+                document.getElementById('statusText').innerHTML = `
+                    <p class="error">❌ Error crítico en diagnóstico: ${error.message}</p>
+                `;
+                console.error('Error en diagnóstico:', error);
+            }
+        }
+        
+        function showUsersTable(users) {
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Verificado</th>
+                            <th>Reportes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach(user => {
+                const activeClass = user.isActive ? 'badge-success' : 'badge-danger';
+                const verifiedClass = user.isVerified ? 'badge-success' : 'badge-warning';
+                
+                tableHTML += `
+                    <tr>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role}</td>
+                        <td><span class="badge ${activeClass}">${user.isActive ? 'Activo' : 'Inactivo'}</span></td>
+                        <td><span class="badge ${verifiedClass}">${user.isVerified ? 'Verificado' : 'Pendiente'}</span></td>
+                        <td>${user.reportsCount || 0}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `</tbody></table>`;
+            
+            document.getElementById('usersTableContent').innerHTML = tableHTML;
+            document.getElementById('usersTable').style.display = 'block';
+        }
+        
+        function createSuperUser() {
+            try {
+                // Inicializar si no existe
+                let userStorageData = localStorage.getItem('mopc_users_db');
+                let users = {};
+                
+                if (userStorageData) {
+                    users = JSON.parse(userStorageData);
+                }
+                
+                // Verificar si ya existe
+                const existingSuperUser = Object.values(users).find(u => u.username === 'super');
+                if (existingSuperUser) {
+                    alert('⚠️ El usuario "super" ya existe. Usa la función de prueba de login para verificar.');
+                    return;
+                }
+                
+                // Crear usuario
+                const userId = 'user-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+                const now = new Date().toISOString();
+                
+                const superUser = {
+                    id: userId,
+                    username: 'super',
+                    password: '02260516',
+                    name: 'Administrador Super',
+                    email: 'admin@mopc.gob.do',
+                    phone: '',
+                    cedula: '000-0000000-0',
+                    role: 'Administrador',
+                    department: 'Dirección de Coordinación Regional',
+                    isActive: true,
+                    isVerified: true,
+                    lastSeen: now,
+                    joinDate: now,
+                    avatar: '',
+                    currentLocation: {
+                        province: 'Distrito Nacional',
+                        municipality: 'Santo Domingo',
+                        coordinates: { lat: 18.4861, lng: -69.9312 },
+                        lastUpdated: now
+                    },
+                    reportsCount: 0,
+                    pendingReportsCount: 0,
+                    notes: [],
+                    createdAt: now,
+                    updatedAt: now,
+                    createdBy: 'diagnostic-tool',
+                    version: 1
+                };
+                
+                // Guardar usuario
+                users[userId] = superUser;
+                localStorage.setItem('mopc_users_db', JSON.stringify(users));
+                
+                // Actualizar índice
+                let index = [];
+                const indexData = localStorage.getItem('mopc_users_index');
+                if (indexData) {
+                    index = JSON.parse(indexData);
+                }
+                
+                index.push({
+                    id: userId,
+                    username: 'super',
+                    name: 'Administrador Super',
+                    email: 'admin@mopc.gob.do',
+                    role: 'Administrador',
+                    department: 'Dirección de Coordinación Regional',
+                    isActive: true
+                });
+                localStorage.setItem('mopc_users_index', JSON.stringify(index));
+                
+                // Actualizar metadata
+                const metadata = {
+                    version: 1,
+                    createdAt: now,
+                    lastModified: now,
+                    totalUsers: Object.keys(users).length,
+                    activeUsers: Object.values(users).filter(u => u.isActive).length
+                };
+                localStorage.setItem('mopc_users_metadata', JSON.stringify(metadata));
+                
+                alert('✅ Usuario "super" creado exitosamente!\n\nCredenciales:\nUsuario: super\nContraseña: 02260516');
+                
+                // Actualizar diagnóstico
+                runDiagnostic();
+                
+            } catch (error) {
+                alert('❌ Error al crear usuario: ' + error.message);
+                console.error('Error:', error);
+            }
+        }
+        
+        function testLogin() {
+            try {
+                const userStorageData = localStorage.getItem('mopc_users_db');
+                if (!userStorageData) {
+                    showTestResults('❌ Base de datos no encontrada');
+                    return;
+                }
+                
+                const users = JSON.parse(userStorageData);
+                const superUser = Object.values(users).find(u => u.username === 'super');
+                
+                let testHTML = '<h4>🧪 Prueba de Login para usuario "super"</h4>';
+                
+                if (!superUser) {
+                    testHTML += '<p class="error">❌ Usuario "super" no encontrado en la base de datos</p>';
+                } else {
+                    testHTML += '<p class="success">✅ Usuario "super" encontrado</p>';
+                    
+                    // Probar contraseña
+                    if (superUser.password === '02260516') {
+                        testHTML += '<p class="success">✅ Contraseña correcta (02260516)</p>';
+                    } else {
+                        testHTML += `<p class="error">❌ Contraseña incorrecta. Guardada: "${superUser.password}"</p>`;
+                    }
+                    
+                    // Verificar estado
+                    if (superUser.isActive) {
+                        testHTML += '<p class="success">✅ Usuario activo</p>';
+                    } else {
+                        testHTML += '<p class="error">❌ Usuario inactivo</p>';
+                    }
+                    
+                    if (superUser.isVerified) {
+                        testHTML += '<p class="success">✅ Usuario verificado</p>';
+                    } else {
+                        testHTML += '<p class="warning">⚠️ Usuario no verificado</p>';
+                    }
+                    
+                    // Simular validación de credenciales
+                    if (superUser.password === '02260516' && superUser.isActive) {
+                        testHTML += '<p class="success"><strong>✅ LOGIN EXITOSO: El usuario debería poder iniciar sesión</strong></p>';
+                    } else {
+                        testHTML += '<p class="error"><strong>❌ LOGIN FALLARÍA: Hay problemas con las credenciales o estado del usuario</strong></p>';
+                    }
+                }
+                
+                showTestResults(testHTML);
+                
+            } catch (error) {
+                showTestResults(`❌ Error en prueba: ${error.message}`);
+            }
+        }
+        
+        function showTestResults(content) {
+            document.getElementById('testContent').innerHTML = content;
+            document.getElementById('testResults').style.display = 'block';
+        }
+        
+        function showRawData() {
+            const rawSection = document.getElementById('rawDataSection');
+            
+            if (rawSection.style.display === 'none') {
+                const data = {
+                    mopc_users_db: localStorage.getItem('mopc_users_db'),
+                    mopc_users_index: localStorage.getItem('mopc_users_index'),
+                    mopc_users_metadata: localStorage.getItem('mopc_users_metadata')
+                };
+                
+                // Parsear para mostrar de forma legible
+                const parsedData = {};
+                Object.keys(data).forEach(key => {
+                    if (data[key]) {
+                        try {
+                            parsedData[key] = JSON.parse(data[key]);
+                        } catch (e) {
+                            parsedData[key] = data[key];
+                        }
+                    } else {
+                        parsedData[key] = null;
+                    }
+                });
+                
+                document.getElementById('rawDataContent').textContent = JSON.stringify(parsedData, null, 2);
+                rawSection.style.display = 'block';
+            } else {
+                rawSection.style.display = 'none';
+            }
+        }
+        
+        function clearStorage() {
+            if (confirm('⚠️ ¿Estás seguro de que quieres eliminar TODOS los datos de usuarios?\n\nEsta acción NO se puede deshacer.')) {
+                if (confirm('🚨 CONFIRMACIÓN FINAL: Esto borrará permanentemente todos los usuarios.\n\n¿Continuar?')) {
+                    localStorage.removeItem('mopc_users_db');
+                    localStorage.removeItem('mopc_users_index');
+                    localStorage.removeItem('mopc_users_metadata');
+                    
+                    alert('✅ Almacenamiento limpiado');
+                    location.reload();
+                }
+            }
+        }
+        
+        // Ejecutar diagnóstico al cargar
+        window.addEventListener('load', () => {
+            console.log('🔧 Herramienta de diagnóstico cargada');
+            runDiagnostic();
+        });
+    </script>
+</body>
+</html>
