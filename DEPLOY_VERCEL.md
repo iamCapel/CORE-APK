@@ -34,11 +34,11 @@ Si no ves estos mensajes, recarga la página (Ctrl+F5 o Cmd+Shift+R).
 
 Después de la primera carga, estos usuarios estarán disponibles:
 
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| `admin` | `admin123` | Administrador |
-| `capel` | `02260516` | Administrador |
-| `tecnico` | `tecnico123` | Técnico |
+| Usuario   | Contraseña   | Rol           |
+| --------- | ------------ | ------------- |
+| `admin`   | `admin123`   | Administrador |
+| `capel`   | `02260516`   | Administrador |
+| `tecnico` | `tecnico123` | Técnico       |
 
 ## 🔧 Configuración de Vercel
 
@@ -65,6 +65,7 @@ Install Command: npm install
 
 1. **Abrir consola del navegador** (F12) y recargar
 2. **Buscar logs**:
+
    - `✅ Usuarios ya existen en localStorage: 3` ← Todo OK
    - `🔄 Cargando usuarios predefinidos... 3` ← Cargando primera vez
    - `✅ Usuarios predefinidos cargados exitosamente` ← Éxito
@@ -83,6 +84,7 @@ Install Command: npm install
 **Causa**: localStorage vacío o corrupto
 
 **Solución**:
+
 ```javascript
 // Ejecutar en la consola del navegador (F12):
 localStorage.clear();
@@ -94,6 +96,7 @@ window.location.reload();
 **Causa**: Problema con el JSON de usuarios
 
 **Solución**:
+
 1. Verificar que `src/config/userstorage.json` existe
 2. Verificar que el JSON es válido
 3. Rebuild en Vercel
@@ -103,6 +106,7 @@ window.location.reload();
 **Causa**: Configuración de privacidad del navegador
 
 **Solución**:
+
 - Permitir cookies y localStorage para el sitio
 - Desactivar modo incógnito/privado
 - Verificar extensiones de privacidad (uBlock, Privacy Badger, etc.)

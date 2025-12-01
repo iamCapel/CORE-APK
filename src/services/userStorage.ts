@@ -5,6 +5,9 @@
 
 import defaultUsersData from '../config/userstorage.json';
 
+// Log de inicio - Verificar que el módulo se carga
+console.log('🚀 UserStorage cargado - Usuarios predefinidos disponibles:', defaultUsersData.length);
+
 export interface UserNote {
   id: string;
   tipo: 'observacion' | 'amonestacion' | 'pendiente';
