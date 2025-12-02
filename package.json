@@ -49,7 +49,12 @@
     "eject": "react-scripts eject",
     "build:mobile": "npm run build && npx cap sync",
     "android:open": "npx cap open android",
-    "android:run": "npx cap run android"
+    "android:run": "npx cap run android",
+    "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
+    "android:build:release": "npm run build && npx cap sync android && cd android && ./gradlew assembleRelease",
+    "android:clean": "cd android && ./gradlew clean",
+    "cap:sync": "npx cap sync android",
+    "cap:update": "npx cap update android"
   },
   "eslintConfig": {
     "extends": [
