@@ -664,102 +664,55 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   return (
     <div className="dashboard">
-      {/* Topbar similar al dashboard principal */}
+      {/* Topbar estilo Facebook */}
       <div className="topbar">
-        <div className="topbar-left">
-          <button 
-            onClick={onBack}
-            title="Volver al Dashboard" 
-            className="btn topbar-btn"
-          >
-            ← Volver
-          </button>
-        </div>
+        {/* Botón Volver a la izquierda */}
+        <button 
+          onClick={onBack}
+          title="Volver al Dashboard" 
+          className="topbar-back-button"
+          style={{
+            background: '#f0f2f5',
+            border: 'none',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+            color: '#050505'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = '#e4e6eb';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = '#f0f2f5';
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+        </button>
 
-        <div className="topbar-logo" aria-hidden></div>
+        {/* Título centrado */}
+        <div className="topbar-title">MOPC</div>
 
-        <div className="topbar-right" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-          {/* Ícono de notificaciones - posicionado en el extremo derecho */}
-          <div style={{ position: 'relative', cursor: 'pointer', marginRight: '0' }}>
-            <img 
-              src="/images/notification-bell-icon.svg" 
-              alt="Notificaciones" 
-              onClick={() => setShowPendingModal(true)}
-              style={{
-                width: '24px', 
-                height: '24px',
-                filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                animation: pendingCount > 0 ? 'bellShake 0.5s ease-in-out infinite alternate' : 'none'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-              }}
-            />
+        {/* Notificaciones a la derecha */}
+        <div className="topbar-actions">
+          <div className="topbar-action-button" onClick={() => setShowPendingModal(true)}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
             {pendingCount > 0 && (
-              <span 
-                style={{
-                  position: 'absolute',
-                  top: '-6px',
-                  right: '-6px',
-                  backgroundColor: '#e74c3c',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: '18px',
-                  height: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  border: '2px solid white',
-                  animation: 'badgeGlow 2s infinite'
-                }}
-              >
-                {pendingCount > 99 ? '99+' : pendingCount}
-              </span>
+              <span className="topbar-badge">{pendingCount > 99 ? '99+' : pendingCount}</span>
             )}
           </div>
         </div>
       </div>
 
       <div className="dashboard-content">
-        {/* Header profesional con logo y número de reporte */}
-        <div className="report-header-professional">
-          <div className="report-header-left">
-            <div className="report-number-section">
-              <h2 className="report-main-title">MINISTERIO DE OBRAS PÚBLICAS Y COMUNICACIONES</h2>
-              <h3 className="report-subtitle">DIRECCIÓN DE COORDINACIÓN REGIONAL</h3>
-              <div className="report-number-container">
-                <span className="report-number-label">Nº de Reporte:</span>
-                <span className="report-number-value">
-                  {interventionToEdit?.numeroReporte || 
-                    `DCR-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 999999) + 1).padStart(6, '0')}`
-                  }
-                </span>
-              </div>
-              <div className="report-date">
-                <span>Fecha: {new Date().toLocaleDateString('es-ES', { 
-                  day: '2-digit', 
-                  month: '2-digit', 
-                  year: 'numeric' 
-                })}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="report-header-right">
-          </div>
-        </div>
-
-        <div className="report-form-separator"></div>
-
         <h3 className="records-header">
           {interventionToEdit ? '📝 Editar Intervención' : '📋 Registro de Obras Realizadas'}
         </h3>
@@ -1121,7 +1074,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
           )}
 
           {/* Botones de acción */}
-          <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', gap: '20px', margin: '20px 0' }}>
+          <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '16px 0', flexWrap: 'wrap' }}>
             
             {/* Botón Verde - Guardar */}
             <button 
@@ -1129,40 +1082,38 @@ const ReportForm: React.FC<ReportFormProps> = ({
               onClick={guardarIntervencion} 
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                padding: '15px 20px',
+                gap: '6px',
+                padding: '8px 16px',
                 backgroundColor: '#27AE60',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                minWidth: '120px',
-                boxShadow: '0 4px 8px rgba(39, 174, 96, 0.3)',
-                transition: 'all 0.3s ease'
+                fontSize: '13px',
+                fontWeight: '600',
+                boxShadow: '0 2px 4px rgba(39, 174, 96, 0.3)',
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(39, 174, 96, 0.4)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 3px 6px rgba(39, 174, 96, 0.4)';
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(39, 174, 96, 0.3)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(39, 174, 96, 0.3)';
               }}
             >
-              <img 
-                src="/images/save-green-icon.svg" 
-                alt="Guardar" 
-                style={{ width: '32px', height: '32px', marginBottom: '8px' }}
-              />
-              <span style={{ fontSize: '14px', fontWeight: '600' }}>Guardar</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+              </svg>
+              <span>Guardar</span>
             </button>
 
             {/* Botón Naranja - Pendiente */}
             <button 
               type="button" 
               onClick={() => {
-                // Guardar como pendiente usando el servicio
                 const reportId = currentPendingReportId || 'pending_' + Date.now();
                 const pendingReport = {
                   id: reportId,
@@ -1185,45 +1136,39 @@ const ReportForm: React.FC<ReportFormProps> = ({
                   fieldsCompleted: []
                 };
                 
-                // Guardar en pendingReportStorage
                 pendingReportStorage.savePendingReport(pendingReport);
-                
-                // Guardar el ID en el estado
                 setCurrentPendingReportId(reportId);
-                
-                // Mostrar animación
                 setShowPendingAnimation(true);
               }}
             
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                padding: '15px 20px',
+                gap: '6px',
+                padding: '8px 16px',
                 backgroundColor: '#F39C12',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                minWidth: '120px',
-                boxShadow: '0 4px 8px rgba(243, 156, 18, 0.3)',
-                transition: 'all 0.3s ease'
+                fontSize: '13px',
+                fontWeight: '600',
+                boxShadow: '0 2px 4px rgba(243, 156, 18, 0.3)',
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(243, 156, 18, 0.4)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 3px 6px rgba(243, 156, 18, 0.4)';
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(243, 156, 18, 0.3)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(243, 156, 18, 0.3)';
               }}
             >
-              <img 
-                src="/images/pending-orange-icon.svg" 
-                alt="Pendiente" 
-                style={{ width: '32px', height: '32px', marginBottom: '8px' }}
-              />
-              <span style={{ fontSize: '14px', fontWeight: '600' }}>Pendiente</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+              </svg>
+              <span>Pendiente</span>
             </button>
 
             {/* Botón Rojo - Cancelar */}
@@ -1231,47 +1176,41 @@ const ReportForm: React.FC<ReportFormProps> = ({
               type="button" 
               onClick={() => {
                 if (window.confirm('¿Está seguro de que desea cancelar? Se perderán los datos no guardados.')) {
-                  // Si existe un reporte pendiente, eliminarlo de las notificaciones
                   if (currentPendingReportId) {
                     pendingReportStorage.deletePendingReport(currentPendingReportId);
                     setCurrentPendingReportId(null);
                   }
-                  
-                  // Limpiar formulario
                   limpiarFormulario();
-                  
-                  // El formulario queda listo para un nuevo reporte
                 }
               }}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                padding: '15px 20px',
+                gap: '6px',
+                padding: '8px 16px',
                 backgroundColor: '#E74C3C',
                 color: 'white',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                minWidth: '120px',
-                boxShadow: '0 4px 8px rgba(231, 76, 60, 0.3)',
-                transition: 'all 0.3s ease'
+                fontSize: '13px',
+                fontWeight: '600',
+                boxShadow: '0 2px 4px rgba(231, 76, 60, 0.3)',
+                transition: 'all 0.2s ease'
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(231, 76, 60, 0.4)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 3px 6px rgba(231, 76, 60, 0.4)';
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(231, 76, 60, 0.3)';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(231, 76, 60, 0.3)';
               }}
             >
-              <img 
-                src="/images/cancel-red-icon.svg" 
-                alt="Cancelar" 
-                style={{ width: '32px', height: '32px', marginBottom: '8px' }}
-              />
-              <span style={{ fontSize: '14px', fontWeight: '600' }}>Cancelar</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              </svg>
+              <span>Cancelar</span>
             </button>
 
           </div>

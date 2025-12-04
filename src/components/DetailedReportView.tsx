@@ -679,10 +679,6 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
     <div className="detailed-report-view">
       {/* Header mejorado */}
       <div className="header">
-        <div className="header-left">
-          <h2>📊 Informes y Estadísticas Detalladas</h2>
-          <p className="header-subtitle">Análisis completo de intervenciones viales</p>
-        </div>
         <div className="header-right">
           <div className="view-mode-selector">
             <button 
@@ -838,52 +834,6 @@ const DetailedReportView: React.FC<DetailedReportViewProps> = ({ onClose = null,
               </select>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Estadísticas resumidas */}
-      <div className="stats-summary-compact">
-        <div className="stat-box-compact">
-          <div className="stat-icon-compact">📊</div>
-          <div className="stat-text-compact">
-            <div className="stat-value-compact">{stats.total}</div>
-            <div className="stat-label-compact">Total Informes</div>
-          </div>
-        </div>
-        <div className="stat-box-compact">
-          <div className="stat-icon-compact">✅</div>
-          <div className="stat-text-compact">
-            <div className="stat-value-compact">{stats.completados}</div>
-            <div className="stat-label-compact">Completados</div>
-          </div>
-        </div>
-        <div className="stat-box-compact">
-          <div className="stat-icon-compact">⏳</div>
-          <div className="stat-text-compact">
-            <div className="stat-value-compact">{stats.pendientes}</div>
-            <div className="stat-label-compact">Pendientes</div>
-          </div>
-        </div>
-        <div className="stat-box-compact">
-          <div className="stat-icon-compact">🔄</div>
-          <div className="stat-text-compact">
-            <div className="stat-value-compact">{stats.enProgreso}</div>
-            <div className="stat-label-compact">En Progreso</div>
-          </div>
-        </div>
-        <div className="stat-box-compact">
-          <div className="stat-icon-compact">📏</div>
-          <div className="stat-text-compact">
-            <div className="stat-value-compact">{stats.totalKm.toFixed(1)}</div>
-            <div className="stat-label-compact">Km Totales</div>
-          </div>
-        </div>
-        <div className="stat-box-compact">
-          <div className="stat-icon-compact">📐</div>
-          <div className="stat-text-compact">
-            <div className="stat-value-compact">{stats.promedioKm.toFixed(2)}</div>
-            <div className="stat-label-compact">Km Promedio</div>
-          </div>
         </div>
       </div>
 

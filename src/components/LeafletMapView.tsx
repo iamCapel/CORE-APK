@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { reportStorage } from '../services/reportStorage';
 import ReportDetailView from './ReportDetailView';
+import './Dashboard.css';
 
 // Configurar iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -204,6 +205,7 @@ const LeafletMapView: React.FC<LeafletMapViewProps> = ({ user, onBack }) => {
   const [allTypes, setAllTypes] = useState<string[]>([]);
   const [showDetailView, setShowDetailView] = useState(false);
   const [selectedReportNumber, setSelectedReportNumber] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     // Cargar intervenciones desde reportStorage
@@ -239,9 +241,16 @@ const LeafletMapView: React.FC<LeafletMapViewProps> = ({ user, onBack }) => {
     setSelectedTypes(types); // Mostrar todos por defecto
   }, [user]);
 
-  const filteredInterventions = interventions.filter(intervention => 
-    selectedTypes.includes(intervention.tipoIntervencion)
-  );
+  const filteredInterventions = interventions.filter(intervention => {
+    const matchesType = selectedTypes.includes(intervention.tipoIntervencion);
+    const matchesSearch = !searchQuery || 
+      intervention.numeroReporte?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      intervention.municipio.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      intervention.provincia.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      intervention.sector.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      intervention.tipoIntervencion.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesType && matchesSearch;
+  });
 
   const toggleType = (type: string) => {
     setSelectedTypes(prev => 
@@ -293,157 +302,44 @@ const LeafletMapView: React.FC<LeafletMapViewProps> = ({ user, onBack }) => {
   const center: [number, number] = [18.7357, -70.1627];
 
   return (
-    <div style={{ padding: '20px', height: '100vh', backgroundColor: '#f8f9fa' }}>
-      {/* Topbar */}
-      <div style={{
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        backgroundColor: 'white',
-        color: '#2c3e50',
-        padding: '12px 20px',
-        marginBottom: '20px',
-        borderRadius: '0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+    <div className="dashboard-container">
+      {/* Topbar estilo Dashboard */}
+      <div className="topbar">
+        <button className="topbar-back-button" onClick={onBack}>
+          ←
+        </button>
+        <h1 className="topbar-title">Buscar</h1>
+        <div className="topbar-avatar"></div>
+      </div>
+
+      {/* Filtro de búsqueda móvil */}
+      <div className="map-search-container" style={{ padding: '0 16px' }}>
+        <input
+          type="text"
+          className="map-search-input"
+          placeholder="🔍 Buscar por # reporte, municipio, provincia..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
           <button 
-            onClick={onBack}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              backgroundColor: '#f8f9fa',
-              color: '#2c3e50',
-              border: '1px solid #dee2e6',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e9ecef';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f8f9fa';
-            }}
+            className="map-search-clear"
+            onClick={() => setSearchQuery('')}
+            title="Limpiar búsqueda"
           >
-            <span style={{ fontSize: '16px' }}>←</span>
-            Volver
+            ×
           </button>
-          <div style={{
-            width: '1px',
-            height: '24px',
-            backgroundColor: '#dee2e6'
-          }}></div>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '18px',
-            fontWeight: '600',
-            color: '#2c3e50'
-          }}>
-            🗺️ Mapa de Intervenciones MOPC
-          </h1>
-        </div>
-        {/* Ícono de notificaciones - posicionado a la derecha */}
-        <div style={{ position: 'relative', cursor: 'pointer' }}>
-          <img 
-            src="/images/notification-bell-icon.svg" 
-            alt="Notificaciones" 
-            style={{
-              width: '24px', 
-              height: '24px',
-              filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-            }}
-          />
-        </div>
-      </div>      <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
-        {/* Panel de control */}
+        )}
+      </div>
+
+      {/* Mapa */}
+      <div style={{ 
+        padding: '0 16px',
+        marginBottom: '16px'
+      }}>
         <div style={{ 
-          width: '300px', 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          overflowY: 'auto'
-        }}>
-          <h3 style={{ marginTop: 0, color: '#2c3e50' }}>📊 Filtros</h3>
-          
-          {/* Búsqueda por Número de Reporte */}
-          <div style={{ 
-            marginBottom: '20px', 
-            padding: '15px', 
-            backgroundColor: '#f8f9fa', 
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <img 
-                src="/images/search-report-icon.svg" 
-                alt="Buscar reporte" 
-                style={{ width: '24px', height: '24px', marginRight: '8px' }}
-              />
-              <h4 style={{ color: '#495057', margin: 0, fontSize: '14px' }}>
-                Buscar por Número de Reporte
-              </h4>
-            </div>
-            <input
-              type="text"
-              placeholder="Ingrese # de reporte (ej: DCR-2025-000001)"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #ced4da',
-                borderRadius: '4px',
-                fontSize: '14px',
-                marginBottom: '8px'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  const reportNumber = (e.target as HTMLInputElement).value;
-                  if (reportNumber.trim()) {
-                    // Búsqueda optimizada usando reportStorage (O(1))
-                    const report = reportStorage.getReportByNumber(reportNumber.trim());
-                    
-                    if (report) {
-                      // Centrar mapa en el municipio de la intervención encontrada
-                      alert(`✅ Reporte encontrado: ${report.numeroReporte} en ${report.municipio}, ${report.provincia}\nTipo: ${report.tipoIntervencion}`);
-                      console.log('📍 Reporte encontrado vía búsqueda optimizada:', report);
-                      // Aquí podrías agregar lógica para centrar el mapa en las coordenadas del municipio
-                    } else {
-                      alert('❌ No se encontró ningún reporte con ese número');
-                      console.log('❌ Búsqueda sin resultados para:', reportNumber);
-                    }
-                  }
-                }
-              }}
-            />
-            <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>
-              Presione Enter para buscar y ubicar en el mapa
-            </p>
-          </div>
-
-
-        </div>
-
-        {/* Mapa */}
-        <div style={{ 
-          flex: 1, 
+          width: '100%',
+          height: '400px',
           backgroundColor: 'white', 
           borderRadius: '8px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',

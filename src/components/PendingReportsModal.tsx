@@ -82,102 +82,94 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 10000,
         display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'flex-end',
-        paddingTop: '80px',
-        paddingRight: '24px',
-        animation: 'fadeIn 0.2s ease'
+        alignItems: 'center',
+        justifyContent: 'center',
+        animation: 'fadeIn 0.2s ease',
+        padding: '0'
       }}
       onClick={onClose}
     >
       <div 
         style={{
-          backgroundColor: '#f9f9f9',
-          borderRadius: '20px',
+          backgroundColor: '#fff',
+          borderRadius: '12px',
           padding: '0',
-          maxWidth: '420px',
-          width: '420px',
-          maxHeight: '75vh',
+          width: '100%',
+          maxWidth: '390px',
+          maxHeight: '85vh',
           overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-          border: 'none',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
           position: 'relative',
-          animation: 'slideInRight 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+          animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          margin: '0 16px'
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div style={{
           background: 'linear-gradient(135deg, #ff7a00 0%, #ff9a3d 100%)',
-          padding: '20px 24px',
-          borderRadius: '20px 20px 0 0',
-          boxShadow: '0 2px 10px rgba(255, 122, 0, 0.2)'
+          padding: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
         }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div>
-              <h3 style={{ 
-                margin: 0, 
-                color: 'white', 
-                fontSize: '22px',
-                fontWeight: '700',
-                letterSpacing: '-0.5px'
-              }}>
-                Notificaciones
-              </h3>
-              <p style={{ 
-                margin: '4px 0 0 0', 
-                color: 'rgba(255, 255, 255, 0.9)', 
-                fontSize: '13px',
-                fontWeight: '500'
-              }}>
-                {reports.length} {reports.length === 1 ? 'reporte pendiente' : 'reportes pendientes'}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                cursor: 'pointer',
-                fontSize: '18px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease',
-                fontWeight: '300'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-                e.currentTarget.style.transform = 'scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              ✕
-            </button>
+          <div>
+            <h3 style={{ 
+              margin: 0, 
+              color: 'white', 
+              fontSize: '18px',
+              fontWeight: '700',
+              letterSpacing: '-0.3px'
+            }}>
+              Notificaciones
+            </h3>
+            <p style={{ 
+              margin: '2px 0 0 0', 
+              color: 'rgba(255, 255, 255, 0.9)', 
+              fontSize: '12px',
+              fontWeight: '500'
+            }}>
+              {reports.length} {reports.length === 1 ? 'pendiente' : 'pendientes'}
+            </p>
           </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'rgba(255, 255, 255, 0.25)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              fontWeight: '400'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+            }}
+          >
+            ✕
+          </button>
         </div>
 
         {/* Lista de notificaciones */}
         <div style={{
-          padding: '16px',
-          maxHeight: 'calc(75vh - 100px)',
+          padding: '12px',
+          maxHeight: 'calc(85vh - 76px)',
           overflowY: 'auto',
-          backgroundColor: '#f9f9f9'
+          backgroundColor: '#f0f2f5'
         }}>
           {reports.length === 0 ? (
             <div style={{
@@ -190,7 +182,7 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
               <p style={{ fontSize: '13px', margin: '8px 0 0 0', color: '#999' }}>Todos los reportes están al día</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {reports.map((report) => {
                 const isRemoving = removingIds.has(report.id);
                 return (
@@ -198,10 +190,10 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
                     key={report.id}
                     style={{
                       backgroundColor: 'white',
-                      borderRadius: '16px',
-                      padding: '16px',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                      border: '1px solid rgba(0, 0, 0, 0.06)',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      border: '1px solid #e4e6eb',
                       transition: 'all 0.3s ease',
                       position: 'relative',
                       opacity: isRemoving ? 0 : 1,
@@ -213,27 +205,27 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
                     }}
                   >
                   {/* Contenido del reporte */}
-                  <div style={{ marginBottom: '14px' }}>
+                  <div style={{ marginBottom: '10px' }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'flex-start',
-                      marginBottom: '8px'
+                      marginBottom: '6px'
                     }}>
                       <div style={{ flex: 1 }}>
                         <div style={{
-                          fontSize: '15px',
+                          fontSize: '14px',
                           fontWeight: '600',
-                          color: '#1a1a1a',
-                          marginBottom: '6px',
+                          color: '#050505',
+                          marginBottom: '4px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px'
+                          gap: '6px'
                         }}>
                           <span style={{
                             display: 'inline-block',
-                            width: '8px',
-                            height: '8px',
+                            width: '6px',
+                            height: '6px',
                             borderRadius: '50%',
                             backgroundColor: '#ff7a00',
                             animation: 'pulse 2s infinite'
@@ -241,27 +233,28 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
                           {report.tipoIntervencion || 'Intervención'}
                         </div>
                         <div style={{
-                          fontSize: '13px',
-                          color: '#666',
-                          marginBottom: '4px'
+                          fontSize: '12px',
+                          color: '#65676b',
+                          marginBottom: '3px'
                         }}>
                           📍 <strong>{report.provincia}</strong> • {report.municipio || 'N/A'}
                         </div>
                         <div style={{
-                          fontSize: '12px',
-                          color: '#999',
+                          fontSize: '11px',
+                          color: '#8a8d91',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px'
+                          gap: '6px',
+                          flexWrap: 'wrap'
                         }}>
                           <span>🕐 {formatDate(report.timestamp)}</span>
                           <span style={{
-                            backgroundColor: '#f0f0f0',
-                            padding: '2px 8px',
-                            borderRadius: '8px',
-                            fontSize: '11px',
+                            backgroundColor: '#f0f2f5',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
                             fontWeight: '600',
-                            color: '#666'
+                            color: '#65676b'
                           }}>
                             {getReportNumber(report.id)}
                           </span>
@@ -273,7 +266,7 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
                   {/* Botones de acción */}
                   <div style={{
                     display: 'flex',
-                    gap: '10px',
+                    gap: '8px',
                     justifyContent: 'flex-end'
                   }}>
                     {/* Botón Cancelar (Rojo) */}
@@ -283,37 +276,27 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 14px',
+                          gap: '4px',
+                          padding: '6px 12px',
                           backgroundColor: 'white',
                           color: '#e74c3c',
-                          border: '2px solid #e74c3c',
-                          borderRadius: '20px',
+                          border: '1px solid #e74c3c',
+                          borderRadius: '6px',
                           cursor: 'pointer',
-                          fontSize: '13px',
+                          fontSize: '12px',
                           fontWeight: '600',
-                          transition: 'all 0.2s ease',
-                          boxShadow: '0 2px 4px rgba(231, 76, 60, 0.1)'
+                          transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = '#e74c3c';
                           e.currentTarget.style.color = 'white';
-                          e.currentTarget.style.transform = 'scale(1.05)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'white';
                           e.currentTarget.style.color = '#e74c3c';
-                          e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        <span style={{
-                          width: '18px',
-                          height: '18px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '14px'
-                        }}>✕</span>
+                        <span style={{ fontSize: '12px' }}>✕</span>
                         Cancelar
                       </button>
                     )}
@@ -325,40 +308,26 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 14px',
+                          gap: '4px',
+                          padding: '6px 12px',
                           backgroundColor: '#27ae60',
                           color: 'white',
-                          border: '2px solid #27ae60',
-                          borderRadius: '20px',
+                          border: 'none',
+                          borderRadius: '6px',
                           cursor: 'pointer',
-                          fontSize: '13px',
+                          fontSize: '12px',
                           fontWeight: '600',
-                          transition: 'all 0.2s ease',
-                          boxShadow: '0 2px 4px rgba(39, 174, 96, 0.2)'
+                          transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = '#229954';
-                          e.currentTarget.style.borderColor = '#229954';
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(39, 174, 96, 0.3)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#27ae60';
-                          e.currentTarget.style.borderColor = '#27ae60';
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(39, 174, 96, 0.2)';
                         }}
                       >
                         Continuar
-                        <span style={{
-                          width: '18px',
-                          height: '18px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '14px'
-                        }}>→</span>
+                        <span style={{ fontSize: '12px' }}>→</span>
                       </button>
                     )}
                   </div>
@@ -376,14 +345,14 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
           to { opacity: 1; }
         }
         
-        @keyframes slideInRight {
+        @keyframes slideUp {
           from {
             opacity: 0;
-            transform: translateX(100px);
+            transform: translateY(50px);
           }
           to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
           }
         }
         
@@ -393,8 +362,8 @@ const PendingReportsModal: React.FC<PendingReportsModalProps> = ({
             transform: scale(1);
           }
           50% {
-            opacity: 0.5;
-            transform: scale(0.8);
+            opacity: 0.6;
+            transform: scale(0.9);
           }
         }
       `}</style>

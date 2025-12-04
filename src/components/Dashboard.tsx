@@ -1099,142 +1099,84 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard">
       <div className="topbar">
-        <div className="topbar-left">
-          <div className="dashboard-logos">
-            <img src="/mopc-logo.png" alt="MOPC Logo" className="dashboard-logo-left" />
-            <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="dashboard-logo-right" />
-          </div>
-        </div>
+        {/* Espaciador izquierdo */}
+        <div className="topbar-spacer"></div>
 
-        <div className="topbar-logo" aria-hidden></div>
+        {/* Título centrado */}
+        <div className="topbar-title">MOPC</div>
 
-        <div className="topbar-right">
-          <div className="topbar-icon" aria-hidden />
-          <div className="topbar-icon" aria-hidden />
-
-          {user ? (
+        {/* Iconos de acción a la derecha */}
+        <div className="topbar-actions">
+          {user && (
             <>
-              {/* Icono de notificaciones en el topbar */}
-              <div className="notification-container topbar-notification">
-                <img 
-                  src="/images/notification-bell-icon.svg" 
-                  alt="Notificaciones" 
-                  className="notification-icon topbar-notification-icon"
-                  style={{
-                    width: '24px', 
-                    height: '24px',
-                    filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    marginLeft: '8px',
-                    animation: pendingCount > 0 ? 'bellShake 0.5s ease-in-out infinite alternate' : 'none'
-                  }}
-                  onClick={() => {
-                    // Abrir modal con lista de reportes pendientes
-                    setShowPendingModal(true);
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-                  }}
-                />
-                {/* Contador de notificaciones */}
-                {pendingCount > 0 ? (
-                  <span 
-                    className="notification-badge topbar-notification-badge"
-                    style={{
-                      position: 'absolute',
-                      top: '-6px',
-                      right: '-6px',
-                      backgroundColor: '#e74c3c',
-                      color: 'white',
-                      borderRadius: '50%',
-                      width: '18px',
-                      height: '18px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      border: '2px solid white',
-                      animation: 'badgeGlow 2s infinite'
-                    }}
-                  >
-                    {pendingCount > 99 ? '99+' : pendingCount}
-                  </span>
-                ) : null}
+              {/* Notificaciones */}
+              <div className="topbar-action-button" onClick={() => setShowPendingModal(true)}>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                </svg>
+                {pendingCount > 0 && (
+                  <span className="topbar-badge">{pendingCount > 99 ? '99+' : pendingCount}</span>
+                )}
               </div>
 
-              {/* Menú desplegable del usuario */}
-              <div className="user-menu-container" style={{ position: 'relative' }}>
-                <div 
-                  className="topbar-notification"
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  style={{ 
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    padding: '8px'
-                  }}
-                >
-                  <div style={{ width: '24px', height: '3px', backgroundColor: '#ff7a00', borderRadius: '2px' }}></div>
-                  <div style={{ width: '24px', height: '3px', backgroundColor: '#ff7a00', borderRadius: '2px' }}></div>
-                  <div style={{ width: '24px', height: '3px', backgroundColor: '#ff7a00', borderRadius: '2px' }}></div>
-                </div>
-
-                {showUserMenu && (
-                  <div className="user-dropdown-menu">
-                    {/* Información del usuario con badge de rol */}
-                    <div className="user-dropdown-header">
-                      <div className="user-dropdown-avatar">
-                        {profilePhoto ? (
-                          <img src={profilePhoto} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                        ) : (
-                          <span style={{ fontSize: '32px' }}>👤</span>
-                        )}
-                      </div>
-                      <div className="user-dropdown-info">
-                        <div className="user-dropdown-name">{user.name}</div>
-                        {user.role && (
-                          <span className={`role-badge ${user.role}`}>
-                            {getRoleBadge(user.role)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="user-dropdown-divider"></div>
-                    <div className="user-dropdown-item" onClick={() => {
-                      setShowUserMenu(false);
-                      setShowCompleteProfileModal(true);
-                    }}>
-                      <span>👤</span>
-                      <span>Mi Perfil</span>
-                    </div>
-                    <div className="user-dropdown-item" onClick={() => {
-                      setShowUserMenu(false);
-                      setShowMyReportsModal(true);
-                    }}>
-                      <span>📋</span>
-                      <span>Mis Reportes</span>
-                    </div>
-                    <div className="user-dropdown-divider"></div>
-                    <div className="user-dropdown-item" onClick={() => {
-                      setShowUserMenu(false);
-                      handleLogout();
-                    }}>
-                      <span>🚪</span>
-                      <span>Cerrar Sesión</span>
-                    </div>
+              {/* Menú de usuario */}
+              <div className="topbar-action-button" onClick={() => setShowUserMenu(!showUserMenu)}>
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Avatar" className="topbar-avatar" />
+                ) : (
+                  <div className="topbar-avatar-placeholder">
+                    {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
+
+              {/* Dropdown del usuario */}
+              {showUserMenu && (
+                <div className="user-dropdown-menu">
+                  <div className="user-dropdown-header">
+                    <div className="user-dropdown-avatar">
+                      {profilePhoto ? (
+                        <img src={profilePhoto} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '32px' }}>👤</span>
+                      )}
+                    </div>
+                    <div className="user-dropdown-info">
+                      <div className="user-dropdown-name">{user.name}</div>
+                      {user.role && (
+                        <span className={`role-badge ${user.role}`}>
+                          {getRoleBadge(user.role)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="user-dropdown-divider"></div>
+                  <div className="user-dropdown-item" onClick={() => {
+                    setShowUserMenu(false);
+                    setShowCompleteProfileModal(true);
+                  }}>
+                    <span>👤</span>
+                    <span>Mi Perfil</span>
+                  </div>
+                  <div className="user-dropdown-item" onClick={() => {
+                    setShowUserMenu(false);
+                    setShowMyReportsModal(true);
+                  }}>
+                    <span>📋</span>
+                    <span>Mis Reportes</span>
+                  </div>
+                  <div className="user-dropdown-divider"></div>
+                  <div className="user-dropdown-item" onClick={() => {
+                    setShowUserMenu(false);
+                    handleLogout();
+                  }}>
+                    <span>🚪</span>
+                    <span>Cerrar Sesión</span>
+                  </div>
+                </div>
+              )}
             </>
-          ) : null}
+          )}
         </div>
       </div>
 

@@ -300,85 +300,46 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
   return (
     <div className="reports-page">
       <div className="reports-container">
-        {/* Topbar Reconstruido */}
-        <div className="reports-topbar-modern">
-          <div className="topbar-left-section">
-            <button className="topbar-back-btn-modern" onClick={onBack}>
-              <span className="back-arrow">←</span>
-              <span className="back-text">Dashboard</span>
-            </button>
-            <div className="topbar-divider"></div>
-            <div className="topbar-title-section">
-              <h1 className="topbar-main-title">Informes y Estadísticas</h1>
-              <p className="topbar-subtitle">Análisis de intervenciones por región</p>
-            </div>
-          </div>
-          
-          <div className="topbar-right-section">
-            {/* Icono de notificaciones */}
-            <div className="notification-container" style={{ position: 'relative', marginRight: '16px' }}>
-              <img 
-                src="/images/notification-bell-icon.svg" 
-                alt="Notificaciones" 
-                className="notification-icon"
-                style={{
-                  width: '24px', 
-                  height: '24px',
-                  filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  animation: pendingCount > 0 ? 'bellShake 0.5s ease-in-out infinite alternate' : 'none'
-                }}
-                onClick={() => setShowPendingModal(true)}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-                }}
-              />
-              {pendingCount > 0 && (
-                <span 
-                  style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-6px',
-                    backgroundColor: '#e74c3c',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    border: '2px solid white',
-                    animation: 'badgeGlow 2s infinite'
-                  }}
-                >
-                  {pendingCount > 99 ? '99+' : pendingCount}
-                </span>
-              )}
+        {/* Topbar estilo Dashboard */}
+        <div className="topbar">
+          {/* Botón atrás */}
+          <button className="topbar-back-button" onClick={onBack}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+          </button>
+
+          {/* Título centrado */}
+          <div className="topbar-title">Informes</div>
+
+          {/* Acciones a la derecha */}
+          <div className="topbar-actions">
+            {/* Botón Estadísticas */}
+            <div 
+              className={`topbar-action-button ${currentView === 'estadisticas' ? 'active' : ''}`}
+              onClick={() => setCurrentView('estadisticas')}
+              title="Estadísticas"
+            >
+              📊
             </div>
 
-            <div className="view-selector-topbar">
-              <button 
-                className={`view-btn-topbar ${currentView === 'estadisticas' ? 'active' : ''}`}
-                onClick={() => setCurrentView('estadisticas')}
-              >
-                <span className="view-icon">📊</span>
-                <span className="view-label">Estadísticas</span>
-              </button>
-              <button 
-                className={`view-btn-topbar ${currentView === 'detallado' ? 'active' : ''}`}
-                onClick={() => setCurrentView('detallado')}
-              >
-                <span className="view-icon">📄</span>
-                <span className="view-label">Informe Detallado</span>
-              </button>
+            {/* Botón Informe Detallado */}
+            <div 
+              className={`topbar-action-button ${currentView === 'detallado' ? 'active' : ''}`}
+              onClick={() => setCurrentView('detallado')}
+              title="Informe Detallado"
+            >
+              📄
+            </div>
+
+            {/* Notificaciones */}
+            <div className="topbar-action-button" onClick={() => setShowPendingModal(true)}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+              </svg>
+              {pendingCount > 0 && (
+                <span className="topbar-badge">{pendingCount > 99 ? '99+' : pendingCount}</span>
+              )}
             </div>
           </div>
         </div>
@@ -386,31 +347,22 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
         <div className="reports-content">
           {currentView === 'estadisticas' && (
             <div className="view-content">
-              <div className="stats-header-section">
-                <div className="stats-header-left">
-                  <div>
-                    <h2 className="stats-title">Regiones de República Dominicana</h2>
-                    <p className="stats-subtitle">Selecciona una región para ver sus estadísticas detalladas</p>
-                  </div>
-                </div>
-                
-                {/* Selector de modo compacto */}
-                <div className="stats-mode-selector-compact">
-                  <button
-                    className={`mode-compact-btn ${statsMode === 'intervenciones' ? 'active' : ''}`}
-                    onClick={() => setStatsMode('intervenciones')}
-                    title="Ver intervenciones"
-                  >
-                    📋 Intervenciones
-                  </button>
-                  <button
-                    className={`mode-compact-btn ${statsMode === 'kilometraje' ? 'active' : ''}`}
-                    onClick={() => setStatsMode('kilometraje')}
-                    title="Ver kilometraje"
-                  >
-                    📏 Kilometraje
-                  </button>
-                </div>
+              {/* Selector de modo compacto */}
+              <div className="stats-mode-selector-compact">
+                <button
+                  className={`mode-compact-btn ${statsMode === 'intervenciones' ? 'active' : ''}`}
+                  onClick={() => setStatsMode('intervenciones')}
+                  title="Ver intervenciones"
+                >
+                  📋 Intervenciones
+                </button>
+                <button
+                  className={`mode-compact-btn ${statsMode === 'kilometraje' ? 'active' : ''}`}
+                  onClick={() => setStatsMode('kilometraje')}
+                  title="Ver kilometraje"
+                >
+                  📏 Kilometraje
+                </button>
               </div>
 
               <div className="regions-grid">
@@ -424,7 +376,6 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack }) => {
                       borderLeftColor: region.color 
                     } as React.CSSProperties}
                   >
-                    <div className="region-icon">{region.icon}</div>
                     <div className="region-info">
                       <h3 className="region-name">{region.name}</h3>
                       

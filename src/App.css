@@ -1,6 +1,37 @@
 /* ===================================
    MOPC Dashboard - Sistema de Temas por Rol
+   iPhone 12 Fixed Width: 390px
    =================================== */
+
+/* Forzar ancho fijo de iPhone 12 */
+html {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  width: 100%;
+  min-width: 390px !important;
+  max-width: 390px !important;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-width: 390px !important;
+  max-width: 390px !important;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+.App {
+  width: 100%;
+  min-width: 390px !important;
+  max-width: 390px !important;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
 
 /* Variables CSS Dinámicas por Rol de Usuario */
 :root {
@@ -60,11 +91,11 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   
-  /* Sombras adaptativas al rol */
+  /* Sombras adaptativas al rol - Optimizadas para móvil */
   --shadow-sm: 0 1px 2px 0 var(--user-shadow);
-  --shadow-md: 0 4px 6px -1px var(--user-shadow);
-  --shadow-lg: 0 10px 15px -3px var(--user-shadow);
-  --shadow-xl: 0 20px 25px -5px var(--user-shadow);
+  --shadow-md: 0 2px 4px -1px var(--user-shadow);
+  --shadow-lg: 0 4px 8px -2px var(--user-shadow);
+  --shadow-xl: 0 8px 16px -3px var(--user-shadow);
   
   /* Transiciones (sin cambios) */
   --transition-fast: 0.15s ease;

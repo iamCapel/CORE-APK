@@ -3,6 +3,7 @@ import { reportStorage } from '../services/reportStorage';
 import { pendingReportStorage } from '../services/pendingReportStorage';
 import { userStorage } from '../services/userStorage';
 import './UsersPage.css';
+import './Dashboard.css';
 import PendingReportsModal from './PendingReportsModal';
 
 interface User {
@@ -311,7 +312,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
   };
 
   // Modo de vista de agrupación
-  const [groupingMode, setGroupingMode] = useState<'estado' | 'rendimiento' | 'asignaciones'>('rendimiento');
+  const [groupingMode, setGroupingMode] = useState<'rendimiento' | 'asignaciones'>('rendimiento');
   
   // Estados para asignaciones
   const [searchUserQuery, setSearchUserQuery] = useState('');
@@ -547,28 +548,14 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
   }
 
   return (
-    <div className="users-page">
-      {/* Topbar compacto y fijo */}
-      <div className="users-topbar">
+    <div className="dashboard-container">
+      {/* Topbar estilo Dashboard */}
+      <div className="topbar">
         <button className="topbar-back-button" onClick={onBack}>
-          <span className="back-icon">←</span>
-          <span>Volver</span>
+          ←
         </button>
-        <div className="topbar-divider"></div>
-        <h1 className="topbar-title">👥 Gestión de Usuarios</h1>
-        <div className="topbar-spacer"></div>
-        <div className="topbar-notification notification-container" style={{ position: 'relative' }}>
-          <img 
-            src="/images/notification-bell-icon.svg" 
-            alt="Notificaciones" 
-            className="notification-icon"
-            onClick={() => setShowPendingModal(true)}
-            style={{ 
-              cursor: 'pointer',
-              animation: pendingCount > 0 ? 'bellShake 0.5s ease-in-out infinite alternate' : 'none'
-            }}
-          />
-          {/* Contador de notificaciones */}
+        <h1 className="topbar-title">Usuarios</h1>
+        <div className="topbar-avatar" onClick={() => setShowPendingModal(true)} style={{ position: 'relative', cursor: 'pointer' }}>
           {pendingCount > 0 && (
             <span 
               className="notification-badge"
@@ -587,7 +574,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
                 fontSize: '10px',
                 fontWeight: 'bold',
                 border: '2px solid white',
-                animation: 'badgeGlow 2s infinite'
+                zIndex: 1
               }}
             >
               {pendingCount > 99 ? '99+' : pendingCount}
@@ -596,14 +583,12 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
         </div>
       </div>
 
+      <div className="users-page" style={{ padding: '16px', backgroundColor: '#f5f5f5' }}>
+
       {/* Contenedor principal agrupado */}
       <div className="users-main-container">
         {/* Panel de control - Acciones principales */}
         <div className="users-control-panel">
-          <div className="control-panel-header">
-            <h2 className="control-title">Panel de Control de Usuarios</h2>
-            <p className="control-description">Gestiona y administra los usuarios del sistema</p>
-          </div>
           
           {/* Selector de modo de agrupación */}
           <div className="grouping-selector">
@@ -613,33 +598,22 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
                 className={`grouping-btn ${groupingMode === 'rendimiento' ? 'active' : ''}`}
                 onClick={() => setGroupingMode('rendimiento')}
               >
-                <span className="btn-icon">📊</span>
                 <span>Rendimiento</span>
               </button>
               <button 
                 className={`grouping-btn ${groupingMode === 'asignaciones' ? 'active' : ''}`}
                 onClick={() => setGroupingMode('asignaciones')}
               >
-                <span className="btn-icon">📝</span>
                 <span>Asignaciones</span>
-              </button>
-              <button 
-                className={`grouping-btn ${groupingMode === 'estado' ? 'active' : ''}`}
-                onClick={() => setGroupingMode('estado')}
-              >
-                <span className="btn-icon">🔄</span>
-                <span>Estado</span>
               </button>
             </div>
           </div>
 
           <div className="control-actions">
             <button className="action-button create-user-btn" onClick={() => setShowCreateUserModal(true)}>
-              <span className="action-icon">➕</span>
               <span className="action-text">Crear Usuario</span>
             </button>
             <button className="action-button admin-user-btn" onClick={() => setShowAdminUserModal(true)}>
-              <span className="action-icon">⚙️</span>
               <span className="action-text">Administrar Usuario</span>
             </button>
           </div>
@@ -649,15 +623,6 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
         {/* Modo: Ranking de Rendimiento */}
         {groupingMode === 'rendimiento' && (
           <div className="users-section">
-            <div className="section-header">
-              <h2 className="section-title">
-                📊 Ranking de Rendimiento
-              </h2>
-              <p className="section-description">
-                Clasificación de usuarios según reportes registrados
-              </p>
-            </div>
-
             <div className="performance-ranking">
               {usersByPerformance.map((userProfile, index) => {
                 const percentage = (userProfile.reportsCount / maxReports) * 100;
@@ -667,29 +632,14 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
                     className="performance-item"
                     onClick={() => handleUserClick(userProfile)}
                   >
-                    <div className="performance-rank">
-                      <span className={`rank-badge rank-${index + 1}`}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                      </span>
-                    </div>
-
                     <div className="performance-user-info">
-                      <div className="user-avatar-small">
-                        {userProfile.avatar ? (
-                          <img src={userProfile.avatar} alt={userProfile.name} />
-                        ) : (
-                          <span className="user-initials-small">{getInitials(userProfile.name)}</span>
-                        )}
-                        <div className={`status-dot ${userProfile.isActive ? 'active' : 'inactive'}`}></div>
-                      </div>
-                      
                       <div className="performance-details">
                         <div className="performance-header">
                           <h3 className="performance-name">{userProfile.name}</h3>
                           <span className="performance-role-badge">{userProfile.role}</span>
                         </div>
                         <p className="performance-location">
-                          📍 {userProfile.currentLocation.province} • {userProfile.department}
+                          {userProfile.currentLocation.province} • {userProfile.department}
                         </p>
                         
                         <div className="performance-bar-container">
@@ -723,15 +673,6 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
         {/* Modo: Asignaciones y Notas */}
         {groupingMode === 'asignaciones' && (
           <div className="users-section">
-            <div className="section-header">
-              <h2 className="section-title">
-                📝 Asignaciones y Observaciones
-              </h2>
-              <p className="section-description">
-                Busca usuarios para agregar notas, observaciones, amonestaciones o pendientes
-              </p>
-            </div>
-
             <div className="assignments-container">
               {/* Buscador de usuarios */}
               <div className="user-search-panel">
@@ -962,142 +903,12 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
             </div>
           </div>
         )}
-
-        {/* Modo: Agrupación por Estado (original) */}
-        {groupingMode === 'estado' && (
-          <>
-        {/* Usuarios Activos */}
-        <div className="users-section">
-          <div className="section-header">
-            <h2 className="section-title">🟢 Usuarios Activos ({activeUsers.length})</h2>
-            <p className="section-description">
-              Usuarios conectados actualmente al sistema
-            </p>
-          </div>
-
-          <div className="users-grid">
-            {activeUsers.map((userProfile) => (
-              <div 
-                key={userProfile.id} 
-                className="user-card active"
-                onClick={() => handleUserClick(userProfile)}
-              >
-                <div className="user-avatar-container">
-                  <div className="user-avatar-circle">
-                    {userProfile.avatar ? (
-                      <img src={userProfile.avatar} alt={userProfile.name} />
-                    ) : (
-                      <span className="user-initials">{getInitials(userProfile.name)}</span>
-                    )}
-                  </div>
-                  <div className="status-indicator active"></div>
-                </div>
-                <div className="user-details">
-                  <h3 className="user-name">{userProfile.name}</h3>
-                  <span className="user-role-badge">{userProfile.role}</span>
-                  <p className="user-location">📍 {userProfile.currentLocation.province}, {userProfile.currentLocation.municipality}</p>
-                  <p className="user-department">{userProfile.department}</p>
-                  <div className="user-stats">
-                    <span className="reports-count">📋 {userProfile.reportsCount} reportes</span>
-                    <span className="last-seen">⏰ {userProfile.lastSeen}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Usuarios Inactivos */}
-        <div className="users-section">
-          <div className="section-header">
-            <h2 className="section-title">⚫ Usuarios Inactivos ({inactiveUsers.length})</h2>
-            <p className="section-description">
-              Usuarios desconectados del sistema
-            </p>
-          </div>
-
-          <div className="users-grid">
-            {inactiveUsers.map((userProfile) => (
-              <div 
-                key={userProfile.id} 
-                className="user-card inactive"
-                onClick={() => handleUserClick(userProfile)}
-              >
-                <div className="user-avatar-container">
-                  <div className="user-avatar-circle">
-                    {userProfile.avatar ? (
-                      <img src={userProfile.avatar} alt={userProfile.name} />
-                    ) : (
-                      <span className="user-initials">{getInitials(userProfile.name)}</span>
-                    )}
-                  </div>
-                  <div className="status-indicator inactive"></div>
-                </div>
-                <div className="user-details">
-                  <h3 className="user-name">{userProfile.name}</h3>
-                  <span className="user-role-badge">{userProfile.role}</span>
-                  <p className="user-location">📍 {userProfile.currentLocation.province}, {userProfile.currentLocation.municipality}</p>
-                  <p className="user-department">{userProfile.department}</p>
-                  <div className="user-stats">
-                    <span className="reports-count">📋 {userProfile.reportsCount} reportes</span>
-                    <span className="last-seen">⏰ {userProfile.lastSeen}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Usuarios con Reportes Pendientes */}
-        <div className="users-section">
-          <div className="section-header">
-            <h2 className="section-title">⚠️ Usuarios con Reportes Pendientes ({usersWithPendingReports.length})</h2>
-            <p className="section-description">
-              Usuarios que tienen reportes en progreso por completar
-            </p>
-          </div>
-
-          <div className="users-grid">
-            {usersWithPendingReports.map((userProfile) => (
-              <div 
-                key={userProfile.id} 
-                className="user-card pending"
-                onClick={() => handleUserClick(userProfile)}
-              >
-                <div className="user-avatar-container">
-                  <div className="user-avatar-circle">
-                    {userProfile.avatar ? (
-                      <img src={userProfile.avatar} alt={userProfile.name} />
-                    ) : (
-                      <span className="user-initials">{getInitials(userProfile.name)}</span>
-                    )}
-                  </div>
-                  <div className="status-indicator pending"></div>
-                </div>
-                <div className="user-details">
-                  <h3 className="user-name">{userProfile.name}</h3>
-                  <span className="user-role-badge">{userProfile.role}</span>
-                  <p className="user-location">📍 {userProfile.currentLocation.province}, {userProfile.currentLocation.municipality}</p>
-                  <p className="user-department">{userProfile.department}</p>
-                  <div className="user-stats">
-                    <span className="reports-count">📋 {userProfile.reportsCount} reportes</span>
-                    <span className="pending-count" style={{ color: '#ff9800', fontWeight: 'bold' }}>
-                      ⚠️ {userProfile.pendingReportsCount} pendientes
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        </>
-        )}
       </div>
       </div>
       
       {/* Modal de Crear Usuario */}
       {showCreateUserModal && (
-        <div style={{
+        <div className="modal-overlay" style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -1109,10 +920,11 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
           alignItems: 'center',
           zIndex: 2000
         }}>
-          <div style={{
+          <div className="modal-content" style={{
             backgroundColor: 'white',
             borderRadius: '20px',
-            width: '500px',
+            maxWidth: '500px',
+            width: '100%',
             maxHeight: '90vh',
             position: 'relative',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
@@ -1208,7 +1020,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
               flexDirection: 'column'
             }}>
               <div style={{ flex: 1 }}>
-                <h2 style={{
+                <h2 className="modal-header" style={{
                   margin: '0 0 20px 0',
                   fontSize: '24px',
                   fontWeight: 'bold',
@@ -1218,7 +1030,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
                   Crear Nuevo Usuario
                 </h2>
                 
-                <div style={{  display: 'grid',
+                <div className="modal-form-grid" style={{  display: 'grid',
                   gap: '15px'
                 }}>
                   {/* Nombre Completo */}
@@ -1431,7 +1243,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
               </div>
 
               {/* Botones de acción */}
-              <div style={{
+              <div className="modal-buttons" style={{
                 display: 'flex',
                 justifyContent: 'flex-end',
                 gap: '10px',
@@ -1502,7 +1314,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
 
       {/* Modal de Administrar Usuario */}
       {showAdminUserModal && (
-        <div style={{
+        <div className="modal-overlay" style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -1514,10 +1326,11 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
           alignItems: 'center',
           zIndex: 2000
         }}>
-          <div style={{
+          <div className="modal-content" style={{
             backgroundColor: 'white',
             borderRadius: '20px',
-            width: '600px',
+            maxWidth: '600px',
+            width: '100%',
             maxHeight: '90vh',
             position: 'relative',
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
@@ -1572,7 +1385,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
               flexDirection: 'column',
               gap: '20px'
             }}>
-              <h2 style={{
+              <h2 className="modal-header" style={{
                 margin: '0 0 10px 0',
                 fontSize: '24px',
                 fontWeight: 'bold',
@@ -1612,7 +1425,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
               </div>
 
               {/* Lista de usuarios filtrados */}
-              <div style={{
+              <div className="modal-user-list" style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '10px',
@@ -1794,7 +1607,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
                         Información del Usuario
                       </h3>
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                      <div className="modal-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                         {/* Nombre */}
                         <div>
                           <label style={{
@@ -2077,7 +1890,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
                     </div>
 
                     {/* Botones de acción */}
-                    <div style={{
+                    <div className="modal-buttons" style={{
                       display: 'flex',
                       gap: '10px',
                       justifyContent: 'flex-end'
@@ -2191,6 +2004,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
         onContinueReport={handleContinuePendingReport}
         onCancelReport={handleCancelPendingReport}
       />
+      </div>
     </div>
   );
 };
