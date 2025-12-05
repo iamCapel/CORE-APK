@@ -504,4 +504,17 @@
   .search-button {
     width: 100%;
   }
+  
+  /* Ajustes generales para m\u00f3vil */
+  .export-page {
+    padding: 0 !important;
+  }
+  
+  .topbar {
+    width: 100vw !important;
+  }
+  
+  .export-main {
+    padding-top: 60px !important;
+  }
 }

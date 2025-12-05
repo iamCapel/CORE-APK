@@ -3879,5 +3879,32 @@
   .view-icon {
     font-size: 18px;
   }
+  
+  /* Modales m\u00f3viles */
+  .modal-overlay {
+    padding: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+  }
+  
+  .modal-content {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    overflow-y: auto !important;
+  }
+  
+  .modal-header {
+    font-size: 18px !important;
+  }
+  
+  .modal-body {
+    padding: 12px 0 !important;
+  }
 }
+
 

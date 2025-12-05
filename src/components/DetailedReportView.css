@@ -1447,6 +1447,17 @@
   .stat-metric.primary {
     grid-column: 1;
   }
+  
+  /* Modal m\u00f3vil */
+  .detailed-report-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }
 
 @media (min-width: 1400px) {
@@ -1454,3 +1465,4 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+

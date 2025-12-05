@@ -1908,4 +1908,67 @@
     max-height: calc(100vh - 250px) !important;
     overflow-y: auto !important;
   }
+  
+  /* Secci\u00f3n de Asignaciones m\u00f3vil */
+  .assignments-section {
+    padding: 12px !important;
+  }
+  
+  .users-selector {
+    max-height: 300px !important;
+  }
+  
+  .notes-panel {
+    padding: 12px !important;
+  }
+  
+  .selected-user-avatar-large {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .selected-user-initials-large {
+    font-size: 18px !important;
+  }
+  
+  .selected-user-name {
+    font-size: 16px !important;
+  }
+  
+  .selected-user-role {
+    font-size: 11px !important;
+  }
+  
+  .selected-user-department {
+    font-size: 10px !important;
+  }
+  
+  .note-type-selector {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  
+  .note-type-btn {
+    flex: 1 1 calc(50% - 3px) !important;
+    padding: 8px !important;
+    font-size: 10px !important;
+  }
+  
+  .note-type-icon {
+    font-size: 18px !important;
+  }
+  
+  .note-textarea {
+    padding: 10px !important;
+    font-size: 12px !important;
+  }
+  
+  .save-note-btn {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+  }
+  
+  .notes-history {
+    max-height: 250px !important;
+  }
 }
