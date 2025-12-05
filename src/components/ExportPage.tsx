@@ -1125,86 +1125,18 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
 
   return (
     <div className="export-page">
-      {/* Topbar */}
-      <div style={{
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        backgroundColor: 'white',
-        color: '#2c3e50',
-        padding: '12px 20px',
-        marginBottom: '20px',
-        borderRadius: '0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <button 
-            onClick={onBack}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              backgroundColor: '#f8f9fa',
-              color: '#2c3e50',
-              border: '1px solid #dee2e6',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e9ecef';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f8f9fa';
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>←</span>
-            Volver
-          </button>
-          <div style={{
-            width: '1px',
-            height: '24px',
-            backgroundColor: '#dee2e6'
-          }}></div>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '18px',
-            fontWeight: '600',
-            color: '#2c3e50'
-          }}>
-            📤 Exportar Reportes
-          </h1>
-        </div>
-        {/* Ícono de notificaciones - posicionado a la derecha */}
-        <div className="notification-container" style={{ position: 'relative', cursor: 'pointer' }}>
-          <img 
-            src="/images/notification-bell-icon.svg" 
-            alt="Notificaciones" 
-            style={{
-              width: '24px', 
-              height: '24px',
-              filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              animation: pendingCount > 0 ? 'bellShake 0.5s ease-in-out infinite alternate' : 'none'
-            }}
-            onClick={() => setShowPendingModal(true)}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-            }}
-          />
-          {/* Contador de notificaciones */}
+      {/* Topbar estilo Dashboard */}
+      <div className="topbar">
+        {/* Botón de retroceso */}
+        <button className="topbar-back-button" onClick={onBack}>
+          ←
+        </button>
+
+        {/* Título centrado */}
+        <h1 className="topbar-title">Exportar Reportes</h1>
+
+        {/* Notificaciones */}
+        <div className="topbar-avatar" onClick={() => setShowPendingModal(true)} style={{ position: 'relative', cursor: 'pointer' }}>
           {pendingCount > 0 && (
             <span 
               className="notification-badge"
@@ -1223,7 +1155,7 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
                 fontSize: '10px',
                 fontWeight: 'bold',
                 border: '2px solid white',
-                animation: 'badgeGlow 2s infinite'
+                zIndex: 1
               }}
             >
               {pendingCount > 99 ? '99+' : pendingCount}
@@ -1232,18 +1164,20 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
         </div>
       </div>
 
-      <div className="export-content">
-        <div className="search-container">
-          <div className="search-header">
-            <h2 className="search-title">🔍 Buscar Reporte por Número</h2>
-            <p className="search-description">
-              Ingresa el número de reporte para buscar y descargar la plantilla en diferentes formatos
-            </p>
-          </div>
-
+      <div className="export-main" style={{ padding: '16px', paddingTop: '70px' }}>
+        <div className="search-container" style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '16px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          marginBottom: '16px'
+        }}>
           <div className="search-box">
-            <div className="search-input-container">
-              <div className="search-icon">🔍</div>
+            <div className="search-input-container" style={{
+              display: 'flex',
+              gap: '8px',
+              flexDirection: 'column'
+            }}>
               <input
                 type="text"
                 className="search-input"
@@ -1251,92 +1185,151 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
                 value={searchNumber}
                 onChange={(e) => setSearchNumber(e.target.value)}
                 onKeyPress={handleKeyPress}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
               />
               <button 
                 className="search-button"
                 onClick={handleSearch}
                 disabled={loading || !searchNumber.trim()}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: loading || !searchNumber.trim() ? '#ccc' : '#FF7A00',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: loading || !searchNumber.trim() ? 'not-allowed' : 'pointer'
+                }}
               >
                 {loading ? '🔄 Buscando...' : '🔍 Buscar'}
               </button>
-            </div>
-          </div>
-
-          {/* Ejemplos de números de reporte */}
-          <div className="examples-container">
-            <h3 className="examples-title">💡 Ejemplos de números de reporte:</h3>
-            <div className="examples-grid">
-              {(() => {
-                // Obtener reportes reales según el rol del usuario
-                const searchFilters = user.role === UserRole.TECNICO 
-                  ? { creadoPor: user.username } 
-                  : {};
-                
-                const availableReports = reportStorage.searchReports(searchFilters)
-                  .slice(0, 3)
-                  .map(report => ({
-                    reportNumber: report.numeroReporte,
-                    title: report.tipoIntervencion || 'Sin título'
-                  }));
-                
-                return availableReports;
-              })().map((report) => (
-                <div 
-                  key={report.reportNumber}
-                  className="example-item"
-                  onClick={() => setSearchNumber(report.reportNumber)}
-                >
-                  <span className="example-number">{report.reportNumber}</span>
-                  <span className="example-title">{report.title}</span>
-                </div>
-              ))}
             </div>
           </div>
         </div>
 
         {/* Resultado de búsqueda */}
         {searchResult && (
-          <div className="result-container">
-            <div className="result-header">
-              <h3 className="result-title">✅ Reporte Encontrado</h3>
-            </div>
-            
+          <div className="result-container" style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '16px'
+          }}>
             <div className="result-card">
-              <div className="result-info">
-                <div className="result-main">
-                  <h4 className="result-number">{searchResult.reportNumber}</h4>
-                  <h5 className="result-project-title">{searchResult.title}</h5>
-                  <div className="result-details">
-                    <span className="result-detail">📅 {searchResult.date}</span>
-                    <span className="result-detail">📍 {searchResult.province}</span>
-                    <span className={`result-status status-${searchResult.status.toLowerCase().replace(' ', '-')}`}>
-                      {searchResult.status}
-                    </span>
-                  </div>
-                  <p className="result-description">{searchResult.description}</p>
+              {/* Información compacta del reporte */}
+              <div className="result-info-compact" style={{
+                marginBottom: '16px',
+                paddingBottom: '16px',
+                borderBottom: '1px solid #e0e0e0'
+              }}>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  color: '#FF7A00',
+                  margin: '0 0 8px 0'
+                }}>
+                  {searchResult.reportNumber}
+                </h4>
+                <h5 style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#333',
+                  margin: '0 0 8px 0'
+                }}>
+                  {searchResult.title}
+                </h5>
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  fontSize: '11px',
+                  color: '#666'
+                }}>
+                  <span>📅 {searchResult.date}</span>
+                  <span>•</span>
+                  <span>📍 {searchResult.province}</span>
                 </div>
               </div>
 
+              {/* Botones de descarga */}
               <div className="download-options">
-                <h4 className="download-title">📥 Descargar en formato:</h4>
-                <div className="download-buttons">
+                <div className="download-buttons" style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
                   <button 
                     className="download-btn pdf-btn"
                     onClick={() => handleDownloadPDF(searchResult)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      backgroundColor: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
                   >
-                    📄 PDF
+                    📄 Descargar PDF
                   </button>
                   <button 
                     className="download-btn excel-btn"
                     onClick={() => handleDownloadExcel(searchResult)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
                   >
-                    📊 Excel
+                    📊 Descargar Excel
                   </button>
                   <button 
                     className="download-btn word-btn"
                     onClick={() => handleDownloadWord(searchResult)}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
                   >
-                    📝 Word
+                    📝 Descargar Word
                   </button>
                 </div>
               </div>
@@ -1346,49 +1339,43 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
 
         {/* No encontrado */}
         {notFound && (
-          <div className="not-found-container">
+          <div className="not-found-container" style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '16px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            marginBottom: '16px',
+            textAlign: 'center'
+          }}>
             <div className="not-found-card">
-              <div className="not-found-icon">❌</div>
-              <h3 className="not-found-title">Reporte No Encontrado</h3>
-              <p className="not-found-message">
+              <div className="not-found-icon" style={{ fontSize: '48px', marginBottom: '12px' }}>❌</div>
+              <h3 className="not-found-title" style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#333',
+                marginBottom: '8px',
+                margin: '0 0 8px 0'
+              }}>
+                Reporte No Encontrado
+              </h3>
+              <p className="not-found-message" style={{
+                fontSize: '13px',
+                color: '#666',
+                marginBottom: '8px',
+                margin: '0 0 8px 0'
+              }}>
                 No se encontró ningún reporte con el número: <strong>{searchNumber}</strong>
               </p>
-              <p className="not-found-suggestion">
-                Verifica que el número esté escrito correctamente o intenta con uno de los ejemplos.
+              <p className="not-found-suggestion" style={{
+                fontSize: '12px',
+                color: '#999',
+                margin: 0
+              }}>
+                Verifica que el número esté escrito correctamente.
               </p>
             </div>
           </div>
         )}
-
-        {/* Información adicional */}
-        <div className="info-section">
-          <div className="info-card">
-            <h3 className="info-title">ℹ️ Información sobre los formatos</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="info-icon">📄</div>
-                <div className="info-content">
-                  <h4>PDF</h4>
-                  <p>Formato ideal para visualización e impresión. No editable.</p>
-                </div>
-              </div>
-              <div className="info-item">
-                <div className="info-icon">📊</div>
-                <div className="info-content">
-                  <h4>Excel</h4>
-                  <p>Formato de hoja de cálculo. Ideal para análisis de datos.</p>
-                </div>
-              </div>
-              <div className="info-item">
-                <div className="info-icon">📝</div>
-                <div className="info-content">
-                  <h4>Word</h4>
-                  <p>Documento editable. Ideal para modificaciones y reportes.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       
       {/* Modal de Reportes Pendientes */}

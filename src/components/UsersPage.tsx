@@ -67,6 +67,8 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
   const [gpsUpdateNotification, setGpsUpdateNotification] = useState<string | null>(null);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showAdminUserModal, setShowAdminUserModal] = useState(false);
+  const [showCreateUserPage, setShowCreateUserPage] = useState(false);
+  const [showAdminUserPage, setShowAdminUserPage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAdminUser, setSelectedAdminUser] = useState<UserProfile | null>(null);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
@@ -237,7 +239,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
         // Cerrar modal después de la animación
         setTimeout(() => {
           setShowSuccessAnimation(false);
-          setShowCreateUserModal(false);
+          setShowCreateUserPage(false);
           // Resetear formulario
           setNewUserForm({
             name: '',
@@ -585,35 +587,499 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
 
       <div className="users-page" style={{ padding: '16px', backgroundColor: '#f5f5f5' }}>
 
+      {/* Página de Crear Usuario */}
+      {showCreateUserPage && (
+        <div className="create-user-page">
+          <div className="topbar" style={{
+            position: 'fixed',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: '430px',
+            height: '56px',
+            backgroundColor: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 16px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            zIndex: 1000
+          }}>
+            <button 
+              onClick={() => setShowCreateUserPage(false)}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: '#f0f2f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '20px'
+              }}
+            >
+              ←
+            </button>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#FF7A00' }}>
+              Crear Nuevo Usuario
+            </h1>
+            <div style={{ width: '40px' }}></div>
+          </div>
+
+          <div style={{ paddingTop: '72px', paddingBottom: '80px' }}>
+            {showSuccessAnimation && (
+              <div style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3000,
+                backgroundColor: 'white',
+                borderRadius: '20px',
+                padding: '40px',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '80px', marginBottom: '20px' }}>✅</div>
+                <h3 style={{ fontSize: '24px', margin: 0, fontWeight: 'bold' }}>¡Usuario Agregado!</h3>
+              </div>
+            )}
+
+            <div style={{ padding: '0 16px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Nombre Completo *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Juan Pérez Gómez"
+                  value={newUserForm.name}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Usuario *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: jperez"
+                  value={newUserForm.username}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, username: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Contraseña *
+                </label>
+                <input
+                  type="password"
+                  placeholder="Ingrese la contraseña"
+                  value={newUserForm.password}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  placeholder="Ej: jperez@mopc.gov.py"
+                  value={newUserForm.email}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Teléfono
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Ej: 0981234567"
+                  value={newUserForm.phone}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Cédula
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: 1234567"
+                  value={newUserForm.cedula}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, cedula: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                  Rol *
+                </label>
+                <select
+                  value={newUserForm.role}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value })}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', backgroundColor: 'white' }}
+                >
+                  <option value="Técnico">Técnico</option>
+                  <option value="Coordinador">Coordinador</option>
+                  <option value="Supervisor">Supervisor</option>
+                  <option value="Administrador">Administrador</option>
+                </select>
+              </div>
+
+              <div style={{ 
+                position: 'fixed', 
+                bottom: 0, 
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                width: '100%', 
+                maxWidth: '430px', 
+                padding: '16px', 
+                backgroundColor: 'white', 
+                borderTop: '1px solid #eee', 
+                display: 'flex', 
+                gap: '12px',
+                boxSizing: 'border-box'
+              }}>
+                <button
+                  onClick={() => {
+                    setShowCreateUserPage(false);
+                    setNewUserForm({ name: '', username: '', password: '', email: '', phone: '', cedula: '', role: 'Técnico' });
+                  }}
+                  style={{ flex: 1, padding: '14px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleCreateUser}
+                  style={{ flex: 1, padding: '14px', backgroundColor: '#FF7A00', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+                >
+                  Crear Usuario
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Página de Administrar Usuario */}
+      {showAdminUserPage && (
+        <div className="admin-user-page">
+          <div className="topbar" style={{
+            position: 'fixed',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '100%',
+            maxWidth: '430px',
+            height: '56px',
+            backgroundColor: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 16px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            zIndex: 1000
+          }}>
+            <button 
+              onClick={() => setShowAdminUserPage(false)}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: '#f0f2f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '20px'
+              }}
+            >
+              ←
+            </button>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#FF7A00' }}>
+              Administrar Usuario
+            </h1>
+            <div style={{ width: '40px' }}></div>
+          </div>
+
+          <div style={{ 
+            paddingTop: '72px', 
+            paddingBottom: '16px',
+            padding: '72px 16px 16px 16px',
+            minHeight: '100vh',
+            backgroundColor: '#f5f5f5'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              <h2 style={{ 
+                fontSize: '16px', 
+                fontWeight: '600', 
+                marginBottom: '16px',
+                color: '#333'
+              }}>
+                Buscar Usuario
+              </h2>
+              
+              <input
+                type="text"
+                placeholder="🔍 Buscar por nombre, usuario o correo..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  marginBottom: '16px'
+                }}
+              />
+
+              <div style={{
+                maxHeight: '60vh',
+                overflowY: 'auto'
+              }}>
+                {users
+                  .filter(u => 
+                    searchQuery === '' ||
+                    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map(user => (
+                    <div
+                      key={user.id}
+                      onClick={() => {
+                        setSelectedAdminUser(user);
+                        setEditingUser({ ...user });
+                      }}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        backgroundColor: '#f8f9fa',
+                        marginBottom: '8px',
+                        cursor: 'pointer',
+                        border: selectedAdminUser?.id === user.id ? '2px solid #FF7A00' : '1px solid #e0e0e0'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          backgroundColor: '#FF7A00',
+                          color: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 'bold',
+                          fontSize: '16px'
+                        }}>
+                          {getInitials(user.name)}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: '600', fontSize: '14px', color: '#333' }}>
+                            {user.name}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>
+                            @{user.username} • {user.role}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                
+                {users.filter(u => 
+                  searchQuery === '' ||
+                  u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                ).length === 0 && (
+                  <div style={{
+                    padding: '40px',
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: '14px'
+                  }}>
+                    No se encontraron usuarios
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedAdminUser && editingUser && (
+              <div style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '20px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                marginTop: '16px'
+              }}>
+                <h2 style={{ 
+                  fontSize: '16px', 
+                  fontWeight: '600', 
+                  marginBottom: '16px',
+                  color: '#333'
+                }}>
+                  Editar Usuario
+                </h2>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                    Nombre Completo
+                  </label>
+                  <input
+                    type="text"
+                    value={editingUser.name}
+                    onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                    Usuario
+                  </label>
+                  <input
+                    type="text"
+                    value={editingUser.username}
+                    onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                    Rol
+                  </label>
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', backgroundColor: 'white' }}
+                  >
+                    <option value="Técnico">Técnico</option>
+                    <option value="Coordinador">Coordinador</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Administrador">Administrador</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                  <button
+                    onClick={() => {
+                      if (editingUser) {
+                        setUsers(prevUsers => 
+                          prevUsers.map(u => u.id === editingUser.id ? editingUser : u)
+                        );
+                        const updateData: any = {
+                          name: editingUser.name,
+                          username: editingUser.username,
+                          email: editingUser.email,
+                          role: editingUser.role,
+                        };
+                        userStorage.updateUser(editingUser.id, updateData);
+                        alert('✅ Cambios guardados exitosamente');
+                        setSelectedAdminUser(null);
+                        setEditingUser(null);
+                      }
+                    }}
+                    style={{ 
+                      flex: 1, 
+                      padding: '14px', 
+                      backgroundColor: '#28a745', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '8px', 
+                      fontSize: '14px', 
+                      fontWeight: '500', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    💾 Guardar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('¿Está seguro de que desea eliminar este usuario?')) {
+                        if (editingUser) {
+                          const deleted = userStorage.deleteUser(editingUser.id);
+                          if (deleted) {
+                            setUsers(prevUsers => prevUsers.filter(u => u.id !== editingUser.id));
+                            alert('✅ Usuario eliminado exitosamente');
+                            setSelectedAdminUser(null);
+                            setEditingUser(null);
+                          } else {
+                            alert('❌ Error al eliminar el usuario');
+                          }
+                        }
+                      }
+                    }}
+                    style={{ 
+                      flex: 1, 
+                      padding: '14px', 
+                      backgroundColor: '#dc3545', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '8px', 
+                      fontSize: '14px', 
+                      fontWeight: '500', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Contenedor principal agrupado */}
+      {!showCreateUserPage && !showAdminUserPage && (
       <div className="users-main-container">
         {/* Panel de control - Acciones principales */}
         <div className="users-control-panel">
-          
-          {/* Selector de modo de agrupación */}
-          <div className="grouping-selector">
-            <label className="grouping-label">Visualizar por:</label>
-            <div className="grouping-buttons">
-              <button 
-                className={`grouping-btn ${groupingMode === 'rendimiento' ? 'active' : ''}`}
-                onClick={() => setGroupingMode('rendimiento')}
-              >
-                <span>Rendimiento</span>
-              </button>
-              <button 
-                className={`grouping-btn ${groupingMode === 'asignaciones' ? 'active' : ''}`}
-                onClick={() => setGroupingMode('asignaciones')}
-              >
-                <span>Asignaciones</span>
-              </button>
-            </div>
-          </div>
 
           <div className="control-actions">
-            <button className="action-button create-user-btn" onClick={() => setShowCreateUserModal(true)}>
+            <button className="action-button create-user-btn" onClick={() => setShowCreateUserPage(true)}>
               <span className="action-text">Crear Usuario</span>
             </button>
-            <button className="action-button admin-user-btn" onClick={() => setShowAdminUserModal(true)}>
+            <button className="action-button admin-user-btn" onClick={() => setShowAdminUserPage(true)}>
               <span className="action-text">Administrar Usuario</span>
             </button>
           </div>
@@ -621,7 +1087,6 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
 
       <div className="users-content">
         {/* Modo: Ranking de Rendimiento */}
-        {groupingMode === 'rendimiento' && (
           <div className="users-section">
             <div className="performance-ranking">
               {usersByPerformance.map((userProfile, index) => {
@@ -668,1334 +1133,10 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
               })}
             </div>
           </div>
-        )}
-
-        {/* Modo: Asignaciones y Notas */}
-        {groupingMode === 'asignaciones' && (
-          <div className="users-section">
-            <div className="assignments-container">
-              {/* Buscador de usuarios */}
-              <div className="user-search-panel">
-                <div className="search-input-wrapper">
-                  <span className="search-icon">🔍</span>
-                  <input
-                    type="text"
-                    className="user-search-input"
-                    placeholder="Buscar usuario por nombre, email o departamento..."
-                    value={searchUserQuery}
-                    onChange={(e) => setSearchUserQuery(e.target.value)}
-                  />
-                  {searchUserQuery && (
-                    <button 
-                      className="clear-search-btn"
-                      onClick={() => setSearchUserQuery('')}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                {/* Lista de usuarios filtrados */}
-                <div className="filtered-users-list">
-                  {users
-                    .filter(u => 
-                      searchUserQuery === '' || 
-                      u.name.toLowerCase().includes(searchUserQuery.toLowerCase()) ||
-                      u.email.toLowerCase().includes(searchUserQuery.toLowerCase()) ||
-                      u.department.toLowerCase().includes(searchUserQuery.toLowerCase())
-                    )
-                    .map((userProfile) => (
-                      <div
-                        key={userProfile.id}
-                        className={`search-user-item ${selectedUserForNotes?.id === userProfile.id ? 'selected' : ''}`}
-                        onClick={() => {
-                          setSelectedUserForNotes(userProfile);
-                          setNoteText('');
-                        }}
-                      >
-                        <div className="search-user-avatar">
-                          {userProfile.avatar ? (
-                            <img src={userProfile.avatar} alt={userProfile.name} />
-                          ) : (
-                            <span className="search-user-initials">{getInitials(userProfile.name)}</span>
-                          )}
-                          <div className={`search-status-dot ${userProfile.isActive ? 'active' : 'inactive'}`}></div>
-                        </div>
-                        <div className="search-user-info">
-                          <h4 className="search-user-name">{userProfile.name}</h4>
-                          <p className="search-user-details">{userProfile.role} • {userProfile.department}</p>
-                        </div>
-                        <span className="search-user-arrow">→</span>
-                      </div>
-                    ))}
-                  {users.filter(u => 
-                    searchUserQuery === '' || 
-                    u.name.toLowerCase().includes(searchUserQuery.toLowerCase()) ||
-                    u.email.toLowerCase().includes(searchUserQuery.toLowerCase()) ||
-                    u.department.toLowerCase().includes(searchUserQuery.toLowerCase())
-                  ).length === 0 && (
-                    <div className="no-users-found">
-                      <span className="no-users-icon">🔍</span>
-                      <p>No se encontraron usuarios</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Panel de notas/observaciones */}
-              <div className="notes-panel">
-                {selectedUserForNotes ? (
-                  <>
-                    <div className="notes-panel-header">
-                      <div className="selected-user-info">
-                        <div className="selected-user-avatar-large">
-                          {selectedUserForNotes.avatar ? (
-                            <img src={selectedUserForNotes.avatar} alt={selectedUserForNotes.name} />
-                          ) : (
-                            <span className="selected-user-initials-large">{getInitials(selectedUserForNotes.name)}</span>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="selected-user-name">{selectedUserForNotes.name}</h3>
-                          <p className="selected-user-role">{selectedUserForNotes.role}</p>
-                          <p className="selected-user-department">{selectedUserForNotes.department}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Formulario de notas */}
-                    <div className="note-form">
-                      <label className="note-type-label">Tipo de registro:</label>
-                      <div className="note-type-selector">
-                        <button
-                          className={`note-type-btn ${noteType === 'observacion' ? 'active' : ''}`}
-                          onClick={() => setNoteType('observacion')}
-                        >
-                          <span className="note-type-icon">👁️</span>
-                          <span>Observación</span>
-                        </button>
-                        <button
-                          className={`note-type-btn ${noteType === 'amonestacion' ? 'active' : ''}`}
-                          onClick={() => setNoteType('amonestacion')}
-                        >
-                          <span className="note-type-icon">⚠️</span>
-                          <span>Amonestación</span>
-                        </button>
-                        <button
-                          className={`note-type-btn ${noteType === 'pendiente' ? 'active' : ''}`}
-                          onClick={() => setNoteType('pendiente')}
-                        >
-                          <span className="note-type-icon">📌</span>
-                          <span>Pendiente</span>
-                        </button>
-                      </div>
-
-                      <label className="note-textarea-label">
-                        {noteType === 'observacion' ? 'Observación:' : 
-                         noteType === 'amonestacion' ? 'Amonestación:' : 'Pendiente:'}
-                      </label>
-                      <textarea
-                        className="note-textarea"
-                        placeholder={`Escribe aquí ${noteType === 'observacion' ? 'la observación' : noteType === 'amonestacion' ? 'la amonestación' : 'el pendiente'}...`}
-                        value={noteText}
-                        onChange={(e) => setNoteText(e.target.value)}
-                        rows={6}
-                      />
-
-                      <button 
-                        className="save-note-btn"
-                        onClick={() => {
-                          if (noteText.trim() && selectedUserForNotes) {
-                            const success = userStorage.addUserNote(
-                              selectedUserForNotes.id,
-                              noteType,
-                              noteText.trim(),
-                              user.username
-                            );
-                            
-                            if (success) {
-                              alert(`${noteType.charAt(0).toUpperCase() + noteType.slice(1)} guardada para ${selectedUserForNotes.name}`);
-                              setNoteText('');
-                              
-                              // Actualizar el usuario en el estado
-                              const updatedUser = userStorage.getUserById(selectedUserForNotes.id);
-                              if (updatedUser) {
-                                setSelectedUserForNotes(updatedUser);
-                                setUsers(prevUsers => 
-                                  prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u)
-                                );
-                              }
-                            } else {
-                              alert('Error al guardar la nota');
-                            }
-                          }
-                        }}
-                        disabled={!noteText.trim()}
-                      >
-                        <span className="save-icon">💾</span>
-                        <span>Guardar {noteType}</span>
-                      </button>
-                    </div>
-
-                    {/* Historial de notas */}
-                    <div className="notes-history">
-                      <h4 className="notes-history-title">Historial de registros</h4>
-                      {selectedUserForNotes.notes && selectedUserForNotes.notes.length > 0 ? (
-                        <div className="notes-history-list">
-                          {selectedUserForNotes.notes.slice().reverse().map((note) => (
-                            <div key={note.id} className={`note-item note-type-${note.tipo}`}>
-                              <div className="note-item-header">
-                                <span className="note-item-type">
-                                  {note.tipo === 'observacion' ? '👁️ Observación' : 
-                                   note.tipo === 'amonestacion' ? '⚠️ Amonestación' : 
-                                   '📌 Pendiente'}
-                                </span>
-                                <span className="note-item-date">
-                                  {new Date(note.fecha).toLocaleDateString('es-PY', { 
-                                    year: 'numeric', 
-                                    month: 'short', 
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </span>
-                              </div>
-                              <p className="note-item-content">{note.contenido}</p>
-                              <p className="note-item-author">Por: {note.creadoPor}</p>
-                              <button 
-                                className="delete-note-btn"
-                                onClick={() => {
-                                  if (window.confirm('¿Estás seguro de eliminar esta nota?')) {
-                                    const success = userStorage.deleteUserNote(selectedUserForNotes.id, note.id);
-                                    if (success) {
-                                      const updatedUser = userStorage.getUserById(selectedUserForNotes.id);
-                                      if (updatedUser) {
-                                        setSelectedUserForNotes(updatedUser);
-                                        setUsers(prevUsers => 
-                                          prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u)
-                                        );
-                                      }
-                                    }
-                                  }
-                                }}
-                              >
-                                🗑️ Eliminar
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="notes-history-empty">
-                          <span className="empty-icon">📋</span>
-                          <p>No hay registros previos para este usuario</p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="notes-panel-empty">
-                    <span className="empty-state-icon">👈</span>
-                    <h3>Selecciona un usuario</h3>
-                    <p>Busca y selecciona un usuario de la lista para agregar observaciones, amonestaciones o pendientes</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      </div>
-      
-      {/* Modal de Crear Usuario */}
-      {showCreateUserModal && (
-        <div className="modal-overlay" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 2000
-        }}>
-          <div className="modal-content" style={{
-            backgroundColor: 'white',
-            borderRadius: '20px',
-            maxWidth: '500px',
-            width: '100%',
-            maxHeight: '90vh',
-            position: 'relative',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Animación de éxito */}
-            {showSuccessAnimation && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(76, 175, 80, 0.95)',
-                borderRadius: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 10,
-                animation: 'fadeIn 0.3s ease'
-              }}>
-                <div style={{
-                  fontSize: '64px',
-                  marginBottom: '20px',
-                  animation: 'scaleIn 0.5s ease'
-                }}>
-                  ✓
-                </div>
-                <h3 style={{
-                  color: 'white',
-                  fontSize: '24px',
-                  margin: 0,
-                  fontWeight: 'bold'
-                }}>
-                  ¡Usuario Agregado!
-                </h3>
-              </div>
-            )}
-
-            {/* Botón de cerrar (X) */}
-            <button 
-              onClick={() => {
-                setShowCreateUserModal(false);
-                setNewUserForm({
-                  name: '',
-                  username: '',
-                  password: '',
-                  email: '',
-                  phone: '',
-                  cedula: '',
-                  role: 'Técnico'
-                });
-              }}
-              style={{
-                position: 'absolute',
-                top: '15px',
-                right: '15px',
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                backgroundColor: '#f8f9fa',
-                border: '1px solid #dee2e6',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#6c757d',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e9ecef';
-                e.currentTarget.style.color = '#495057';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
-                e.currentTarget.style.color = '#6c757d';
-              }}
-            >
-              ×
-            </button>
-            
-            {/* Formulario de Crear Usuario */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '20px 0',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ flex: 1 }}>
-                <h2 className="modal-header" style={{
-                  margin: '0 0 20px 0',
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  color: '#333',
-                  textAlign: 'center'
-                }}>
-                  Crear Nuevo Usuario
-                </h2>
-                
-                <div className="modal-form-grid" style={{  display: 'grid',
-                  gap: '15px'
-                }}>
-                  {/* Nombre Completo */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Nombre Completo *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ej: Juan Pérez Gómez"
-                      value={newUserForm.name}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  {/* Usuario */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Nombre de Usuario *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ej: juan.perez"
-                      value={newUserForm.username}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  {/* Contraseña */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Contraseña *
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="Ingrese la contraseña"
-                      value={newUserForm.password}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Correo Electrónico *
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="usuario@mopc.gov.py"
-                      value={newUserForm.email}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  {/* Teléfono */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Número de Celular
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="+595 981 123456"
-                      value={newUserForm.phone}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  {/* Cédula */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Número de Cédula
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ej: 1.234.567"
-                      value={newUserForm.cedula}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, cedula: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  {/* Nivel de Usuario */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: '5px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#333'
-                    }}>
-                      Nivel de Usuario *
-                    </label>
-                    <select
-                      value={newUserForm.role}
-                      onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        outline: 'none',
-                        backgroundColor: 'white',
-                        transition: 'border-color 0.2s',
-                        boxSizing: 'border-box',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="Técnico">Técnico</option>
-                      <option value="Supervisor">Supervisor</option>
-                      <option value="Administrador">Administrador</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Botones de acción */}
-              <div className="modal-buttons" style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '10px',
-                marginTop: '20px',
-                paddingTop: '20px',
-                borderTop: '1px solid #e9ecef'
-              }}>
-                <button
-                  onClick={() => {
-                    setShowCreateUserModal(false);
-                    setNewUserForm({
-                      name: '',
-                      username: '',
-                      password: '',
-                      email: '',
-                      phone: '',
-                      cedula: '',
-                      role: 'Técnico'
-                    });
-                  }}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#5a6268';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#6c757d';
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreateUser}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: '#FF7A00',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#E66D00';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FF7A00';
-                  }}
-                >
-                  Crear Usuario
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
+      </div>
       )}
 
-      {/* Modal de Administrar Usuario */}
-      {showAdminUserModal && (
-        <div className="modal-overlay" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 2000
-        }}>
-          <div className="modal-content" style={{
-            backgroundColor: 'white',
-            borderRadius: '20px',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '90vh',
-            position: 'relative',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Botón de cerrar (X) */}
-            <button 
-              onClick={() => {
-                setShowAdminUserModal(false);
-                setSearchQuery('');
-                setSelectedAdminUser(null);
-                setEditingUser(null);
-              }}
-              style={{
-                position: 'absolute',
-                top: '15px',
-                right: '15px',
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                backgroundColor: '#f8f9fa',
-                border: '1px solid #dee2e6',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#6c757d',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e9ecef';
-                e.currentTarget.style.color = '#495057';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
-                e.currentTarget.style.color = '#6c757d';
-              }}
-            >
-              ×
-            </button>
-            
-            {/* Contenido del Modal */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '20px 0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '20px'
-            }}>
-              <h2 className="modal-header" style={{
-                margin: '0 0 10px 0',
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: '#333',
-                textAlign: 'center'
-              }}>
-                Administrar Usuarios
-              </h2>
-              
-              {/* Barra de búsqueda */}
-              <div style={{
-                position: 'relative',
-                width: '100%'
-              }}>
-                <input
-                  type="text"
-                  placeholder="🔍 Buscar usuario por nombre, usuario o correo..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 15px',
-                    border: '2px solid #ddd',
-                    borderRadius: '10px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#007bff';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#ddd';
-                  }}
-                />
-              </div>
-
-              {/* Lista de usuarios filtrados */}
-              <div className="modal-user-list" style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                maxHeight: '400px',
-                overflowY: 'auto'
-              }}>
-                {!selectedAdminUser ? (
-                  <>
-                    {users
-                      .filter(u => 
-                        searchQuery === '' ||
-                        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        u.email.toLowerCase().includes(searchQuery.toLowerCase())
-                      )
-                      .map(userItem => (
-                        <div
-                          key={userItem.id}
-                          style={{
-                            padding: '15px',
-                            backgroundColor: '#f8f9fa',
-                            borderRadius: '10px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            border: '2px solid transparent'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#e9ecef';
-                            e.currentTarget.style.borderColor = '#007bff';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#f8f9fa';
-                            e.currentTarget.style.borderColor = 'transparent';
-                          }}
-                          onClick={() => {
-                            // Cargar los datos del usuario para editar
-                            setSelectedAdminUser(userItem);
-                            setEditingUser({ ...userItem });
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {/* Avatar */}
-                            <div style={{
-                              width: '45px',
-                              height: '45px',
-                              borderRadius: '50%',
-                              backgroundColor: '#007bff',
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontWeight: 'bold',
-                              fontSize: '16px',
-                              flexShrink: 0
-                            }}>
-                              {getInitials(userItem.name)}
-                            </div>
-                            
-                            {/* Información del usuario */}
-                            <div style={{ flex: 1 }}>
-                              <div style={{
-                                fontWeight: '600',
-                                fontSize: '15px',
-                                color: '#2c3e50',
-                                marginBottom: '3px'
-                              }}>
-                                {userItem.name}
-                              </div>
-                              <div style={{
-                                fontSize: '13px',
-                                color: '#6c757d'
-                              }}>
-                                @{userItem.username} • {userItem.email}
-                              </div>
-                              <div style={{
-                                fontSize: '12px',
-                                color: '#495057',
-                                marginTop: '3px'
-                              }}>
-                                {userItem.role} • {userItem.department}
-                              </div>
-                            </div>
-
-                            {/* Estado activo */}
-                            <div style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '4px',
-                              alignItems: 'flex-end'
-                            }}>
-                              <div style={{
-                                padding: '4px 10px',
-                                borderRadius: '20px',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                backgroundColor: userItem.isActive ? '#d4edda' : '#f8d7da',
-                                color: userItem.isActive ? '#155724' : '#721c24'
-                              }}>
-                                {userItem.isActive ? 'Activo' : 'Inactivo'}
-                              </div>
-                              
-                              {/* Indicador de verificación */}
-                              <div style={{
-                                padding: '4px 10px',
-                                borderRadius: '20px',
-                                fontSize: '11px',
-                                fontWeight: '500',
-                                backgroundColor: userItem.isVerified ? '#d1ecf1' : '#fff3cd',
-                                color: userItem.isVerified ? '#0c5460' : '#856404'
-                              }}>
-                                {userItem.isVerified ? '✓ Verificado' : '⚠ No verificado'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  
-                    {/* Mensaje si no hay resultados */}
-                    {users.filter(u => 
-                      searchQuery === '' ||
-                      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      u.email.toLowerCase().includes(searchQuery.toLowerCase())
-                    ).length === 0 && (
-                      <div style={{
-                        padding: '40px',
-                        textAlign: 'center',
-                        color: '#6c757d',
-                        fontSize: '14px'
-                      }}>
-                        No se encontraron usuarios que coincidan con la búsqueda
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  /* Panel de edición del usuario */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {/* Botón de volver */}
-                    <button
-                      onClick={() => {
-                        setSelectedAdminUser(null);
-                        setEditingUser(null);
-                      }}
-                      style={{
-                        alignSelf: 'flex-start',
-                        padding: '8px 15px',
-                        backgroundColor: '#6c757d',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#5a6268';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#6c757d';
-                      }}
-                    >
-                      ← Volver a la lista
-                    </button>
-
-                    {/* Datos editables del usuario */}
-                    <div style={{
-                      backgroundColor: '#f8f9fa',
-                      padding: '20px',
-                      borderRadius: '12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '15px'
-                    }}>
-                      <h3 style={{ margin: 0, color: '#2c3e50', fontSize: '18px' }}>
-                        Información del Usuario
-                      </h3>
-                      
-                      <div className="modal-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                        {/* Nombre */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Nombre completo
-                          </label>
-                          <input
-                            type="text"
-                            value={editingUser?.name || ''}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, name: e.target.value } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                        </div>
-
-                        {/* Usuario */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Usuario
-                          </label>
-                          <input
-                            type="text"
-                            value={editingUser?.username || ''}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, username: e.target.value } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                        </div>
-
-                        {/* Contraseña */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Nueva Contraseña
-                          </label>
-                          <input
-                            type="password"
-                            placeholder="Dejar vacío para mantener la actual"
-                            value={editingUser?.password || ''}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, password: e.target.value } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                          <small style={{ color: '#6c757d', fontSize: '11px', marginTop: '3px', display: 'block' }}>
-                            Solo ingrese una nueva contraseña si desea cambiarla
-                          </small>
-                        </div>
-
-                        {/* Email */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Correo electrónico
-                          </label>
-                          <input
-                            type="email"
-                            value={editingUser?.email || ''}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, email: e.target.value } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                        </div>
-
-                        {/* Nivel de Usuario */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Nivel de Usuario
-                          </label>
-                          <select
-                            value={editingUser?.role || ''}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, role: e.target.value } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              backgroundColor: 'white',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <option value="Técnico">Técnico</option>
-                            <option value="Supervisor">Supervisor</option>
-                            <option value="Administrador">Administrador</option>
-                          </select>
-                        </div>
-
-                        {/* Número de Cédula */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Número de Cédula
-                          </label>
-                          <input
-                            type="text"
-                            value={editingUser?.cedula || ''}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, cedula: e.target.value } : null)}
-                            placeholder="Ej: 001-1234567-8"
-                            maxLength={15}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                        </div>
-
-                        {/* Estado */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Estado
-                          </label>
-                          <select
-                            value={editingUser?.isActive ? 'true' : 'false'}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, isActive: e.target.value === 'true' } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              backgroundColor: 'white',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          >
-                            <option value="true">Activo</option>
-                            <option value="false">Inactivo</option>
-                          </select>
-                        </div>
-
-                        {/* Verificación de Cuenta */}
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            marginBottom: '5px',
-                            fontSize: '13px',
-                            fontWeight: '500',
-                            color: '#495057'
-                          }}>
-                            Verificación
-                          </label>
-                          <select
-                            value={editingUser?.isVerified ? 'true' : 'false'}
-                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, isVerified: e.target.value === 'true' } : null)}
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              border: '1px solid #ddd',
-                              borderRadius: '8px',
-                              fontSize: '14px',
-                              outline: 'none',
-                              backgroundColor: 'white',
-                              transition: 'border-color 0.2s',
-                              boxSizing: 'border-box'
-                            }}
-                          >
-                            <option value="false">No Verificada</option>
-                            <option value="true">Verificada</option>
-                          </select>
-                          <div style={{
-                            fontSize: '11px',
-                            color: '#6c757d',
-                            marginTop: '5px',
-                            fontStyle: 'italic'
-                          }}>
-                            {editingUser?.isVerified 
-                              ? '✓ Verificado - NO se solicitará verificación de perfil al iniciar sesión' 
-                              : '⚠ No verificado - Se solicitará completar perfil (foto, cédula, etc.) al iniciar sesión'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Reportes del usuario */}
-                    <div style={{
-                      backgroundColor: '#f8f9fa',
-                      padding: '20px',
-                      borderRadius: '12px'
-                    }}>
-                      <h3 style={{ margin: '0 0 15px 0', color: '#2c3e50', fontSize: '18px' }}>
-                        Reportes del Usuario (0)
-                      </h3>
-                      
-                      <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px',
-                        maxHeight: '200px',
-                        overflowY: 'auto'
-                      }}>
-                        <div style={{
-                          padding: '20px',
-                          textAlign: 'center',
-                          color: '#6c757d',
-                          fontSize: '13px'
-                        }}>
-                          Este usuario no tiene reportes registrados
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Botones de acción */}
-                    <div className="modal-buttons" style={{
-                      display: 'flex',
-                      gap: '10px',
-                      justifyContent: 'flex-end'
-                    }}>
-                      <button
-                        onClick={() => {
-                          // Guardar cambios
-                          if (editingUser) {
-                            // Actualizar en el estado local
-                            setUsers(prevUsers => 
-                              prevUsers.map(u => u.id === editingUser.id ? editingUser : u)
-                            );
-                            
-                            // Preparar datos para actualizar
-                            const updateData: any = {
-                              name: editingUser.name,
-                              username: editingUser.username,
-                              email: editingUser.email,
-                              role: editingUser.role,
-                              cedula: editingUser.cedula,
-                              isActive: editingUser.isActive,
-                              isVerified: editingUser.isVerified
-                            };
-                            
-                            // Solo actualizar la contraseña si se proporcionó una nueva
-                            if (editingUser.password && editingUser.password.trim() !== '') {
-                              updateData.password = editingUser.password;
-                            }
-                            
-                            // Actualizar en userStorage
-                            userStorage.updateUser(editingUser.id, updateData);
-                            
-                            alert('Cambios guardados exitosamente');
-                            setSelectedAdminUser(null);
-                            setEditingUser(null);
-                          }
-                        }}
-                        style={{
-                          padding: '10px 20px',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#218838';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#28a745';
-                        }}
-                      >
-                        Guardar Cambios
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm('¿Está seguro de que desea eliminar este usuario?\n\nNOTA: Los reportes creados por este usuario se conservarán.')) {
-                            if (editingUser) {
-                              // Eliminar de userStorage (los reportes se mantienen intactos)
-                              const deleted = userStorage.deleteUser(editingUser.id);
-                              
-                              if (deleted) {
-                                // Actualizar lista local
-                                setUsers(prevUsers => prevUsers.filter(u => u.id !== editingUser.id));
-                                alert('✅ Usuario eliminado exitosamente.\n\nLos reportes creados por este usuario se han conservado.');
-                                setSelectedAdminUser(null);
-                                setEditingUser(null);
-                              } else {
-                                alert('❌ Error al eliminar el usuario. Intente nuevamente.');
-                              }
-                            }
-                          }
-                        }}
-                        style={{
-                          padding: '10px 20px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#c82333';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dc3545';
-                        }}
-                      >
-                        Eliminar Usuario
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* Modal de Reportes Pendientes */}
       <PendingReportsModal
         isOpen={showPendingModal}
@@ -2004,7 +1145,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ user, onBack }) => {
         onContinueReport={handleContinuePendingReport}
         onCancelReport={handleCancelPendingReport}
       />
-      </div>
+    </div>
     </div>
   );
 };
