@@ -1,19 +1,19 @@
-﻿/* ReportsPage.css - Diseño Moderno Naranja/Blanco MÓVIL */
+/* ReportsPage.css - Dise�o Moderno Naranja/Blanco M�VIL */
 
 .reports-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--pale-orange) 0%, var(--tertiary-orange) 100%);
   font-family: var(--font-family);
   padding: 0;
-  min-width: 390px;
-  max-width: 390px;
+  min-width: 320px;
+  max-width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
 }
 
 .reports-container {
-  min-width: 390px;
-  max-width: 390px;
+  min-width: 320px;
+  max-width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
   padding-top: 56px;
@@ -23,10 +23,9 @@
 .reports-page .topbar {
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: 100%;
-  max-width: 390px;
   height: 56px;
   display: flex;
   align-items: center;
@@ -121,7 +120,7 @@
   border: 2px solid #fff;
 }
 
-/* Header - MÓVIL */
+/* Header - M�VIL */
 .reports-header {
   background: white;
   padding: 12px 16px;
@@ -174,7 +173,7 @@
   font-size: 22px;
 }
 
-/* Stats Summary - MÓVIL */
+/* Stats Summary - M�VIL */
 .stats-summary {
   display: flex;
   gap: 12px;
@@ -199,18 +198,18 @@
   color: var(--primary-orange);
 }
 
-/* Content - MÓVIL */
+/* Content - M�VIL */
 .reports-content {
   background: #f0f2f5;
   border-radius: 0;
   padding: 12px;
   box-shadow: none;
-  min-width: 390px;
-  max-width: 390px;
+  min-width: 320px;
+  max-width: 100%;
   overflow-x: hidden;
 }
 
-/* Section Headers - MÓVIL */
+/* Section Headers - M�VIL */
 .section-header {
   margin-bottom: 16px;
   text-align: center;
@@ -229,7 +228,7 @@
   margin: 0;
 }
 
-/* No Data Message - MÓVIL */
+/* No Data Message - M�VIL */
 .no-data-message {
   text-align: center;
   padding: 40px 16px;
@@ -255,7 +254,7 @@
   margin: 4px 0;
 }
 
-/* Chart Container - MÓVIL */
+/* Chart Container - M�VIL */
 .unified-chart-container {
   margin-bottom: 24px;
 }
@@ -525,7 +524,7 @@
   }
 }
 
-/* Botón de volver */
+/* Bot�n de volver */
 .topbar-back-btn {
   background: transparent;
   border: 1px solid #e0e0e0;
@@ -548,7 +547,7 @@
   transform: translateX(-2px);
 }
 
-/* Contenedor de botones de acción */
+/* Contenedor de botones de acci�n */
 .topbar-actions {
   display: flex;
   gap: 8px;
@@ -588,7 +587,7 @@
   transform: scale(1.1);
 }
 
-/* Botón activo */
+/* Bot�n activo */
 .topbar-btn.active {
   background: white;
   color: #667eea;
@@ -945,7 +944,7 @@
   }
 }
 
-/* Página de Informe Detallado como vista completa */
+/* P�gina de Informe Detallado como vista completa */
 .detailed-report-page {
   min-height: calc(100vh - 60px);
   background: white;
@@ -985,7 +984,7 @@
   border-radius: 0;
 }
 
-/* Animación para el contenido de estadísticas */
+/* Animaci�n para el contenido de estad�sticas */
 .reports-content {
   animation: fadeInPage 0.3s ease-in-out;
 }
@@ -1084,7 +1083,7 @@
   background: linear-gradient(135deg, #ff9a3d 0%, var(--primary-orange) 100%);
 }
 
-/* Títulos de estadísticas */
+/* T�tulos de estad�sticas */
 .stats-title {
   font-size: 16px;
   font-weight: 700;
@@ -1231,14 +1230,14 @@
   line-height: 1.1;
 }
 
-/* Header de la tarjeta de región - horizontal */
+/* Header de la tarjeta de regi�n - horizontal */
 .region-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Stats compactos tipo notificación */
+/* Stats compactos tipo notificaci�n */
 .region-stats-compact {
   display: flex;
   flex-direction: column;
@@ -1299,7 +1298,7 @@
   text-align: right;
 }
 
-/* Estadísticas de kilometraje */
+/* Estad�sticas de kilometraje */
 .stat-item-km {
   display: flex;
   flex-direction: column;
@@ -1331,7 +1330,7 @@
   color: var(--region-color, #ff7a00);
 }
 
-/* Panel de detalles de región */
+/* Panel de detalles de regi�n */
 .region-details-panel {
   background: white;
   border-radius: 8px;
@@ -1597,7 +1596,7 @@
 }
 
 .municipios-title::before {
-  content: '📂';
+  content: '??';
   font-size: 12px;
 }
 
@@ -1914,7 +1913,7 @@
   margin-top: 2.5rem;
 }
 
-/* Tarjetas de resumen de estadísticas */
+/* Tarjetas de resumen de estad�sticas */
 .stats-summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -2246,7 +2245,7 @@
   margin-top: 15px;
 }
 
-/* Estilos para el gráfico de pastel */
+/* Estilos para el gr�fico de pastel */
 .chart-container {
   padding: 20px 0;
 }
@@ -2618,7 +2617,7 @@
   margin: 10px 0;
 }
 
-/* Responsividad para el gráfico */
+/* Responsividad para el gr�fico */
 @media (max-width: 768px) {
   .pie-chart-wrapper {
     height: 300px;
@@ -2884,7 +2883,7 @@
   }
 }
 
-/* Estilos para la lista de municipios en vista detallada por región */
+/* Estilos para la lista de municipios en vista detallada por regi�n */
 .municipalities-list {
   padding: 20px;
   background: #f8f9fa;
@@ -2973,7 +2972,7 @@
 }
 
 .intervention-item-small[style*="cursor: pointer"]::after {
-  content: "✏️ Editar";
+  content: "?? Editar";
   position: absolute;
   top: 5px;
   right: 10px;
@@ -3091,7 +3090,7 @@
   }
 }
 
-/* Estilos para los botones de acción del formulario */
+/* Estilos para los botones de acci�n del formulario */
 .form-actions {
   margin: 20px 0;
 }
@@ -3109,7 +3108,7 @@
   transform: translateY(1px);
 }
 
-/* Hover effects específicos para cada color de botón */
+/* Hover effects espec�ficos para cada color de bot�n */
 .form-actions button[style*="background-color: #27AE60"]:hover {
   background-color: #2ECC71 !important;
 }
@@ -3514,7 +3513,7 @@
   font-size: 14px;
 }
 
-/* Estilos para botón de plantilla */
+/* Estilos para bot�n de plantilla */
 .template-btn {
   display: flex;
   align-items: center;
@@ -3547,7 +3546,7 @@
   height: 18px;
 }
 
-/* Estilos para el gráfico unificado */
+/* Estilos para el gr�fico unificado */
 .unified-chart-container {
   background: white;
   border-radius: 12px;
@@ -3632,7 +3631,7 @@
   font-weight: 500;
 }
 
-/* Estilos para la página de informe detallado */
+/* Estilos para la p�gina de informe detallado */
 .detailed-info-message {
   background: white;
   border-radius: 12px;
@@ -3716,8 +3715,8 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #e4e6eb;
-  min-width: 390px;
-  max-width: 390px;
+  min-width: 320px;
+  max-width: 100%;
   height: 56px;
 }
 

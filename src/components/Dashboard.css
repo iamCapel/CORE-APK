@@ -47,10 +47,9 @@
 .topbar {
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: 100%;
-  max-width: 390px;
   height: 56px;
   display: flex;
   align-items: center;
@@ -245,13 +244,11 @@
 }
 
 
-/* ===== DASHBOARD ESTILO FACEBOOK - iPHONE 12 ===== */
+/* ===== DASHBOARD ESTILO FACEBOOK - RESPONSIVE ===== */
 .dashboard {
   padding-top: 56px;
-  min-height: 844px;
+  min-height: 100vh;
   width: 100%;
-  min-width: 390px;
-  max-width: 390px;
   margin: 0 auto;
   background: #f0f2f5;
   overflow-x: hidden;
@@ -279,12 +276,10 @@
 }
 
 
-/* ===== CONTENEDOR PRINCIPAL FACEBOOK - iPHONE 12 ===== */
+/* ===== CONTENEDOR PRINCIPAL FACEBOOK - RESPONSIVE ===== */
 .dashboard-content {
-  padding: 12px 0;
+  padding: 12px;
   width: 100%;
-  min-width: 390px;
-  max-width: 390px;
   margin: 0 auto;
   overflow-x: hidden;
 }
@@ -1783,9 +1778,8 @@ select option[value="otros"] {
   gap: 20px 16px;
   margin-bottom: 24px;
   width: 100%;
-  max-width: 390px;
   margin: 0 auto;
-  padding: 0;
+  padding: 0 12px;
 }
 
 /* Responsive Grid */

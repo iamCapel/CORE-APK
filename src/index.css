@@ -89,9 +89,6 @@ body {
   font-size: var(--font-size-md);
   line-height: 1.5;
   width: 100%;
-  min-width: 390px;
-  max-width: 390px;
-  margin: 0 auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
@@ -99,9 +96,6 @@ body {
 
 #root {
   width: 100%;
-  min-width: 390px;
-  max-width: 390px;
-  margin: 0 auto;
   overflow-x: hidden;
 }
 
