@@ -416,9 +416,19 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .region-modal-overlay {
+    padding: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+  }
+  
   .region-modal-content {
-    width: 95%;
-    max-height: 90vh;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
   }
 
   .region-modal-header {
@@ -486,3 +496,4 @@
     font-size: 14px;
   }
 }
+

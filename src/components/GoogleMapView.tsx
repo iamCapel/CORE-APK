@@ -387,6 +387,7 @@ const render = (status: Status) => {
 
 const GoogleMapView: React.FC<GoogleMapViewProps> = ({ user, onBack }) => {
   const [interventions, setInterventions] = useState<Intervention[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [allTypes, setAllTypes] = useState<string[]>([]);
   const [showDetailView, setShowDetailView] = useState(false);
@@ -426,9 +427,21 @@ const GoogleMapView: React.FC<GoogleMapViewProps> = ({ user, onBack }) => {
     setSelectedTypes(types); // Mostrar todos por defecto
   }, [user]);
 
-  const filteredInterventions = interventions.filter(intervention => 
-    selectedTypes.includes(intervention.tipoIntervencion)
-  );
+  // Filtrar por tipo y búsqueda
+  const filteredInterventions = interventions.filter(intervention => {
+    const matchesType = selectedTypes.includes(intervention.tipoIntervencion);
+    if (!searchQuery.trim()) return matchesType;
+    
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = 
+      intervention.numeroReporte?.toLowerCase().includes(query) ||
+      intervention.municipio?.toLowerCase().includes(query) ||
+      intervention.provincia?.toLowerCase().includes(query) ||
+      intervention.sector?.toLowerCase().includes(query) ||
+      intervention.tipoIntervencion?.toLowerCase().includes(query);
+    
+    return matchesType && matchesSearch;
+  });
 
   const toggleType = (type: string) => {
     setSelectedTypes(prev => 
@@ -463,168 +476,48 @@ const GoogleMapView: React.FC<GoogleMapViewProps> = ({ user, onBack }) => {
   }
 
   return (
-    <div style={{ padding: '20px', height: '100vh', backgroundColor: '#f8f9fa' }}>
-      {/* Topbar */}
-      <div style={{
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        backgroundColor: 'white',
-        color: '#2c3e50',
-        padding: '12px 20px',
-        marginBottom: '20px',
-        borderRadius: '0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <button 
+    <div className="dashboard">
+      {/* Topbar estilo Dashboard */}
+      <div className="topbar">
+        <div className="topbar-spacer">
+          <div 
+            className="topbar-back-button"
             onClick={onBack}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              backgroundColor: '#f8f9fa',
-              color: '#2c3e50',
-              border: '1px solid #dee2e6',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e9ecef';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f8f9fa';
-            }}
           >
-            <span style={{ fontSize: '16px' }}>←</span>
-            Volver
-          </button>
-          <div style={{
-            width: '1px',
-            height: '24px',
-            backgroundColor: '#dee2e6'
-          }}></div>
-          <h1 style={{ 
-            margin: 0, 
-            fontSize: '18px',
-            fontWeight: '600',
-            color: '#2c3e50'
-          }}>
-            🗺️ Mapa de Intervenciones MOPC
-          </h1>
-        </div>
-        {/* Ícono de notificaciones - posicionado a la derecha */}
-        <div style={{ position: 'relative', cursor: 'pointer' }}>
-          <img 
-            src="/images/notification-bell-icon.svg" 
-            alt="Notificaciones" 
-            style={{
-              width: '24px', 
-              height: '24px',
-              filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-            }}
-          />
-        </div>
-      </div>      <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
-        {/* Panel de control */}
-        <div style={{ 
-          width: '300px', 
-          backgroundColor: 'white', 
-          padding: '20px', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          overflowY: 'auto'
-        }}>
-          <h3 style={{ marginTop: 0, color: '#2c3e50' }}>📊 Filtros</h3>
-          
-          {/* Búsqueda por Número de Reporte */}
-          <div style={{ 
-            marginBottom: '20px', 
-            padding: '15px', 
-            backgroundColor: '#f8f9fa', 
-            borderRadius: '8px',
-            border: '1px solid #e9ecef'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <img 
-                src="/images/search-report-icon.svg" 
-                alt="Buscar reporte" 
-                style={{ width: '24px', height: '24px', marginRight: '8px' }}
-              />
-              <h4 style={{ color: '#495057', margin: 0, fontSize: '14px' }}>
-                Buscar por Número de Reporte
-              </h4>
-            </div>
-            <input
-              type="text"
-              placeholder="Ingrese # de reporte (ej: DCR-2025-000001)"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #ced4da',
-                borderRadius: '4px',
-                fontSize: '14px',
-                marginBottom: '8px'
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  const reportNumber = (e.target as HTMLInputElement).value;
-                  if (reportNumber.trim()) {
-                    // Búsqueda optimizada usando reportStorage (O(1))
-                    const report = reportStorage.getReportByNumber(reportNumber.trim());
-                    
-                    if (report) {
-                      // Centrar mapa en el municipio de la intervención encontrada
-                      alert(`✅ Reporte encontrado: ${report.numeroReporte} en ${report.municipio}, ${report.provincia}\nTipo: ${report.tipoIntervencion}`);
-                      console.log('📍 Reporte encontrado vía búsqueda optimizada:', report);
-                      // Aquí podrías agregar lógica para centrar el mapa en las coordenadas del municipio
-                    } else {
-                      alert('❌ No se encontró ningún reporte con ese número');
-                      console.log('❌ Búsqueda sin resultados para:', reportNumber);
-                    }
-                  }
-                }
-              }}
-            />
-            <p style={{ fontSize: '12px', color: '#6c757d', margin: 0 }}>
-              Presione Enter para buscar y ubicar en el mapa
-            </p>
+            ←
           </div>
-
         </div>
+        <div className="topbar-title">Buscar</div>
+        <div className="topbar-actions">
+          <div className="topbar-action-button">
+            <div className="topbar-avatar-placeholder">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Mapa */}
-        <div style={{ 
-          flex: 1, 
-          backgroundColor: 'white', 
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          overflow: 'hidden'
-        }}>
+      <div className="dashboard-content">
+        <div className="map-search-container">
+          <input
+            type="text"
+            className="map-search-input"
+            placeholder="🔍 Buscar por # reporte, municipio, provincia..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button 
+              className="map-search-clear"
+              onClick={() => setSearchQuery('')}
+            >
+              ×
+            </button>
+          )}
+        </div>
+        <div style={{ width: '100%', height: '400px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', overflow: 'hidden', marginBottom: '16px' }}>
           <Wrapper apiKey={GOOGLE_MAPS_API_KEY} render={render}>
-            <Map 
-              center={center} 
-              zoom={zoom} 
-              interventions={filteredInterventions}
-              onViewDetail={handleViewDetail}
-            />
+            <Map center={center} zoom={zoom} interventions={filteredInterventions} onViewDetail={handleViewDetail} />
           </Wrapper>
         </div>
       </div>

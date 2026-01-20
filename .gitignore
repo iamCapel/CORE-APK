@@ -30,10 +30,18 @@ PUNTOS_RESTAURACION/
 *.bat
 *.log
 
-# Android/Mobile (not needed for web version)
-/android
+# Android/Mobile build files
+/android/build
+/android/.gradle
+/android/app/build
+/android/local.properties
+/android/key.properties
+/android/*.jks
+/android/*.keystore
+android-sdk/
 /ios
-capacitor.config.ts
+# Keep capacitor.config.ts - needed for Android build
+# capacitor.config.ts
 
 # Documentation duplicates
 ESTADO_PROYECTO.md

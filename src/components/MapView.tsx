@@ -105,6 +105,8 @@ const municipioCoordinates: Record<string, { lat: number; lng: number }> = {
 
 const MapView: React.FC<MapViewProps> = ({ user, onBack }) => {
   const [interventions, setInterventions] = useState<any[]>([]);
+  const [filteredInterventions, setFilteredInterventions] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedIntervention, setSelectedIntervention] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
@@ -131,7 +133,25 @@ const MapView: React.FC<MapViewProps> = ({ user, onBack }) => {
     }));
     
     setInterventions(interventionsData);
+    setFilteredInterventions(interventionsData);
   }, []);
+
+  // Filtrar intervenciones basado en búsqueda
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredInterventions(interventions);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = interventions.filter(int => 
+        int.municipio?.toLowerCase().includes(query) ||
+        int.provincia?.toLowerCase().includes(query) ||
+        int.sector?.toLowerCase().includes(query) ||
+        int.tipoIntervencion?.toLowerCase().includes(query) ||
+        int.numeroReporte?.toLowerCase().includes(query)
+      );
+      setFilteredInterventions(filtered);
+    }
+  }, [searchQuery, interventions]);
 
   // Función para obtener las coordenadas de un municipio
   const getMunicipioCoordinates = (municipio: string) => {
@@ -166,44 +186,58 @@ const MapView: React.FC<MapViewProps> = ({ user, onBack }) => {
   }
 
   // Obtener estadísticas rápidas
-  const totalInterventions = interventions.length;
-  const uniqueProvinces = new Set(interventions.map(i => i.provincia)).size;
-  const uniqueMunicipios = new Set(interventions.map(i => i.municipio)).size;
+  const totalInterventions = filteredInterventions.length;
+  const uniqueProvinces = new Set(filteredInterventions.map(i => i.provincia)).size;
+  const uniqueMunicipios = new Set(filteredInterventions.map(i => i.municipio)).size;
 
   return (
     <div className="dashboard">
-      {/* Topbar */}
+      {/* Topbar estilo Dashboard */}
       <div className="topbar">
-        <div className="topbar-left">
-          <div className="dashboard-logos">
-            <img src="/mopc-logo.png" alt="MOPC Logo" className="dashboard-logo-left" />
-            <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="dashboard-logo-right" />
+        {/* Espaciador izquierdo (botón volver) */}
+        <div className="topbar-spacer">
+          <div 
+            className="topbar-back-button"
+            onClick={onBack}
+            title="Volver al Dashboard"
+          >
+            ←
           </div>
         </div>
 
-        <div className="topbar-logo" aria-hidden></div>
+        {/* Título centrado */}
+        <div className="topbar-title">Mapa MOPC</div>
 
-        <div className="topbar-right">
-          <button 
-            onClick={onBack}
-            title="Volver al Dashboard" 
-            className="btn topbar-btn"
-          >
-            ← Volver
-          </button>
-
-          <div className="user-badge topbar-user" title={user.name}>
-            {user.name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase()} &nbsp; {user.name}
+        {/* Usuario a la derecha */}
+        <div className="topbar-actions">
+          <div className="topbar-action-button">
+            <div className="topbar-avatar-placeholder">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="dashboard-content">
-        <header className="dashboard-header centered-subtitle">
-          <div className="header-center">
-            <h2 className="dashboard-subtitle">MAPA DE INTERVENCIONES - REPÚBLICA DOMINICANA</h2>
-          </div>
-        </header>
+        {/* Filtro de búsqueda */}
+        <div className="map-search-container">
+          <input
+            type="text"
+            className="map-search-input"
+            placeholder="🔍 Buscar por municipio, provincia, sector, tipo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button 
+              className="map-search-clear"
+              onClick={() => setSearchQuery('')}
+              title="Limpiar búsqueda"
+            >
+              ×
+            </button>
+          )}
+        </div>
 
         {/* Estadísticas del mapa */}
         <div className="map-stats">
@@ -252,7 +286,7 @@ const MapView: React.FC<MapViewProps> = ({ user, onBack }) => {
               />
 
               {/* Puntos rojos para cada intervención */}
-              {interventions.map((intervention, index) => {
+              {filteredInterventions.map((intervention, index) => {
                 const coords = getMunicipioCoordinates(intervention.municipio);
                 // Convertir coordenadas geográficas a coordenadas del SVG
                 const x = ((coords.lng + 72) / 4) * 800; // Ajuste aproximado para RD
@@ -277,37 +311,42 @@ const MapView: React.FC<MapViewProps> = ({ user, onBack }) => {
               })}
             </svg>
           </div>
+        </div>
 
-          {/* Lista lateral de intervenciones */}
-          <div className="interventions-sidebar">
-            <h3>Intervenciones Registradas</h3>
-            <div className="interventions-list">
-              {interventions.length === 0 ? (
-                <div className="no-interventions">
-                  <p>No hay intervenciones registradas aún.</p>
-                  <p>Ve a "Reportar" para agregar la primera intervención.</p>
-                </div>
-              ) : (
-                interventions.map((intervention, index) => (
-                  <div 
-                    key={index} 
-                    className="intervention-item"
-                    onClick={() => handlePointClick(intervention)}
-                  >
-                    <div className="intervention-location">
-                      <strong>{intervention.municipio}</strong>
-                      <span>{intervention.provincia}</span>
-                    </div>
-                    <div className="intervention-type">
-                      {intervention.tipoIntervencion}
-                    </div>
-                    <div className="intervention-date">
-                      {new Date(intervention.timestamp).toLocaleDateString()}
-                    </div>
+        {/* Lista de intervenciones debajo del mapa */}
+        <div className="interventions-list-mobile">
+          <h3>Intervenciones ({filteredInterventions.length})</h3>
+          <div className="interventions-grid">
+            {filteredInterventions.length === 0 ? (
+              <div className="no-interventions">
+                <p>📍 No se encontraron intervenciones</p>
+                {searchQuery && <p>Intenta con otro término de búsqueda</p>}
+              </div>
+            ) : (
+              filteredInterventions.map((intervention, index) => (
+                <div 
+                  key={index} 
+                  className="intervention-card-mobile"
+                  onClick={() => handlePointClick(intervention)}
+                >
+                  <div className="intervention-header-mobile">
+                    <strong>📍 {intervention.municipio}</strong>
+                    <span className="intervention-number">{intervention.numeroReporte}</span>
                   </div>
-                ))
-              )}
-            </div>
+                  <div className="intervention-details-mobile">
+                    <span className="intervention-provincia">{intervention.provincia}</span>
+                    <span className="intervention-type-mobile">{intervention.tipoIntervencion}</span>
+                  </div>
+                  <div className="intervention-date-mobile">
+                    {new Date(intervention.timestamp).toLocaleDateString('es-DO', { 
+                      day: '2-digit', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

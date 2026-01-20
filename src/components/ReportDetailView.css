@@ -1,7 +1,7 @@
 .report-detail-view {
   min-height: 100vh;
   background-color: #f5f7fa;
-  padding-bottom: 40px;
+  padding-bottom: 20px;
 }
 
 .report-detail-loading,
@@ -303,34 +303,183 @@
   height: 500px;
 }
 
-/* Responsive */
+/* Responsive - Optimizado para móvil 390px */
 @media (max-width: 768px) {
+  .report-detail-view {
+    padding-bottom: 16px;
+  }
+
+  .report-detail-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    padding: 0 12px;
+    gap: 12px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .topbar-back-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 20px;
+  }
+
+  .topbar-back-btn span {
+    display: inline;
+  }
+
+  /* Ocultar texto "Volver al Mapa" en móvil */
+  .topbar-back-btn::after {
+    content: none;
+  }
+
+  .topbar-title {
+    font-size: 15px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .report-template-section,
   .route-map-section,
   .street-view-section {
-    padding: 0 10px;
+    margin: 0;
+    padding: 8px;
+    max-width: 100%;
   }
 
+  .report-template-section {
+    margin-top: 60px;
+  }
+
+  .section-header {
+    display: none;
+  }
+
+  .report-template-content {
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  /* Ocultar completamente el header decorativo en móvil */
   .template-header {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px;
+    display: none;
   }
 
-  .header-info h1 {
-    font-size: 18px;
+  .template-section {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
   }
 
-  .header-info h2 {
-    font-size: 14px;
+  .template-section:first-of-type {
+    padding-top: 16px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    color: #FF7A00;
+    border-bottom: 1px solid #f0f0f0;
   }
 
   .info-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .info-item {
+    gap: 3px;
+  }
+
+  .info-item label {
+    font-size: 10px;
+    color: #666;
+  }
+
+  .info-item span {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .status-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 12px;
+  }
+
+  .observations-text {
+    font-size: 12px;
+    padding: 10px;
+    line-height: 1.5;
+  }
+
+  .template-footer {
+    padding: 12px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    background-color: #fafafa;
+  }
+
+  .footer-item {
+    gap: 3px;
+  }
+
+  .footer-item label {
+    font-size: 10px;
+    color: #666;
+  }
+
+  .footer-item span {
+    font-size: 11px;
+  }
+
+  .route-map-section,
+  .street-view-section {
+    margin-top: 8px;
+  }
+
+  .route-map-section .section-header,
+  .street-view-section .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+
+  .route-map-section .section-header h2,
+  .street-view-section .section-header h2 {
+    font-size: 13px;
+    color: #FF7A00;
+    margin: 0;
+  }
+
+  .section-description {
+    font-size: 11px;
+    margin: 0;
+  }
+
+  .map-container,
+  .street-view-container {
+    border-radius: 8px;
+    margin-bottom: 8px;
   }
 
   .route-map,
   .street-view {
-    height: 300px;
+    height: 220px;
   }
 }
