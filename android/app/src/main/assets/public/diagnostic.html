@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico MOPC - Sistema de Usuarios</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .status-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #FF7A00;
+        }
+        .status-ok {
+            border-left-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        .status-warning {
+            border-left-color: #FF9800;
+            background: #fff3e0;
+        }
+        .status-error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            background: #FF7A00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #E66A00;
+        }
+        button.secondary {
+            background: #4CAF50;
+        }
+        button.secondary:hover {
+            background: #45a049;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .user-card {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .badge-admin {
+            background: #f44336;
+            color: white;
+        }
+        .badge-active {
+            background: #4CAF50;
+            color: white;
+        }
+        .badge-inactive {
+            background: #999;
+            color: white;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico del Sistema</h1>
+        <p class="subtitle">MOPC Dashboard - Verificación de Usuarios</p>
+
+        <div id="results"></div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="runDiagnostics()">🔄 Ejecutar Diagnóstico</button>
+            <button class="secondary" onclick="clearStorage()">🗑️ Limpiar localStorage</button>
+            <button class="secondary" onclick="forceReload()">♻️ Forzar Recarga</button>
+        </div>
+    </div>
+
+    <a href="/" class="back-link">← Volver al Dashboard</a>
+
+    <script>
+        function runDiagnostics() {
+            const results = document.getElementById('results');
+            let html = '';
+
+            // 1. Verificar localStorage disponible
+            html += '<div class="status-box ' + (typeof(Storage) !== "undefined" ? 'status-ok' : 'status-error') + '">';
+            html += '<h3>1️⃣ localStorage ' + (typeof(Storage) !== "undefined" ? '✅ Disponible' : '❌ No disponible') + '</h3>';
+            html += '<p>Navegador soporta localStorage: ' + (typeof(Storage) !== "undefined" ? 'SÍ' : 'NO') + '</p>';
+            html += '</div>';
+
+            // 2. Verificar claves de usuarios
+            const usersDb = localStorage.getItem('mopc_users_db');
+            const usersIndex = localStorage.getItem('mopc_users_index');
+            const usersMetadata = localStorage.getItem('mopc_users_metadata');
+
+            html += '<div class="status-box ' + (usersDb ? 'status-ok' : 'status-warning') + '">';
+            html += '<h3>2️⃣ Datos de Usuarios en localStorage</h3>';
+            html += '<p>🔑 mopc_users_db: ' + (usersDb ? '✅ Existe (' + (usersDb.length) + ' caracteres)' : '⚠️ No existe') + '</p>';
+            html += '<p>🔑 mopc_users_index: ' + (usersIndex ? '✅ Existe' : '⚠️ No existe') + '</p>';
+            html += '<p>🔑 mopc_users_metadata: ' + (usersMetadata ? '✅ Existe' : '⚠️ No existe') + '</p>';
+            html += '</div>';
+
+            // 3. Parsear y mostrar usuarios
+            if (usersDb) {
+                try {
+                    const db = JSON.parse(usersDb);
+                    const users = Object.values(db);
+                    
+                    html += '<div class="status-box ' + (users.length > 0 ? 'status-ok' : 'status-error') + '">';
+                    html += '<h3>3️⃣ Usuarios Registrados: ' + users.length + '</h3>';
+                    
+                    if (users.length > 0) {
+                        users.forEach(user => {
+                            html += '<div class="user-card">';
+                            html += '<strong>' + user.name + '</strong> ';
+                            html += '<span class="badge badge-admin">' + user.role + '</span> ';
+                            html += '<span class="badge ' + (user.isActive ? 'badge-active' : 'badge-inactive') + '">' + (user.isActive ? 'Activo' : 'Inactivo') + '</span>';
+                            html += '<br><small>👤 Usuario: <code>' + user.username + '</code></small>';
+                            html += '<br><small>📧 Email: ' + user.email + '</small>';
+                            html += '</div>';
+                        });
+                    } else {
+                        html += '<p>⚠️ No hay usuarios en la base de datos</p>';
+                    }
+                    html += '</div>';
+
+                    // 4. Mostrar JSON completo
+                    html += '<div class="status-box">';
+                    html += '<h3>4️⃣ Datos JSON Completos</h3>';
+                    html += '<pre>' + JSON.stringify(db, null, 2).substring(0, 2000) + (JSON.stringify(db).length > 2000 ? '\n...(truncado)' : '') + '</pre>';
+                    html += '</div>';
+
+                } catch (error) {
+                    html += '<div class="status-box status-error">';
+                    html += '<h3>❌ Error al parsear JSON</h3>';
+                    html += '<p>Error: ' + error.message + '</p>';
+                    html += '<pre>' + usersDb.substring(0, 500) + '...</pre>';
+                    html += '</div>';
+                }
+            } else {
+                html += '<div class="status-box status-error">';
+                html += '<h3>3️⃣ ❌ No hay usuarios registrados</h3>';
+                html += '<p>La base de datos de usuarios está vacía.</p>';
+                html += '<p><strong>Solución:</strong> El sistema debería cargar usuarios automáticamente al iniciar. Si esto no ocurre:</p>';
+                html += '<ol>';
+                html += '<li>Verifique la consola del navegador (F12)</li>';
+                html += '<li>Intente recargar la página</li>';
+                html += '<li>Use el botón "Limpiar localStorage" y luego "Forzar Recarga"</li>';
+                html += '</ol>';
+                html += '</div>';
+            }
+
+            // 5. Información del entorno
+            html += '<div class="status-box">';
+            html += '<h3>5️⃣ Información del Entorno</h3>';
+            html += '<p>🌐 URL: <code>' + window.location.href + '</code></p>';
+            html += '<p>🏠 Hostname: <code>' + window.location.hostname + '</code></p>';
+            html += '<p>📱 User Agent: <code>' + navigator.userAgent.substring(0, 100) + '...</code></p>';
+            html += '<p>⏰ Fecha/Hora: <code>' + new Date().toISOString() + '</code></p>';
+            html += '</div>';
+
+            results.innerHTML = html;
+        }
+
+        function clearStorage() {
+            if (confirm('⚠️ ¿Está seguro? Esto borrará todos los datos almacenados localmente.')) {
+                localStorage.clear();
+                alert('✅ localStorage limpiado exitosamente.');
+                runDiagnostics();
+            }
+        }
+
+        function forceReload() {
+            localStorage.clear();
+            alert('🔄 Recargando página para inicializar usuarios...');
+            window.location.reload(true);
+        }
+
+        // Ejecutar diagnóstico al cargar
+        window.onload = runDiagnostics;
+    </script>
+</body>
+</html>
