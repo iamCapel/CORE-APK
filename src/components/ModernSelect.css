@@ -147,8 +147,9 @@ body {
 }
 
 .modern-select-value.placeholder {
-  color: var(--text-secondary);
+  color: var(--white);
   font-weight: 400;
+  opacity: 0.7;
 }
 
 .modern-select-value.has-value {
@@ -251,12 +252,13 @@ body {
   outline: none;
   background: transparent;
   font-size: var(--font-size-md);
-  color: var(--text-primary);
+  color: var(--white);
   padding: var(--spacing-xs) 0;
 }
 
 .search-input::placeholder {
-  color: var(--text-secondary);
+  color: var(--white);
+  opacity: 0.6;
 }
 
 .modern-select-options {

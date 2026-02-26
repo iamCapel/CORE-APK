@@ -307,6 +307,17 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setPlantillaValues({});
   };
 
+  // Actualizar campos de plantilla cuando cambia el tipo de intervención
+  useEffect(() => {
+    if (tipoIntervencion && plantillasPorIntervencion[tipoIntervencion]) {
+      setPlantillaFields(plantillasPorIntervencion[tipoIntervencion]);
+      setPlantillaValues({});
+    } else if (tipoIntervencion) {
+      setPlantillaFields(plantillaDefault);
+      setPlantillaValues({});
+    }
+  }, [tipoIntervencion, plantillasPorIntervencion, plantillaDefault]);
+
   const handlePlantillaChange = (key: string, value: string) => {
     setPlantillaValues(prev => ({...prev, [key]: value}));
   };
@@ -848,22 +859,210 @@ const ReportForm: React.FC<ReportFormProps> = ({
             )}
           </div>
 
+          {/* Sección de plantilla dinámica */}
+          {tipoIntervencion && (
+            <ModernFormContainer
+              title="📋 Datos Específicos de la Intervención"
+              subtitle={`Complete los campos específicos para ${tipoIntervencion}`}
+              icon="📝"
+            >
+              <div className="form-grid">
+                {plantillaFields.map((field) => (
+                  <div key={field.key} className="form-group">
+                    <ModernInput
+                      id={field.key}
+                      type={field.type}
+                      label={field.label}
+                      placeholder={`Ingrese ${field.label.toLowerCase()}`}
+                      value={plantillaValues[field.key] || ''}
+                      onChange={(val) => handlePlantillaChange(field.key, String(val))}
+                      unit={field.unit}
+                      icon="📊"
+                    />
+                  </div>
+                ))}
+              </div>
+            </ModernFormContainer>
+          )}
+
           {/* Botones de acción */}
-          <div className="form-actions">
+          <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', gap: '20px', margin: '20px 0' }}>
+            
+            {/* Botón Verde - Guardar Completado */}
             <button 
               type="button" 
               onClick={guardarIntervencion} 
-              className="btn btn-primary"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '15px 20px',
+                backgroundColor: '#27AE60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                minWidth: '120px',
+                boxShadow: '0 4px 8px rgba(39, 174, 96, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(39, 174, 96, 0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(39, 174, 96, 0.3)';
+              }}
             >
-              {diasTrabajo.length > 0 ? `Guardar ${diasTrabajo.length} días` : 'Guardar'}
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+              <span style={{ fontSize: '14px', fontWeight: '600', marginTop: '8px' }}>
+                {diasTrabajo.length > 0 ? `Guardar ${diasTrabajo.length} días` : 'Guardar Completado'}
+              </span>
             </button>
 
+            {/* Botón Naranja - Guardar Pendiente */}
             <button 
               type="button" 
-              onClick={limpiarFormulario} 
-              className="btn btn-secondary"
+              onClick={async () => {
+                const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
+                const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
+                
+                // Validación
+                if (!region || !provincia || !distritoFinal || !sectorFinal || !tipoIntervencion) {
+                  alert('Por favor complete todos los campos requeridos');
+                  return;
+                }
+                
+                setShowPendingAnimation(true);
+                
+                setTimeout(async () => {
+                  try {
+                    // Guardar como PENDIENTE (no aparecerá en estadísticas)
+                    const reportData = {
+                      timestamp: fechaReporte ? new Date(fechaReporte).toISOString() : new Date().toISOString(),
+                      fechaCreacion: fechaReporte ? new Date(fechaReporte).toISOString() : new Date().toISOString(),
+                      creadoPor: user?.name || 'Desconocido',
+                      usuarioId: user?.username || 'desconocido',
+                      region,
+                      provincia,
+                      distrito: distritoFinal,
+                      municipio,
+                      sector: sectorFinal,
+                      tipoIntervencion: tipoIntervencion === 'Canalización' ? `${tipoIntervencion}:${subTipoCanal}` : tipoIntervencion,
+                      subTipoCanal: tipoIntervencion === 'Canalización' ? subTipoCanal : undefined,
+                      observaciones: observaciones || undefined,
+                      metricData: plantillaValues,
+                      gpsData: autoGpsFields,
+                      vehiculos: vehiculos,
+                      estado: 'pendiente' as const,
+                      diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
+                      reportesPorDia: diasTrabajo.length > 0 ? reportesPorDia : undefined,
+                      fechaInicio: fechaInicio || undefined,
+                      fechaFinal: fechaFinal || undefined,
+                      diaActual: diasTrabajo.length > 0 ? diaActual : undefined
+                    };
+                    
+                    const savedReport = await reportStorage.saveReport(reportData);
+                    await firebaseReportStorage.saveReport(savedReport);
+                    
+                    console.log('✅ Reporte guardado como pendiente (sin estadísticas)');
+                    
+                    setTimeout(() => {
+                      setShowPendingAnimation(false);
+                      alert('✅ Reporte guardado como pendiente');
+                      limpiarFormulario();
+                    }, 2000);
+                  } catch (error) {
+                    console.error('❌ Error:', error);
+                    setShowPendingAnimation(false);
+                    alert('Error al guardar el reporte.');
+                  }
+                }, 500);
+              }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '15px 20px',
+                backgroundColor: '#F39C12',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                minWidth: '120px',
+                boxShadow: '0 4px 8px rgba(243, 156, 18, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(243, 156, 18, 0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(243, 156, 18, 0.3)';
+              }}
             >
-              Cancelar
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 12"/>
+              </svg>
+              <span style={{ fontSize: '14px', fontWeight: '600', marginTop: '8px' }}>Pendiente</span>
+              <span style={{ fontSize: '11px', opacity: 0.85 }}>(Sin estadísticas)</span>
+            </button>
+
+            {/* Botón Rojo - Cancelar/Eliminar */}
+            <button 
+              type="button" 
+              onClick={async () => {
+                if (window.confirm('¿Está seguro de que desea cancelar? Se perderán los datos no guardados.')) {
+                  // Si existe un reporte pendiente, eliminarlo
+                  if (currentPendingReportId) {
+                    console.log('❌ Cancelando y eliminando reporte pendiente:', currentPendingReportId);
+                    try {
+                      // Eliminar SOLO de Firebase
+                      await firebasePendingReportStorage.deletePendingReport(currentPendingReportId);
+                      console.log('✅ Reporte eliminado exitosamente de Firebase');
+                    } catch (error) {
+                      console.error('❌ Error eliminando reporte de Firebase:', error);
+                    }
+                    setCurrentPendingReportId(null);
+                  }
+                  
+                  // Limpiar formulario
+                  limpiarFormulario();
+                }
+              }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '15px 20px',
+                backgroundColor: '#E74C3C',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                minWidth: '120px',
+                boxShadow: '0 4px 8px rgba(231, 76, 60, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 12px rgba(231, 76, 60, 0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(231, 76, 60, 0.3)';
+              }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              <span style={{ fontSize: '14px', fontWeight: '600', marginTop: '8px' }}>Cancelar</span>
             </button>
           </div>
         </ModernFormContainer>
