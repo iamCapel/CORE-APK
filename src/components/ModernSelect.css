@@ -168,13 +168,15 @@ body {
 
 .option-text {
   font-weight: 500;
+  color: var(--white);
 }
 
 .option-description {
   font-size: var(--font-size-xs);
-  color: var(--text-secondary);
+  color: var(--white);
   font-weight: 400;
   margin-top: 2px;
+  opacity: 0.8;
 }
 
 .modern-select-actions {
@@ -291,6 +293,7 @@ body {
   transition: all var(--transition-fast);
   border: 1px solid transparent;
   margin-bottom: var(--spacing-xs);
+  color: var(--white);
 }
 
 .modern-select-option:hover {
