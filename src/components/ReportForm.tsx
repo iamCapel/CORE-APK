@@ -74,11 +74,13 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const [subTipoCanal, setSubTipoCanal] = useState('');
   const [observaciones, setObservaciones] = useState('');
 
-  // Estados para vehículos
+  // Estados para vehículos (ahora es un array)
   const [vehiculos, setVehiculos] = useState<Array<{tipo: string, modelo: string, ficha: string}>>([]);
-  const [tipoVehiculoActual, setTipoVehiculoActual] = useState('');
-  const [modeloVehiculoActual, setModeloVehiculoActual] = useState('');
-  const [fichaVehiculoActual, setFichaVehiculoActual] = useState('');
+
+  // Estados para imágenes por día
+  const [imagesPerDay, setImagesPerDay] = useState<Record<string, string[]>>({});
+  const [selectedDayForImages, setSelectedDayForImages] = useState<string>('');
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [plantillaFields, setPlantillaFields] = useState<Field[]>(plantillaDefault);
   const [plantillaValues, setPlantillaValues] = useState<Record<string, string>>({});
@@ -322,6 +324,77 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setPlantillaValues(prev => ({...prev, [key]: value}));
   };
 
+  // Funciones para manejo de imágenes
+  const handleImageUpload = (day: string, files: FileList | null) => {
+    if (!files) return;
+    
+    const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+    setImagesPerDay(prev => ({
+      ...prev,
+      [day]: [...(prev[day] || []), ...newImages]
+    }));
+  };
+
+  const handleCameraCapture = async (day: string) => {
+    try {
+      // Solicitar permiso de cámara
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      
+      // Crear elemento video para captura
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      
+      // Esperar a que el video esté listo
+      await new Promise(resolve => {
+        video.onloadedmetadata = resolve;
+      });
+      
+      // Capturar imagen
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(video, 0, 0);
+      
+      // Obtener imagen con coordenadas GPS si está disponible
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const imageUrl = URL.createObjectURL(blob);
+          setImagesPerDay(prev => ({
+            ...prev,
+            [day]: [...(prev[day] || []), imageUrl]
+          }));
+        }
+      });
+      
+      // Detener stream
+      stream.getTracks().forEach(track => track.stop());
+      
+    } catch (error) {
+      console.error('Error accediendo a la cámara:', error);
+      alert('No se pudo acceder a la cámara. Verifique los permisos.');
+    }
+  };
+
+  const removeImage = (day: string, index: number) => {
+    setImagesPerDay(prev => {
+      const dayImages = [...(prev[day] || [])];
+      dayImages.splice(index, 1);
+      return {
+        ...prev,
+        [day]: dayImages
+      };
+    });
+  };
+
+  const openImageModal = (day: string) => {
+    setSelectedDayForImages(day);
+    setShowImageModal(true);
+  };
+
   // Funciones para sistema multi-día
   const guardarDiaActual = () => {
     if (diasTrabajo.length === 0) return;
@@ -377,6 +450,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setMostrarSectorPersonalizado(false);
     setDistritoPersonalizado('');
     setMostrarDistritoPersonalizado(false);
+    setFechaReporte('');
     setFechaInicio('');
     setFechaFinal('');
     setDiasTrabajo([]);
@@ -386,9 +460,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setSubTipoCanal('');
     setObservaciones('');
     setVehiculos([]);
-    setTipoVehiculoActual('');
-    setModeloVehiculoActual('');
-    setFichaVehiculoActual('');
+    setImagesPerDay({});
+    setSelectedDayForImages('');
+    setShowImageModal(false);
     setPlantillaValues({});
   };
 
@@ -486,6 +560,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
           metricData: plantillaValues,
           gpsData: autoGpsFields,
           vehiculos: vehiculos,
+          imagesPerDay: Object.keys(imagesPerDay).length > 0 ? imagesPerDay : undefined,
           estado: 'completado' as const,
           diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
           reportesPorDia: diasTrabajo.length > 0 ? reportesPorDia : undefined,
@@ -885,6 +960,412 @@ const ReportForm: React.FC<ReportFormProps> = ({
             </ModernFormContainer>
           )}
 
+          {/* Sección de vehículos pesados */}
+          {tipoIntervencion && (
+            <ModernFormContainer
+              title="🚜 Información de Vehículos Pesados"
+              subtitle="Registre los vehículos utilizados en la intervención"
+              icon="🚛"
+            >
+              <div className="form-grid">
+                {/* Campo para número de vehículos */}
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <ModernInput
+                    id="numVehiculos"
+                    type="number"
+                    label="¿Cuántos vehículos están trabajando?"
+                    placeholder="Ej: 5"
+                    value={vehiculos.length}
+                    onChange={(val) => {
+                      const cantidad = parseInt(String(val)) || 0;
+                      if (cantidad >= 0 && cantidad <= 50) {
+                        const nuevosVehiculos = [];
+                        for (let i = 0; i < cantidad; i++) {
+                          if (i < vehiculos.length) {
+                            // Mantener vehículo existente
+                            nuevosVehiculos.push(vehiculos[i]);
+                          } else {
+                            // Agregar nuevo vehículo vacío
+                            nuevosVehiculos.push({ tipo: '', modelo: '', ficha: '' });
+                          }
+                        }
+                        setVehiculos(nuevosVehiculos);
+                      }
+                    }}
+                    icon="🔢"
+                  />
+                  <small style={{ display: 'block', marginTop: '4px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                    Ingrese el número y aparecerán las filas para llenar
+                  </small>
+                </div>
+                
+                {/* Formulario para cada vehículo */}
+                {vehiculos.length > 0 && (
+                  <div style={{ gridColumn: '1 / -1', marginBottom: '16px' }}>
+                    <h5 style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '600' }}>
+                      Complete la información de cada vehículo:
+                    </h5>
+                    {vehiculos.map((vehiculo, index) => (
+                      <div key={`vehiculo-${index}`} style={{ 
+                        marginBottom: '20px',
+                        padding: '20px',
+                        backgroundColor: 'var(--off-white)',
+                        borderRadius: '12px',
+                        border: '2px solid var(--gray)'
+                      }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          marginBottom: '16px'
+                        }}>
+                          <h6 style={{ margin: 0, color: 'var(--primary-orange)', fontSize: '16px', fontWeight: '600' }}>
+                            🚜 Vehículo #{index + 1}
+                          </h6>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setVehiculos(vehiculos.filter((_, i) => i !== index));
+                            }}
+                            style={{
+                              padding: '6px 16px',
+                              backgroundColor: '#E74C3C',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                          >
+                            ✕ Eliminar
+                          </button>
+                        </div>
+                        
+                        <div className="form-grid">
+                          <ModernSelect
+                            id={`tipoVehiculo-${index}`}
+                            icon="🚛"
+                            hint="Tipo de Vehículo"
+                            placeholder="Seleccionar tipo"
+                            value={vehiculo.tipo}
+                            options={[
+                              { value: 'Excavadora', label: 'Excavadora' },
+                              { value: 'Retroexcavadora', label: 'Retroexcavadora' },
+                              { value: 'Motoniveladora', label: 'Motoniveladora' },
+                              { value: 'Rodillo Compactador', label: 'Rodillo Compactador' },
+                              { value: 'Rodillo Liso', label: 'Rodillo Liso' },
+                              { value: 'Rodillo Pata de Cabra', label: 'Rodillo Pata de Cabra' },
+                              { value: 'Rodillo Neumático', label: 'Rodillo Neumático' },
+                              { value: 'Cargador Frontal', label: 'Cargador Frontal' },
+                              { value: 'Bulldozer', label: 'Bulldozer' },
+                              { value: 'Camión Volquete', label: 'Camión Volquete' },
+                              { value: 'Camión Cisterna', label: 'Camión Cisterna' },
+                              { value: 'Camión de Carga', label: 'Camión de Carga' },
+                              { value: 'Compactadora', label: 'Compactadora' },
+                              { value: 'Compactadora Vibratoria', label: 'Compactadora Vibratoria' },
+                              { value: 'Pavimentadora', label: 'Pavimentadora' },
+                              { value: 'Finisher', label: 'Finisher' },
+                              { value: 'Recicladora de Asfalto', label: 'Recicladora de Asfalto' },
+                              { value: 'Fresadora', label: 'Fresadora' },
+                              { value: 'Barredora', label: 'Barredora' },
+                              { value: 'Distribuidor de Asfalto', label: 'Distribuidor de Asfalto' },
+                              { value: 'Planta de Asfalto', label: 'Planta de Asfalto' },
+                              { value: 'Planta de Concreto', label: 'Planta de Concreto' },
+                              { value: 'Mezcladora de Concreto', label: 'Mezcladora de Concreto' },
+                              { value: 'Bomba de Concreto', label: 'Bomba de Concreto' },
+                              { value: 'Vibradora de Concreto', label: 'Vibradora de Concreto' },
+                              { value: 'Zanjadora', label: 'Zanjadora' },
+                              { value: 'Perforadora', label: 'Perforadora' },
+                              { value: 'Martillo Hidráulico', label: 'Martillo Hidráulico' },
+                              { value: 'Grúa', label: 'Grúa' },
+                              { value: 'Minicargador', label: 'Minicargador' },
+                              { value: 'Tractor', label: 'Tractor' },
+                              { value: 'Generador Eléctrico', label: 'Generador Eléctrico' },
+                              { value: 'Compresor de Aire', label: 'Compresor de Aire' },
+                              { value: 'Otros', label: 'Otros' }
+                            ]}
+                            onChange={(val) => {
+                              const nuevosVehiculos = [...vehiculos];
+                              nuevosVehiculos[index].tipo = String(val);
+                              setVehiculos(nuevosVehiculos);
+                            }}
+                          />
+
+                          <ModernInput
+                            id={`modeloVehiculo-${index}`}
+                            type="text"
+                            label="Modelo del Vehículo"
+                            placeholder="Ej: CAT 320D"
+                            value={vehiculo.modelo}
+                            onChange={(val) => {
+                              const nuevosVehiculos = [...vehiculos];
+                              nuevosVehiculos[index].modelo = String(val);
+                              setVehiculos(nuevosVehiculos);
+                            }}
+                            icon="🏷️"
+                          />
+
+                          <ModernInput
+                            id={`fichaVehiculo-${index}`}
+                            type="text"
+                            label="Ficha del Vehículo (MOPC)"
+                            placeholder="Número de ficha"
+                            value={vehiculo.ficha}
+                            onChange={(val) => {
+                              const nuevosVehiculos = [...vehiculos];
+                              nuevosVehiculos[index].ficha = String(val);
+                              setVehiculos(nuevosVehiculos);
+                            }}
+                            icon="📋"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ModernFormContainer>
+          )}
+
+          {/* Sección de imágenes */}
+          {tipoIntervencion && (
+            <ModernFormContainer
+              title="📸 Registro Fotográfico"
+              subtitle="Documente la intervención con fotografías georeferenciadas"
+              icon="📷"
+            >
+              <div className="form-grid">
+                {/* Para reportes de un solo día */}
+                {diasTrabajo.length === 0 ? (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ color: 'var(--primary-orange)', marginBottom: '15px', fontSize: '16px' }}>
+                        📷 Fotografías del Reporte
+                      </h4>
+                      
+                      {/* Botones para agregar imágenes */}
+                      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('image-upload')?.click()}
+                          style={{
+                            padding: '12px 20px',
+                            backgroundColor: 'var(--primary-orange)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          🖼️ Galería de Imágenes
+                        </button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => handleCameraCapture('single-day')}
+                          style={{
+                            padding: '12px 20px',
+                            backgroundColor: '#27AE60',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          📷 Tomar Foto con Cámara
+                        </button>
+                      </div>
+                      
+                      <input
+                        id="image-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleImageUpload('single-day', e.target.files)}
+                      />
+                      
+                      {/* Vista previa de imágenes */}
+                      {imagesPerDay['single-day'] && imagesPerDay['single-day'].length > 0 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '15px' }}>
+                          {imagesPerDay['single-day'].map((image, index) => (
+                            <div key={index} style={{ position: 'relative' }}>
+                              <img
+                                src={image}
+                                alt={`Foto ${index + 1}`}
+                                style={{
+                                  width: '100%',
+                                  height: '120px',
+                                  objectFit: 'cover',
+                                  borderRadius: '8px',
+                                  border: '2px solid var(--gray)'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage('single-day', index)}
+                                style={{
+                                  position: 'absolute',
+                                  top: '5px',
+                                  right: '5px',
+                                  padding: '5px 8px',
+                                  backgroundColor: '#E74C3C',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '11px'
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  /* Para reportes multi-día */
+                  diasTrabajo.map((day, dayIndex) => (
+                    <div key={day} style={{ gridColumn: '1 / -1', marginBottom: '25px' }}>
+                      <div style={{ 
+                        padding: '20px',
+                        backgroundColor: 'var(--off-white)',
+                        borderRadius: '12px',
+                        border: '2px solid var(--gray)'
+                      }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          marginBottom: '15px'
+                        }}>
+                          <h5 style={{ margin: 0, color: 'var(--primary-orange)', fontSize: '16px', fontWeight: '600' }}>
+                            📷 Fotografías - {new Date(day + 'T12:00:00').toLocaleDateString('es-ES', { 
+                              weekday: 'long', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </h5>
+                          <span style={{ 
+                            padding: '4px 12px',
+                            backgroundColor: 'var(--primary-orange)',
+                            color: 'white',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>
+                            {imagesPerDay[day]?.length || 0} fotos
+                          </span>
+                        </div>
+                        
+                        {/* Botones para este día */}
+                        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const input = document.getElementById(`image-upload-${day}`);
+                              if (input) input.click();
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: 'var(--primary-orange)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                          >
+                            🖼️ Galería
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => handleCameraCapture(day)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#27AE60',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                          >
+                            📷 Cámara
+                          </button>
+                        </div>
+                        
+                        <input
+                          id={`image-upload-${day}`}
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={(e) => handleImageUpload(day, e.target.files)}
+                        />
+                        
+                        {/* Vista previa de imágenes del día */}
+                        {imagesPerDay[day] && imagesPerDay[day].length > 0 && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '10px' }}>
+                            {imagesPerDay[day].map((image, index) => (
+                              <div key={index} style={{ position: 'relative' }}>
+                                <img
+                                  src={image}
+                                  alt={`Foto ${index + 1}`}
+                                  style={{
+                                    width: '100%',
+                                    height: '80px',
+                                    objectFit: 'cover',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--gray)'
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(day, index)}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '2px',
+                                    right: '2px',
+                                    padding: '2px 6px',
+                                    backgroundColor: '#E74C3C',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '3px',
+                                    cursor: 'pointer',
+                                    fontSize: '10px'
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ModernFormContainer>
+          )}
+
           {/* Botones de acción */}
           <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', gap: '20px', margin: '20px 0' }}>
             
@@ -957,6 +1438,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
                       metricData: plantillaValues,
                       gpsData: autoGpsFields,
                       vehiculos: vehiculos,
+                      imagesPerDay: Object.keys(imagesPerDay).length > 0 ? imagesPerDay : undefined,
                       estado: 'pendiente' as const,
                       diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
                       reportesPorDia: diasTrabajo.length > 0 ? reportesPorDia : undefined,
