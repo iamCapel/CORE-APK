@@ -6,9 +6,12 @@
   padding: var(--spacing-xl);
   margin: var(--spacing-xl) 0;
   box-shadow: var(--shadow-lg);
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  /* make the form full‑width (especially on mobile) so no white edges */
+  width: 100%;
+  max-width: none;
+  /* remove auto centering, handled by parent padding */
+  margin-left: 0;
+  margin-right: 0;
   position: relative;
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -174,7 +177,7 @@
 @media (max-width: 768px) {
   .modern-form-container {
     padding: var(--spacing-lg);
-    margin: var(--spacing-md);
+    margin: var(--spacing-md) 0;
     border-radius: var(--radius-lg);
   }
 
@@ -200,7 +203,7 @@
   }
 
   .form-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-md);
   }
 
@@ -224,4 +227,40 @@
 
 .modern-form-container {
   animation: formSlideIn 0.5s ease-out;
+}
+
+/* bottom action buttons for report form */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.form-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.form-action-btn:hover {
+  transform: scale(1.1);
+}
+.form-action-btn.green { background-color: #27ae60; box-shadow: rgba(39,174,96,0.3) 0 4px 8px; }
+.form-action-btn.yellow { background-color: #f39c12; box-shadow: rgba(243,156,18,0.3) 0 4px 8px; }
+.form-action-btn.red { background-color: #e74c3c; box-shadow: rgba(231,76,60,0.3) 0 4px 8px; }
+
+/* label below icon */
+.form-action-label {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
 }

@@ -335,6 +335,103 @@ const ReportForm: React.FC<ReportFormProps> = ({
     }));
   };
 
+  // marcar como pendiente (misma validación que guardar pero sin subir)
+  const handleMarkPending = async () => {
+    const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
+    const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
+    
+    // Validación
+    if (!region || !provincia || !distritoFinal || !sectorFinal || !tipoIntervencion) {
+      alert('Por favor complete todos los campos requeridos');
+      return;
+    }
+    
+    setShowPendingAnimation(true);
+    try {
+      // generate an identifier for this pending report
+      const id = crypto.randomUUID ? crypto.randomUUID() : `pending-${Date.now()}`;
+      const now = new Date().toISOString();
+
+      // Build a full PendingReport structure. We keep the existing
+      // form-state fields at top level for backwards compatibility but
+      // also wrap them inside formData so that the storage interface is
+      // satisfied. Additional metadata fields are provided with defaults.
+      const pendingData: any = {
+        id,
+        timestamp: now,
+        lastModified: now,
+        userId: user?.username || 'desconocido',
+        userName: user?.name || 'Desconocido',
+        progress: 0,
+        fieldsCompleted: [],
+        currentStep: undefined,
+        // keep convenience copies (old code relied on these)
+        region,
+        provincia,
+        distrito: distritoFinal,
+        municipio,
+        sector: sectorFinal,
+        tipoIntervencion,
+        subTipoCanal,
+        observaciones,
+        vehiculos,
+        plantillaValues,
+        autoGpsFields,
+        fechaReporte,
+        fechaInicio,
+        fechaFinal,
+        diasTrabajo,
+        reportesPorDia,
+        diaActual,
+        creadoPor: user?.name || 'Desconocido',
+        usuarioId: user?.username || 'desconocido',
+        // the official formData object used by PendingReport
+        formData: {
+          region,
+          provincia,
+          distrito: distritoFinal,
+          municipio,
+          sector: sectorFinal,
+          tipoIntervencion,
+          subTipoCanal,
+          observaciones,
+          vehiculos,
+          plantillaValues,
+          gpsData: autoGpsFields,
+          fechaProyecto: fechaReporte,
+          fechaInicio,
+          fechaFinal,
+          diasTrabajo,
+          reportesPorDia,
+          diaActual
+        }
+      };
+
+      await firebasePendingReportStorage.savePendingReport(pendingData);
+      setCurrentPendingReportId(id);
+      alert('Reporte guardado como pendiente.');
+    } catch (err) {
+      console.error('Error guardando pendiente:', err);
+      alert('Error al guardar reporte pendiente');
+    }
+    setShowPendingAnimation(false);
+  };
+
+  // cancelar el formulario y borrar pendiente si existe
+  const handleCancelForm = async () => {
+    if (window.confirm('¿Está seguro de que desea cancelar? Se perderán los datos no guardados.')) {
+      if (currentPendingReportId) {
+        try {
+          await firebasePendingReportStorage.deletePendingReport(currentPendingReportId);
+        } catch (err) {
+          console.error('Error eliminando pendiente al cancelar:', err);
+        }
+        setCurrentPendingReportId(null);
+      }
+      limpiarFormulario();
+    }
+  };
+
   const handleCameraCapture = async (day: string) => {
     try {
       // Solicitar permiso de cámara
@@ -1367,184 +1464,25 @@ const ReportForm: React.FC<ReportFormProps> = ({
           )}
 
           {/* Botones de acción */}
-          <div className="form-actions" style={{ display: 'flex', justifyContent: 'center', gap: '20px', margin: '20px 0' }}>
-            
+          <div className="form-actions">
             {/* Botón Verde - Guardar Completado */}
-            <button 
-              type="button" 
-              onClick={guardarIntervencion} 
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '15px 20px',
-                backgroundColor: '#27AE60',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                minWidth: '120px',
-                boxShadow: '0 4px 8px rgba(39, 174, 96, 0.3)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(39, 174, 96, 0.4)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(39, 174, 96, 0.3)';
-              }}
-            >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-              <span style={{ fontSize: '14px', fontWeight: '600', marginTop: '8px' }}>
-                {diasTrabajo.length > 0 ? `Guardar ${diasTrabajo.length} días` : 'Guardar Completado'}
+            <button type="button" className="form-action-btn green" onClick={guardarIntervencion}>
+              ✔
+              <span className="form-action-label">
+                {diasTrabajo.length > 0 ? `Guardar ${diasTrabajo.length} días` : 'Guardar'}
               </span>
             </button>
 
             {/* Botón Naranja - Guardar Pendiente */}
-            <button 
-              type="button" 
-              onClick={async () => {
-                const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
-                const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
-                
-                // Validación
-                if (!region || !provincia || !distritoFinal || !sectorFinal || !tipoIntervencion) {
-                  alert('Por favor complete todos los campos requeridos');
-                  return;
-                }
-                
-                setShowPendingAnimation(true);
-                
-                setTimeout(async () => {
-                  try {
-                    // Guardar como PENDIENTE (no aparecerá en estadísticas)
-                    const reportData = {
-                      timestamp: fechaReporte ? new Date(fechaReporte).toISOString() : new Date().toISOString(),
-                      fechaCreacion: fechaReporte ? new Date(fechaReporte).toISOString() : new Date().toISOString(),
-                      creadoPor: user?.name || 'Desconocido',
-                      usuarioId: user?.username || 'desconocido',
-                      region,
-                      provincia,
-                      distrito: distritoFinal,
-                      municipio,
-                      sector: sectorFinal,
-                      tipoIntervencion: tipoIntervencion === 'Canalización' ? `${tipoIntervencion}:${subTipoCanal}` : tipoIntervencion,
-                      subTipoCanal: tipoIntervencion === 'Canalización' ? subTipoCanal : undefined,
-                      observaciones: observaciones || undefined,
-                      metricData: plantillaValues,
-                      gpsData: autoGpsFields,
-                      vehiculos: vehiculos,
-                      imagesPerDay: Object.keys(imagesPerDay).length > 0 ? imagesPerDay : undefined,
-                      estado: 'pendiente' as const,
-                      diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
-                      reportesPorDia: diasTrabajo.length > 0 ? reportesPorDia : undefined,
-                      fechaInicio: fechaInicio || undefined,
-                      fechaFinal: fechaFinal || undefined,
-                      diaActual: diasTrabajo.length > 0 ? diaActual : undefined
-                    };
-                    
-                    const savedReport = await reportStorage.saveReport(reportData);
-                    await firebaseReportStorage.saveReport(savedReport);
-                    
-                    console.log('✅ Reporte guardado como pendiente (sin estadísticas)');
-                    
-                    setTimeout(() => {
-                      setShowPendingAnimation(false);
-                      alert('✅ Reporte guardado como pendiente');
-                      limpiarFormulario();
-                    }, 2000);
-                  } catch (error) {
-                    console.error('❌ Error:', error);
-                    setShowPendingAnimation(false);
-                    alert('Error al guardar el reporte.');
-                  }
-                }, 500);
-              }}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '15px 20px',
-                backgroundColor: '#F39C12',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                minWidth: '120px',
-                boxShadow: '0 4px 8px rgba(243, 156, 18, 0.3)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(243, 156, 18, 0.4)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(243, 156, 18, 0.3)';
-              }}
-            >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 12"/>
-              </svg>
-              <span style={{ fontSize: '14px', fontWeight: '600', marginTop: '8px' }}>Pendiente</span>
-              <span style={{ fontSize: '11px', opacity: 0.85 }}>(Sin estadísticas)</span>
+            <button type="button" className="form-action-btn yellow" onClick={handleMarkPending}>
+              ⏳
+              <span className="form-action-label">Pendiente</span>
             </button>
 
             {/* Botón Rojo - Cancelar/Eliminar */}
-            <button 
-              type="button" 
-              onClick={async () => {
-                if (window.confirm('¿Está seguro de que desea cancelar? Se perderán los datos no guardados.')) {
-                  // Si existe un reporte pendiente, eliminarlo
-                  if (currentPendingReportId) {
-                    console.log('❌ Cancelando y eliminando reporte pendiente:', currentPendingReportId);
-                    try {
-                      // Eliminar SOLO de Firebase
-                      await firebasePendingReportStorage.deletePendingReport(currentPendingReportId);
-                      console.log('✅ Reporte eliminado exitosamente de Firebase');
-                    } catch (error) {
-                      console.error('❌ Error eliminando reporte de Firebase:', error);
-                    }
-                    setCurrentPendingReportId(null);
-                  }
-                  
-                  // Limpiar formulario
-                  limpiarFormulario();
-                }
-              }}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '15px 20px',
-                backgroundColor: '#E74C3C',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                minWidth: '120px',
-                boxShadow: '0 4px 8px rgba(231, 76, 60, 0.3)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 12px rgba(231, 76, 60, 0.4)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 8px rgba(231, 76, 60, 0.3)';
-              }}
-            >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-              <span style={{ fontSize: '14px', fontWeight: '600', marginTop: '8px' }}>Cancelar</span>
+            <button type="button" className="form-action-btn red" onClick={handleCancelForm}>
+              ✕
+              <span className="form-action-label">Cancelar</span>
             </button>
           </div>
         </ModernFormContainer>
