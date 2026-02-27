@@ -134,3 +134,14 @@ code {
 .fw-medium { font-weight: 500; }
 .fw-semibold { font-weight: 600; }
 .fw-bold { font-weight: 700; }
+
+/* Cuando el usuario pulse el botón "atrás" del móvil, ocultamos
+   todos los iconos de retroceso de la interfaz. Se aplica una clase
+   al <body> desde App.tsx que activa esta regla, y se elimina unos
+   instantes después para que vuelvan a mostrarse normalmente. */
+body.hide-back-icons button.back-button,
+body.hide-back-icons button.topbar-back-button,
+body.hide-back-icons button.topbar-back-btn,
+body.hide-back-icons button.topbar-back-btn-modern {
+  display: none !important;
+}
