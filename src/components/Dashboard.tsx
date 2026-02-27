@@ -14,6 +14,25 @@ import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import './Dashboard.css';
 
+// iconos vectoriales para el dashboard (react-icons)
+import {
+  MdAdd,
+  MdBarChart,
+  MdMap,
+  MdPeople,
+  MdFileUpload,
+} from 'react-icons/md';
+
+// some versions of react-icons export components typed as ReactNode, which
+// can confuse TypeScript when used in JSX.  Cast them to a generic
+// ComponentType to keep the compiler happy.
+type IconComponent = React.ComponentType<any>;
+const AddIcon = MdAdd as IconComponent;
+const BarChartIcon = MdBarChart as IconComponent;
+const MapIcon = MdMap as IconComponent;
+const PeopleIcon = MdPeople as IconComponent;
+const FileUploadIcon = MdFileUpload as IconComponent;
+
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
 
 interface User {
@@ -1013,6 +1032,9 @@ const Dashboard: React.FC = () => {
       localStorage.removeItem('mopc_user'); 
     } catch {}
   };
+  // bandera para alternar entre el estilo tradicional de tarjetas y
+  // la nueva propuesta de iconos circulares tipo app móvil.
+  const useIconButtons = true;
 
   const handleShowReports = () => {
     if (!isProfileComplete) {
@@ -1333,82 +1355,122 @@ const Dashboard: React.FC = () => {
         </header>
 
         <div className="dashboard-main">
-          <div className="dashboard-icons-grid">
-            {/* Icono Registrar */}
-            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
-              <div className="dashboard-icon">
-                <img src="/images/register-icon.svg" alt="Registrar" style={{width: '64px', height: '64px'}} />
-              </div>
-              <h3 className="dashboard-icon-title">Registrar</h3>
-              <p className="dashboard-icon-description">
-                Registrar nuevas obras y intervenciones realizadas
-              </p>
-              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
-            </div>
-
-            {/* Icono Informes - Oculto para usuarios técnicos */}
-            {user?.role !== UserRole.TECNICO && (
-              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
-                <div className="dashboard-icon">
-                  <img src="/images/reports-icon.svg" alt="Informes y Estadísticas" style={{width: '64px', height: '64px'}} />
+          {/* TODO: el diseño original usaba "cards" para cada acción.
+              Para que el dashboard se parezca más a una app móvil podemos
+              usar iconos circulares y etiquetas pequeñas. Se introduce el
+              flag `useIconButtons` para alternar entre ambas versiones.
+          */}
+          {/** Presionar este valor a `true` activa el modo botón circular */}
+          {useIconButtons ? (
+            <div className="dashboard-icons-grid">
+              {/* versión con botones redondos */}
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
+                <div className="dashboard-action-icon">
+                  <AddIcon size={32} />
                 </div>
-                <h3 className="dashboard-icon-title">Informes y Estadísticas</h3>
+                <div className="dashboard-action-label">Registrar</div>
+              </div>
+
+              {user?.role !== UserRole.TECNICO && (
+                <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
+                  <div className="dashboard-action-icon">
+                    <BarChartIcon size={32} />
+                  </div>
+                  <div className="dashboard-action-label">Informes</div>
+                </div>
+              )}
+
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
+                <div className="dashboard-action-icon">
+                  <MapIcon size={32} />
+                </div>
+                <div className="dashboard-action-label">Buscar</div>
+              </div>
+
+              {user?.role !== UserRole.TECNICO && (
+                <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
+                  <div className="dashboard-action-icon">
+                    <PeopleIcon size={32} />
+                  </div>
+                  <div className="dashboard-action-label">Usuarios</div>
+                </div>
+              )}
+
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
+                <div className="dashboard-action-icon">
+                  <FileUploadIcon size={32} />
+                </div>
+                <div className="dashboard-action-label">Exportar</div>
+              </div>
+            </div>
+          ) : (
+            <div className="dashboard-icons-grid">
+              {/* diseño previo con tarjetas */}
+              {/* Icono Registrar */}
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
+                <div className="dashboard-icon">
+                  <AddIcon size={40} />
+                </div>
+                <h3 className="dashboard-icon-title">Registrar</h3>
                 <p className="dashboard-icon-description">
-                  Ver estadísticas, reportes y análisis de todas las intervenciones
+                  Registrar nuevas obras y intervenciones realizadas
                 </p>
                 {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
-            )}
 
-            {/* Icono Buscar */}
-            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
-              <div className="dashboard-icon">
-                <img src="/images/map-icon.svg" alt="Buscar en mapa" style={{width: '64px', height: '64px'}} />
-              </div>
-              <h3 className="dashboard-icon-title">Buscar</h3>
-              <p className="dashboard-icon-description">
-                Buscar y visualizar intervenciones en mapa interactivo con GPS
-              </p>
-              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
-            </div>
-
-            {/* Icono Usuarios - Oculto para usuarios técnicos */}
-            {user?.role !== UserRole.TECNICO && (
-              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
-                <div className="dashboard-icon">
-                  👥
+              {/* Icono Informes - Oculto para usuarios técnicos */}
+              {user?.role !== UserRole.TECNICO && (
+                <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
+                  <div className="dashboard-icon">
+                    <BarChartIcon size={40} />
+                  </div>
+                  <h3 className="dashboard-icon-title">Informes y Estadísticas</h3>
+                  <p className="dashboard-icon-description">
+                    Ver estadísticas, reportes y análisis de todas las intervenciones
+                  </p>
+                  {!isProfileComplete && <div className="locked-overlay">🔒</div>}
                 </div>
-                <h3 className="dashboard-icon-title">Usuarios</h3>
+              )}
+
+              {/* Icono Buscar */}
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
+                <div className="dashboard-icon">
+                  <MapIcon size={40} />
+                </div>
+                <h3 className="dashboard-icon-title">Buscar</h3>
                 <p className="dashboard-icon-description">
-                  Gestión de usuarios activos e inactivos del sistema
+                  Buscar y visualizar intervenciones en mapa interactivo con GPS
                 </p>
                 {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
-            )}
 
-            {/* Icono Exportar - Activo */}
-            <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
-              <div className="dashboard-icon">
-                📤
-              </div>
-              <h3 className="dashboard-icon-title">Exportar</h3>
-              <p className="dashboard-icon-description">
-                Buscar y exportar reportes a Excel, PDF y Word
-              </p>
-              {!isProfileComplete && <div className="locked-overlay">🔒</div>}
-            </div>
+              {/* Icono Usuarios - Oculto para usuarios técnicos */}
+              {user?.role !== UserRole.TECNICO && (
+                <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
+                  <div className="dashboard-icon">
+                    <PeopleIcon size={40} />
+                  </div>
+                  <h3 className="dashboard-icon-title">Usuarios</h3>
+                  <p className="dashboard-icon-description">
+                    Gestión de usuarios activos e inactivos del sistema
+                  </p>
+                  {!isProfileComplete && <div className="locked-overlay">🔒</div>}
+                </div>
+              )}
 
-            {/* Icono Ayuda - Futuro */}
-            <div className="dashboard-icon-card disabled">
-              <div className="dashboard-icon">
-                
+              {/* Icono Exportar - Activo */}
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
+                <div className="dashboard-icon">
+                  <FileUploadIcon size={40} />
+                </div>
+                <h3 className="dashboard-icon-title">Exportar</h3>
+                <p className="dashboard-icon-description">
+                  Buscar y exportar reportes a Excel, PDF y Word
+                </p>
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
-              <h3 className="dashboard-icon-title">Ayuda</h3>
-              <p className="dashboard-icon-description">
-                Manual de usuario y soporte técnico (Próximamente)
-              </p>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
