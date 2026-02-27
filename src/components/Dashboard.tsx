@@ -1035,6 +1035,10 @@ const Dashboard: React.FC = () => {
   // bandera para alternar entre el estilo tradicional de tarjetas y
   // la nueva propuesta de iconos circulares tipo app móvil.
   const useIconButtons = true;
+  // algunos iconos no estarán activos aún (Buscar, Usuarios, Exportar).
+  // en lugar de eliminarlos definitivamente los oculta permitiendo
+  // reactivar en el futuro simplemente cambiando esta constante.
+  const hideUnusedIcons = true;
 
   const handleShowReports = () => {
     if (!isProfileComplete) {
@@ -1380,14 +1384,16 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
-                <div className="dashboard-action-icon">
-                  <MapIcon size={32} />
+              {!hideUnusedIcons && (
+                <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
+                  <div className="dashboard-action-icon">
+                    <MapIcon size={32} />
+                  </div>
+                  <div className="dashboard-action-label">Buscar</div>
                 </div>
-                <div className="dashboard-action-label">Buscar</div>
-              </div>
+              )}
 
-              {user?.role !== UserRole.TECNICO && (
+              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
                 <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
                   <div className="dashboard-action-icon">
                     <PeopleIcon size={32} />
@@ -1396,12 +1402,14 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
-                <div className="dashboard-action-icon">
-                  <FileUploadIcon size={32} />
+              {!hideUnusedIcons && (
+                <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
+                  <div className="dashboard-action-icon">
+                    <FileUploadIcon size={32} />
+                  </div>
+                  <div className="dashboard-action-label">Exportar</div>
                 </div>
-                <div className="dashboard-action-label">Exportar</div>
-              </div>
+              )}
             </div>
           ) : (
             <div className="dashboard-icons-grid">
@@ -1433,7 +1441,8 @@ const Dashboard: React.FC = () => {
               )}
 
               {/* Icono Buscar */}
-              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
+              {!hideUnusedIcons && (
+                <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
                 <div className="dashboard-icon">
                   <MapIcon size={40} />
                 </div>
@@ -1442,10 +1451,12 @@ const Dashboard: React.FC = () => {
                   Buscar y visualizar intervenciones en mapa interactivo con GPS
                 </p>
                 {!isProfileComplete && <div className="locked-overlay">🔒</div>}
-              </div>
+                </div>
+              )}
+              {/* fin condicional Buscar - no cerrar grid aquí */}
 
               {/* Icono Usuarios - Oculto para usuarios técnicos */}
-              {user?.role !== UserRole.TECNICO && (
+              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
                 <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
                   <div className="dashboard-icon">
                     <PeopleIcon size={40} />
@@ -1459,7 +1470,8 @@ const Dashboard: React.FC = () => {
               )}
 
               {/* Icono Exportar - Activo */}
-              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
+              {!hideUnusedIcons && (
+                <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowExportPage}>
                 <div className="dashboard-icon">
                   <FileUploadIcon size={40} />
                 </div>
@@ -1469,6 +1481,7 @@ const Dashboard: React.FC = () => {
                 </p>
                 {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
+              )}
             </div>
           )}
         </div>

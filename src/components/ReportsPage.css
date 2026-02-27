@@ -136,6 +136,54 @@
   color: #7f8c8d;
   margin: 5px 0;
 }
+.lista-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.lista-controls .search-input,
+.lista-controls .type-filter {
+  padding: 8px 12px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  font-size: 14px;
+}
+.report-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.report-list-item {
+  background: var(--white);
+  border: 2px solid var(--primary-orange);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+}
+.report-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.report-type {
+  font-weight: 600;
+  color: var(--primary-orange-dark);
+}
+.report-address {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.report-meta {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
 
 /* Chart Container */
 .unified-chart-container {

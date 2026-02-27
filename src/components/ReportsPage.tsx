@@ -16,9 +16,10 @@ interface ReportsPageProps {
   user: User;
   onBack: () => void;
   onEditReport?: (reportId: string) => void;
+  initialView?: PageView;
 }
 
-type PageView = 'estadisticas' | 'detallado' | 'exportar' | 'vehiculos';
+type PageView = 'estadisticas' | 'detallado' | 'lista' | 'exportar' | 'vehiculos';
 type StatsMode = 'intervenciones' | 'kilometraje';
 
 interface RegionData {
@@ -324,14 +325,21 @@ const VehiculosView: React.FC = () => {
   );
 };
 
-const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack, onEditReport }) => {
-  const [currentView, setCurrentView] = useState<PageView>('estadisticas');
+const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack, onEditReport, initialView }) => {
+  const [currentView, setCurrentView] = useState<PageView>(initialView || 'estadisticas');
   const [statsMode, setStatsMode] = useState<StatsMode>('intervenciones');
   const [selectedRegion, setSelectedRegion] = useState<number | null>(null);
+  // si arrancamos ya en lista ocultamos el selector de vista
+  const showSelector = initialView !== 'lista';
   const [regionesData, setRegionesData] = useState<RegionData[]>([]);
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [expandedProvincias, setExpandedProvincias] = useState<Set<string>>(new Set());
+  // datos para la nueva vista de lista de reportes
+  const [reportsList, setReportsList] = useState<any[]>([]);
+  const [filteredReports, setFilteredReports] = useState<any[]>([]);
+  const [listSearch, setListSearch] = useState('');
+  const [tipoFilter, setTipoFilter] = useState('');
   
   // Estados para el sistema de exportación
   const [exportSelectedRegion, setExportSelectedRegion] = useState<RegionData | null>(null);
@@ -347,6 +355,42 @@ const ReportsPage: React.FC<ReportsPageProps> = ({ user, onBack, onEditReport })
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // cargar reportes desde Firebase al entrar en la vista "lista"
+  useEffect(() => {
+    if (currentView === 'lista') {
+      firebaseReportStorage.getAllReports()
+        .then(reps => {
+          let userReports = reps;
+          if (user?.role === 'Técnico' || user?.role === 'tecnico') {
+            userReports = reps.filter(r => r.creadoPor === user.username);
+          }
+          setReportsList(userReports);
+          setFilteredReports(userReports);
+        })
+        .catch(err => console.error('Error cargando lista de reportes:', err));
+    }
+  }, [currentView, user]);
+
+  // aplicación de filtros y búsqueda sobre la lista
+  useEffect(() => {
+    let result = reportsList;
+    if (tipoFilter) {
+      result = result.filter(r => r.tipoIntervencion === tipoFilter);
+    }
+    if (listSearch.trim()) {
+      const q = listSearch.toLowerCase();
+      result = result.filter(r =>
+        (r.tipoIntervencion || '').toLowerCase().includes(q) ||
+        (r.region || '').toLowerCase().includes(q) ||
+        (r.provincia || '').toLowerCase().includes(q) ||
+        (r.municipio || '').toLowerCase().includes(q) ||
+        (r.numeroReporte || '').toLowerCase().includes(q) ||
+        (r.fechaCreacion || '').toLowerCase().includes(q)
+      );
+    }
+    setFilteredReports(result);
+  }, [reportsList, tipoFilter, listSearch]);
 
   // Actualizar contador de pendientes
   const updatePendingCount = () => {
@@ -951,12 +995,19 @@ Observaciones: ${r.observaciones || 'Ninguna'}
                 <span className="view-icon">📥</span>
                 <span className="view-label">Exportar Informe</span>
               </button>
+              <button
+                className={`view-btn-topbar ${currentView === 'lista' ? 'active' : ''}`}
+                onClick={() => setCurrentView('lista')}
+              >
+                <span className="view-icon">📁</span>
+                <span className="view-label">Listado</span>
+              </button>
             </div>
           </div>
         </div>
         
         <div className="reports-content">
-          {currentView === 'estadisticas' && (
+          {currentView === 'estadisticas' && showSelector && (
             <div className="view-content">
               <div className="stats-header-section">
                 <div className="stats-header-left">
@@ -1179,6 +1230,52 @@ Observaciones: ${r.observaciones || 'Ninguna'}
                   </div>
                 </div>
               )}
+            </div>
+          )}
+          {currentView === 'lista' && (
+            <div className="view-content">
+              <div className="lista-controls">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Buscar..." 
+                  value={listSearch}
+                  onChange={e => setListSearch(e.target.value)}
+                />
+                <select
+                  className="type-filter"
+                  value={tipoFilter}
+                  onChange={e => setTipoFilter(e.target.value)}
+                >
+                  <option value="">Todos los tipos</option>
+                  {Array.from(new Set(reportsList.map(r => r.tipoIntervencion)))
+                    .filter(Boolean)
+                    .map(tipo => (
+                      <option key={tipo} value={tipo}>{tipo}</option>
+                    ))}
+                </select>
+              </div>
+              <div className="report-list-container">
+                {filteredReports.map(r => (
+                  <div key={r.id} className="report-list-item">
+                    <div className="report-main">
+                      <span className="report-type">{r.tipoIntervencion}</span>
+                      <span className="report-address">
+                        {`${r.region || ''} › ${r.provincia || ''} › ${r.municipio || ''} › ${r.sector || ''}`}
+                      </span>
+                    </div>
+                    <div className="report-meta">
+                      <span>{r.numeroReporte}</span>
+                      <span>{new Date(r.fechaCreacion).toLocaleDateString('es-ES')}</span>
+                    </div>
+                  </div>
+                ))}
+                {filteredReports.length === 0 && (
+                  <div className="no-data-message">
+                    <p>No se encontraron reportes</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

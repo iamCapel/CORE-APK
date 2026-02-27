@@ -107,10 +107,25 @@
   margin: 0 auto;
 }
 
+/* ensure topbar stays fixed and content scrolls beneath */
+.topbar-modern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: var(--z-topbar);
+}
+
+/* push content down by height of topbar (56px) */
+.dashboard-content-modern {
+  padding-top: 72px; /* leave extra space for fixed header */
+}
+
 /* Form Grid Layout */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  /* two columns minimum even on narrow viewports */
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--spacing-xl);
   margin-bottom: var(--spacing-xl);
 }

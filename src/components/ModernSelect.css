@@ -142,12 +142,14 @@ body {
 
 .modern-select-value {
   font-size: var(--font-size-md);
-  color: var(--text-primary);
+  /* texto principal de select: naranja intenso para destacar */
+  color: var(--primary-orange-dark);
   font-weight: 500;
 }
 
 .modern-select-value.placeholder {
-  color: var(--white);
+  /* placeholder también puede usar naranja intenso pero con opacity */
+  color: var(--primary-orange-dark);
   font-weight: 400;
   opacity: 0.7;
 }
