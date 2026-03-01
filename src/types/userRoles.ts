@@ -192,9 +192,25 @@ export const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
   [UserRole.ADMIN]: adminConfig
 };
 
-// Función para obtener configuración por rol
-export function getRoleConfig(role: UserRole): RoleConfig {
-  return ROLE_CONFIGS[role];
+// Mapa de normalización para roles que vienen de Firebase con valor diferente
+const ROLE_NORMALIZATION: Record<string, UserRole> = {
+  'administrador': UserRole.ADMIN,
+  'admin': UserRole.ADMIN,
+  'supervisor': UserRole.SUPERVISOR,
+  'tecnico': UserRole.TECNICO,
+  'técnico': UserRole.TECNICO,
+};
+
+// Normaliza cualquier string de rol al UserRole correspondiente
+export function normalizeRole(role: string | undefined): UserRole {
+  if (!role) return UserRole.TECNICO;
+  return ROLE_NORMALIZATION[role.toLowerCase()] || UserRole.TECNICO;
+}
+
+// Función para obtener configuración por rol (con fallback seguro)
+export function getRoleConfig(role: UserRole | string | undefined): RoleConfig {
+  const normalized = normalizeRole(role as string);
+  return ROLE_CONFIGS[normalized] || ROLE_CONFIGS[UserRole.TECNICO];
 }
 
 // Función para verificar permisos

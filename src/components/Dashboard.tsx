@@ -7,12 +7,13 @@ import GoogleMapView from './GoogleMapView';
 import LeafletMapView from './LeafletMapView';
 import PendingReportsModal from './PendingReportsModal';
 import MyReportsCalendar from './MyReportsCalendar';
-import { UserRole, applyUserTheme, getRoleBadge } from '../types/userRoles';
+import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 import { userStorage } from '../services/userStorage';
 import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import NotificationBell from './NotificationBell';
+import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import './Dashboard.css';
 
 /* ── Icono de usuario cuadrado para la topbar ── */
@@ -34,15 +35,6 @@ const UserAvatarIcon: React.FC<{ photoUrl?: string }> = ({ photoUrl }) => {
     </div>
   );
 };
-
-// iconos vectoriales para el dashboard (react-icons)
-import {
-  MdAdd,
-  MdBarChart,
-  MdMap,
-  MdPeople,
-  MdFileUpload,
-} from 'react-icons/md';
 
 // some versions of react-icons export components typed as ReactNode, which
 // can confuse TypeScript when used in JSX.  Cast them to a generic
@@ -546,7 +538,13 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<User | null>(() => {
     try {
       const raw = localStorage.getItem('mopc_user');
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Normalizar role por si viene con valor antiguo de Firebase ('Administrador', etc.)
+      if (parsed.role) {
+        parsed.role = normalizeRole(parsed.role);
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -1280,9 +1278,7 @@ const Dashboard: React.FC = () => {
         <div className="topbar-left">
           <span className="topbar-logo">MOPC</span>
           <div className="topbar-divider" />
-          <span className="topbar-subtitle">
-            Viceministerio de<br />Coordinación<br />Regional
-          </span>
+          <span className="topbar-subtitle">Viceministerio de Coordinación Regional</span>
         </div>
 
         {/* DERECHA */}
@@ -1304,8 +1300,7 @@ const Dashboard: React.FC = () => {
             <div className="topbar-divider" />
 
             {/* Icono de usuario cuadrado — abre dropdown */}
-            <div className="topbar-user" onClick={() => setShowUserMenu(!showUserMenu)}>
-              <div className="user-menu-container">
+            <div className="user-menu-container" onClick={() => setShowUserMenu(!showUserMenu)} style={{ cursor: 'pointer' }}>
 
                 <UserAvatarIcon photoUrl={profilePhoto} />
 
@@ -1343,7 +1338,6 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
 
           </div>
         )}
