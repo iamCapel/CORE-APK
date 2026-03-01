@@ -208,7 +208,12 @@ export function hasPermission(
 
 // Función para aplicar tema de usuario
 export function applyUserTheme(role: UserRole): void {
-  const theme = getRoleConfig(role).theme;
+  // Validar que el rol sea válido, si no usar ADMIN
+  let safeRole = role;
+  if (!role || !(role in ROLE_CONFIGS)) {
+    safeRole = UserRole.ADMIN;
+  }
+  const theme = getRoleConfig(safeRole).theme;
   const root = document.documentElement;
   
   // Aplicar variables CSS dinámicas
