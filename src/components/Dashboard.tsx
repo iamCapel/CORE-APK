@@ -1359,6 +1359,12 @@ const Dashboard: React.FC = () => {
         </header>
 
         <div className="dashboard-main">
+          {/* Saludo / encabezado de página */}
+          <div className="dashboard-greeting">
+            <div className="dashboard-greeting-label">Bienvenido de vuelta, {user?.name?.split(' ')[0]}</div>
+            <h1 className="dashboard-greeting-title">Panel de <span>Control</span></h1>
+          </div>
+
           {/* TODO: el diseño original usaba "cards" para cada acción.
               Para que el dashboard se parezca más a una app móvil podemos
               usar iconos circulares y etiquetas pequeñas. Se introduce el
@@ -1366,7 +1372,7 @@ const Dashboard: React.FC = () => {
           */}
           {/** Presionar este valor a `true` activa el modo botón circular */}
           {useIconButtons ? (
-            <div className="dashboard-icons-grid">
+            <div className="dashboard-icons-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
               {/* versión con botones redondos */}
               <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
                 <div className="dashboard-action-icon">

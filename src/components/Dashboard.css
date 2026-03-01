@@ -1,3 +1,18 @@
+/* ===== TEMA DARK/GLASS MOPC ===== */
+:root {
+  --orange: #FF6B00;
+  --orange-light: #FF8C33;
+  --orange-glow: rgba(255, 107, 0, 0.35);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 107, 0, 0.4);
+  --dark-bg: #0a0a0c;
+  --dark-surface: #111114;
+  --text-primary: rgba(255,255,255,0.92);
+  --text-muted: rgba(255,255,255,0.38);
+  --text-sub: rgba(255,255,255,0.55);
+}
+
 .admin-login-link {
   transition: color 0.2s;
 }
@@ -43,24 +58,24 @@
    Diseño: Naranja & Blanco Moderno
    ======================================== */
 
-/* ===== TOPBAR ESTILO FACEBOOK MÓVIL ===== */
+/* ===== TOPBAR DARK GLASS ===== */
 .topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
-  height: 56px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
-  /* glass effect */
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(20px);
+  padding: 0 18px;
+  background: rgba(10, 10, 12, 0.82);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
   z-index: 900;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.4);
 }
 
 /* Espaciador para centrar título */
@@ -96,6 +111,12 @@
 
 /* Título centrado MOPC */
 .topbar-title {
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--orange);
+  text-shadow: 0 0 20px rgba(255,107,0,0.5);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -128,65 +149,72 @@
 
 .topbar-action-button {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f2f5;
-  border-radius: 50%;
   cursor: pointer;
-  transition: background 0.2s;
-  color: #050505;
+  color: var(--text-sub);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
 }
 
 .topbar-action-button:hover {
-  background: #e4e6eb;
+  border-color: var(--glass-border-hover);
+  color: var(--orange);
+  background: rgba(255,107,0,0.06);
 }
 
 .topbar-action-button:active {
-  background: #d8dadf;
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 /* Badge de notificaciones */
 .topbar-badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  min-width: 18px;
-  height: 18px;
-  background: #fa3e3e;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--orange);
   color: #fff;
-  border-radius: 9px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 4px;
-  border: 2px solid #fff;
+  border: 1.5px solid var(--dark-bg);
+  box-shadow: 0 0 8px rgba(255,107,0,0.8);
 }
 
 /* Avatar del usuario */
 .topbar-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   object-fit: cover;
+  border: 1px solid rgba(255,107,0,0.3);
 }
 
 .topbar-avatar-placeholder {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #1877f2;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--orange), #ff3a00);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(255,107,0,0.3);
+  border: 1px solid rgba(255,107,0,0.3);
 }
 
 /* Ocultar elementos anteriores */
@@ -246,14 +274,28 @@
 }
 
 
-/* ===== DASHBOARD ESTILO FACEBOOK - RESPONSIVE ===== */
+/* ===== DASHBOARD TEMA DARK ===== */
 .dashboard {
-  padding-top: 56px;
+  padding-top: 60px;
   min-height: 100vh;
   width: 100%;
   margin: 0 auto;
-  background: #f0f2f5;
+  background: var(--dark-bg);
+  color: var(--text-primary);
   overflow-x: hidden;
+  position: relative;
+}
+
+.dashboard::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255,107,0,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 85% 80%, rgba(255,100,0,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 30% at 50% 50%, rgba(255,60,0,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ===== ICONOS STATUS BAR - DESHABILITADOS ===== */
@@ -278,12 +320,14 @@
 }
 
 
-/* ===== CONTENEDOR PRINCIPAL FACEBOOK - RESPONSIVE ===== */
+/* ===== CONTENEDOR PRINCIPAL ===== */
 .dashboard-content {
-  padding: 12px;
+  padding: 20px 16px 40px;
   width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* ===== HEADER MINIMALISTA (OCULTO) ===== */
@@ -343,7 +387,7 @@
   }
 }
 
-/* ===== MENÚ DESPLEGABLE ESTILO FACEBOOK ===== */
+/* ===== MENÚ DESPLEGABLE DARK GLASS ===== */
 .user-menu-container {
   position: relative;
 }
@@ -352,13 +396,14 @@
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
-  min-width: 280px;
+  background: rgba(17, 17, 20, 0.95);
+  border-radius: 14px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,107,0,0.15);
+  min-width: 260px;
   z-index: 1001;
   overflow: hidden;
-  border: 1px solid #e4e6eb;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
   animation: fadeInDown 0.2s ease;
 }
 
@@ -375,12 +420,12 @@
 
 /* Header del dropdown con info de usuario y rol */
 .user-dropdown-header {
-  padding: 12px;
-  background: #f0f2f5;
+  padding: 14px 14px 12px;
+  background: rgba(255,107,0,0.06);
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #e4e6eb;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .user-dropdown-avatar {
@@ -396,24 +441,25 @@
 
 .user-dropdown-name {
   font-weight: 600;
-  font-size: 15px;
-  color: #050505;
+  font-size: 14px;
+  color: var(--text-primary);
 }
 
 .user-dropdown-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   cursor: pointer;
   transition: background 0.15s;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
-  color: #050505;
+  color: var(--text-sub);
 }
 
 .user-dropdown-item:hover {
-  background: #f0f2f5;
+  background: rgba(255,107,0,0.07);
+  color: var(--orange-light);
 }
 
 .user-dropdown-item span:first-child {
@@ -424,7 +470,7 @@
 
 .user-dropdown-divider {
   height: 1px;
-  background: #e4e6eb;
+  background: var(--glass-border);
   margin: 4px 0;
 }
 
@@ -1758,35 +1804,58 @@ select option[value="otros"] {
    =================================== */
 
 .dashboard-main {
-  padding: var(--spacing-lg) 0;
+  padding: 8px 0 24px;
   animation: fadeIn 0.5s ease-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ===== GREETING / PAGE HEADER ===== */
+.dashboard-greeting {
+  margin-bottom: 22px;
+  animation: fadeUp 0.5s ease both;
 }
 
-/* ===== GRID ESTILO iOS - 4 COLUMNAS ===== */
+.dashboard-greeting-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.dashboard-greeting-title {
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+
+.dashboard-greeting-title span {
+  color: var(--orange);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== GRID DE ACCIONES ===== */
 .dashboard-icons-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
   margin-bottom: 24px;
   width: 100%;
-  margin: 0 auto;
-  padding: 0 12px;
-  /* mantener efecto glass para todas las definiciones */
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.12);
+  padding: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  border-radius: 0;
 }
 
 /* Responsive Grid */
@@ -2017,59 +2086,75 @@ select option[value="otros"] {
    propuesta que puede habilitarse reemplazando la estructura HTML
    en Dashboard.tsx o alternando clases.
 */
-/* botones circulares glass para móviles */
+/* ===== ACTION CARDS DARK GLASS ===== */
 .dashboard-action {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.28);
-  border-radius: 24px;
-  padding: var(--spacing-lg);
-  backdrop-filter: blur(16px);
-  transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.3);
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 22px 20px;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+.dashboard-action::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
 .dashboard-action:hover {
-  background: rgba(255,255,255,0.24);
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.35);
+  border-color: rgba(255,107,0,0.35);
+  background: rgba(255,107,0,0.05);
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.4),
+    0 0 30px rgba(255,107,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.dashboard-action:hover .dashboard-action-icon {
+  box-shadow: 0 0 24px rgba(255,107,0,0.45);
+  border-color: rgba(255,107,0,0.4);
+  background: rgba(255,107,0,0.15);
 }
 
 .dashboard-action-icon {
-  width: 72px;
-  height: 72px;
-  background: rgba(255,255,255,0.22);
-  border: 2px solid rgba(255,255,255,0.35);
-  color: var(--primary-orange);
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  background: rgba(255,107,0,0.10);
+  border: 1px solid rgba(255,107,0,0.2);
+  color: var(--orange);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.4);
-  transition: transform 0.2s ease;
-  cursor: pointer;
-}
-.dashboard-action-icon:hover {
-  transform: scale(1.08);
-}
-
-.dashboard-action-icon:hover {
-  transform: scale(1.05);
+  font-size: 1.5rem;
+  box-shadow: 0 0 16px rgba(255,107,0,0.15);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .dashboard-action-icon.disabled,
 .dashboard-action-icon.profile-locked {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .dashboard-action-label {
-  font-size: 11px;
-  text-align: center;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   color: var(--text-primary);
   line-height: 1.2;
 }
@@ -2095,19 +2180,6 @@ select option[value="otros"] {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-left: 4px solid #007bff;
 }
-.dashboard-icons-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-  padding: 12px;
-  margin-top: 56px;
-  /* container glass effect */
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
 .stats-icon {
   font-size: 2.5rem;
   opacity: 0.8;
@@ -2853,11 +2925,12 @@ select option[value="otros"] {
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, #FEE2E2 0%, #FCA5A5 100%);
+  background: rgba(17,17,20,0.9);
   border-radius: var(--radius-lg);
-  box-shadow: 0 12px 24px rgba(220, 38, 38, 0.25);
-  border: 2px solid #DC2626;
-  border-left: 6px solid #B91C1C;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,107,0,0.35);
+  border-left: 4px solid var(--orange);
+  backdrop-filter: blur(16px);
 }
 
 .notification-icon {
