@@ -128,6 +128,7 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* USUARIO (solo avatar en móvil) */
@@ -176,15 +177,15 @@
 .topbar-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 0;
   object-fit: cover;
-  border: 1px solid rgba(255,107,0,0.3);
+  border: none;
 }
 
 .topbar-avatar-placeholder {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: 0;
   background: linear-gradient(135deg, #FF6B00, #ff3a00);
   color: #fff;
   display: flex;
@@ -193,7 +194,7 @@
   font-family: 'Rajdhani', 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  border: 1px solid rgba(255,107,0,0.3);
+  border: none;
   transition: all 0.2s ease;
 }
 
@@ -494,15 +495,15 @@
 .topbar-avatar {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
+  border-radius: 0;
   object-fit: cover;
-  border: 1px solid rgba(255,107,0,0.3);
+  border: none;
 }
 
 .topbar-avatar-placeholder {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--orange), #ff3a00);
   color: #fff;
   display: flex;
@@ -510,26 +511,13 @@
   justify-content: center;
   font-size: 15px;
   font-weight: 700;
-  box-shadow: 0 0 14px rgba(255,107,0,0.3);
-  border: 1px solid rgba(255,107,0,0.3);
+  box-shadow: none;
+  border: none;
 }
 
-/* Ocultar elementos anteriores */
-.topbar-left,
-.topbar-right,
-.topbar-logo,
+/* Ocultar elementos legacy */
 .topbar-icon,
 .dashboard-logos {
-  display: none;
-}
-
-
-/* iOS Status Bar Simulado - DESHABILITADO */
-.topbar-left {
-  display: none;
-}
-
-.topbar-right {
   display: none;
 }
 
@@ -547,10 +535,8 @@
 }
 
 
-/* logo centrado dentro de la topbar - OCULTO (elemento vacío) */
-.topbar-logo {
-  display: none !important;
-}
+/* logo centrado dentro de la topbar */
+/* .topbar-logo se muestra vía reglas principales arriba */
 
 .topbar-logo-img {
   max-height: 45px;
