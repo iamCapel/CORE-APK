@@ -15,6 +15,26 @@ import firebaseReportStorage from '../services/firebaseReportStorage';
 import NotificationBell from './NotificationBell';
 import './Dashboard.css';
 
+/* ── Icono de usuario cuadrado para la topbar ── */
+const UserAvatarIcon: React.FC<{ photoUrl?: string }> = ({ photoUrl }) => {
+  if (photoUrl) {
+    return <img src={photoUrl} alt="Avatar" className="topbar-av-photo topbar-av-md" style={{ objectFit: 'cover' }} />;
+  }
+  return (
+    <div className="topbar-av-photo topbar-av-md">
+      <svg
+        width="55%" height="55%"
+        viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round"
+      >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    </div>
+  );
+};
+
 // iconos vectoriales para el dashboard (react-icons)
 import {
   MdAdd,
@@ -1283,23 +1303,11 @@ const Dashboard: React.FC = () => {
 
             <div className="topbar-divider" />
 
-            {/* Usuario + avatar */}
+            {/* Icono de usuario cuadrado — abre dropdown */}
             <div className="topbar-user" onClick={() => setShowUserMenu(!showUserMenu)}>
               <div className="user-menu-container">
-                <div className="topbar-user-info">
-                  <span className="topbar-user-name">{user.name.split(' ')[0]}</span>
-                  <span className="topbar-user-role">{user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Usuario'}</span>
-                </div>
 
-                <div className="topbar-avatar-wrap">
-                  {profilePhoto ? (
-                    <img src={profilePhoto} alt="Avatar" className="topbar-avatar" />
-                  ) : (
-                    <div className="topbar-avatar-placeholder">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <UserAvatarIcon photoUrl={profilePhoto} />
 
                 {/* Dropdown del usuario */}
                 {showUserMenu && (

@@ -210,6 +210,48 @@
   .topbar-subtitle { font-size: 10px; }
 }
 
+/* ===== AVATAR CUADRADO TOPBAR ===== */
+.topbar-av-photo {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2a2a2e, #1a1a1e);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.topbar-av-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.topbar-av-photo svg {
+  color: rgba(255, 255, 255, 0.25);
+  transition: color 0.2s ease;
+}
+
+.topbar-av-photo:hover {
+  border-color: rgba(255, 107, 0, 0.35);
+  background: linear-gradient(135deg, #2e2a26, #1e1a16);
+  box-shadow: 0 0 16px rgba(255, 107, 0, 0.12);
+}
+
+.topbar-av-photo:hover svg {
+  color: rgba(255, 107, 0, 0.6);
+}
+
+.topbar-av-sm { width: 28px; height: 28px; border-radius: 8px; }
+.topbar-av-md { width: 38px; height: 38px; border-radius: 10px; }
+.topbar-av-lg { width: 56px; height: 56px; border-radius: 14px; }
+
 /* ===== CAMPANA DE NOTIFICACIONES ===== */
 .notif-wrapper {
   position: relative;
