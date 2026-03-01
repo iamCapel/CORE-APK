@@ -58,19 +58,20 @@
    Diseño: Naranja & Blanco Moderno
    ======================================== */
 
-/* ===== TOPBAR DARK GLASS ===== */
+/* ===== TOPBAR DARK GLASS — MÓVIL VERTICAL ===== */
 .topbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
-  height: 64px;
+  height: auto;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 0 20px;
+  gap: 10px;
+  padding: 10px 16px;
   background: rgba(10, 10, 12, 0.82);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -85,138 +86,58 @@
 .topbar-left {
   display: flex !important;
   align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
+  gap: 10px;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .topbar-logo {
   display: block !important;
   font-family: 'Rajdhani', 'Inter', sans-serif;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   color: #FF6B00;
   text-shadow: 0 0 20px rgba(255, 107, 0, 0.5);
   user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .topbar-divider {
   width: 1px;
-  height: 22px;
+  height: 32px;
   background: rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
 
 .topbar-subtitle {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 500;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
-  white-space: nowrap;
-}
-
-/* CENTRO: BÚSQUEDA */
-.topbar-search {
-  flex: 1;
-  max-width: 420px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: all 0.25s ease;
-  cursor: text;
-}
-
-.topbar-search.open {
-  border-color: rgba(255, 107, 0, 0.35);
-  background: rgba(255, 107, 0, 0.04);
-  box-shadow:
-    0 0 0 3px rgba(255, 107, 0, 0.06),
-    0 0 20px rgba(255, 107, 0, 0.08);
-}
-
-.search-icon {
-  color: rgba(255, 255, 255, 0.35);
-  flex-shrink: 0;
-  transition: color 0.2s ease;
-}
-
-.topbar-search.open .search-icon { color: #FF6B00; }
-
-.search-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
-  caret-color: #FF6B00;
-}
-
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.28);
-  font-size: 13px;
-}
-
-.search-clear {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
-  border-radius: 4px;
-  transition: color 0.2s;
-  flex-shrink: 0;
-}
-
-.search-clear:hover { color: #FF6B00; }
-
-.search-shortcut {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 5px;
-  padding: 2px 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  letter-spacing: 0.5px;
-  transition: opacity 0.2s;
-}
-
-.topbar-search.open .search-shortcut {
-  opacity: 0;
-  pointer-events: none;
+  color: rgba(255, 255, 255, 0.40);
+  line-height: 1.5;
+  white-space: normal;
 }
 
 /* DERECHA */
 .topbar-right {
   display: flex !important;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-/* USUARIO */
+/* USUARIO (solo avatar en móvil) */
 .topbar-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
-  padding: 4px 4px 4px 10px;
-  border-radius: 12px;
+  padding: 3px;
+  border-radius: 11px;
   border: 1px solid transparent;
   transition: all 0.2s ease;
   position: static;
@@ -228,10 +149,7 @@
 }
 
 .topbar-user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
+  display: none;
 }
 
 .topbar-user-name {
@@ -261,7 +179,6 @@
   border-radius: 10px;
   object-fit: cover;
   border: 1px solid rgba(255,107,0,0.3);
-  box-shadow: 0 0 14px rgba(255,107,0,0.2);
 }
 
 .topbar-avatar-placeholder {
@@ -276,23 +193,20 @@
   font-family: 'Rajdhani', 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  box-shadow: 0 0 14px rgba(255,107,0,0.3);
   border: 1px solid rgba(255,107,0,0.3);
   transition: all 0.2s ease;
 }
 
 .topbar-avatar-placeholder:hover,
 .topbar-avatar:hover {
-  box-shadow: 0 0 22px rgba(255,107,0,0.5);
   transform: scale(1.05);
 }
 
-/* Responsive topbar */
-@media (max-width: 640px) {
-  .topbar-subtitle { display: none; }
-  .topbar-search { max-width: 160px; }
-  .search-shortcut { display: none; }
-  .topbar-user-info { display: none; }
+/* Pantallas más anchas: mostrar nombre/rol */
+@media (min-width: 640px) {
+  .topbar-user-info { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+  .topbar { padding: 0 20px; min-height: 64px; }
+  .topbar-subtitle { font-size: 10px; }
 }
 
 /* ===== CAMPANA DE NOTIFICACIONES ===== */
@@ -659,7 +573,7 @@
 
 /* ===== DASHBOARD TEMA DARK ===== */
 .dashboard {
-  padding-top: 64px;
+  padding-top: 70px;
   min-height: 100vh;
   width: 100%;
   margin: 0 auto;
