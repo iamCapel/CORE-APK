@@ -14,7 +14,6 @@ import { firebasePendingReportStorage } from '../services/firebasePendingReportS
 import { userStorage } from '../services/userStorage';
 import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
-import NotificationBell from './NotificationBell';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import './Dashboard.css';
 import './BottomNavigation.css';
@@ -1440,74 +1439,9 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard">
       <header className="topbar">
-
-        {/* IZQUIERDA */}
-        <div className="topbar-left">
+        <div className="topbar-center">
           <span className="topbar-logo">MOPC</span>
-          <div className="topbar-divider" />
-          <span className="topbar-subtitle">Viceministerio de Coordinación Regional</span>
         </div>
-
-        {/* DERECHA */}
-        {user && (
-          <div className="topbar-right">
-
-            {/* Campana de notificaciones */}
-            <NotificationBell
-              count={pendingCount}
-              notifications={pendingReportsList.map((r) => ({
-                id: r.id,
-                text: `Reporte ${r.reportNumber} — ${r.municipio}`,
-                time: r.timestamp ? new Date(r.timestamp).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' }) : '',
-                read: false,
-              }))}
-              onOpen={() => setShowPendingModal(true)}
-            />
-
-            <div className="topbar-divider" />
-
-            {/* Icono de usuario cuadrado — abre dropdown */}
-            <div className="user-menu-container" onClick={() => setShowUserMenu(!showUserMenu)} style={{ cursor: 'pointer' }}>
-
-                <UserAvatarIcon photoUrl={profilePhoto} />
-
-                {/* Dropdown del usuario */}
-                {showUserMenu && (
-                  <div className="user-dropdown-menu">
-                    <div className="user-dropdown-header">
-                      <div className="user-dropdown-avatar">
-                        {profilePhoto ? (
-                          <img src={profilePhoto} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '9px', objectFit: 'cover' }} />
-                        ) : (
-                          <span style={{ fontSize: '32px' }}>👤</span>
-                        )}
-                      </div>
-                      <div className="user-dropdown-info">
-                        <div className="user-dropdown-name">{user.name}</div>
-                        {user.role && (
-                          <span className={`role-badge ${user.role}`}>
-                            {getRoleBadge(user.role)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="user-dropdown-divider" />
-                    <div className="user-dropdown-item" onClick={() => { setShowUserMenu(false); setShowCompleteProfileModal(true); }}>
-                      <span>👤</span><span>Mi Perfil</span>
-                    </div>
-                    <div className="user-dropdown-item" onClick={() => { setShowUserMenu(false); setShowMyReportsModal(true); }}>
-                      <span>📋</span><span>Mis Reportes</span>
-                    </div>
-                    <div className="user-dropdown-divider" />
-                    <div className="user-dropdown-item" onClick={() => { setShowUserMenu(false); handleLogout(); }}>
-                      <span>🚪</span><span>Cerrar Sesión</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-          </div>
-        )}
       </header>
 
       <div className="dashboard-content">
