@@ -383,9 +383,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
           metricData: plantillaValues || {},
           vehiculos: vehiculos.length > 0 ? vehiculos : undefined,
           gpsData: Object.keys(autoGpsFields || {}).length > 0 ? autoGpsFields : undefined,
-          images: imagenes.length > 0 ? imagenes : undefined,
-          videos: videos.length > 0 ? videos : undefined,
-          documentos: documentos.length > 0 ? documentos : undefined,
           fechaProyecto: fechaReporte || undefined
         }
       };
