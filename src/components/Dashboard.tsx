@@ -1110,6 +1110,10 @@ const Dashboard: React.FC = () => {
     setShowReportsPage(false);
     setShowExportPage(false);
     setShowUsersPage(false);
+    setShowGoogleMapView(false);
+    setShowLeafletMapView(false);
+    setInterventionToEdit(null);
+  };
 
   // Funciones para manejar la navegación inferior
   const handleBottomNavClick = (navId: string) => {
