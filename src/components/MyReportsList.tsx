@@ -43,8 +43,8 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       const pending = await firebasePendingReportStorage.getAllPendingReports();
       console.log('📊 Todos los reportes pendientes:', pending);
       
-      // Filtrar reportes pendientes por usuario
-      const userPendingReports = pending.filter((report: any) => report.username === username);
+      // Filtrar reportes pendientes por usuario (usando userId para consistencia)
+      const userPendingReports = pending.filter((report: any) => report.userId === username);
       console.log('📊 Reportes pendientes del usuario:', userPendingReports);
       
       const pendingFormatted: Report[] = userPendingReports.map((report: any) => ({
@@ -62,7 +62,8 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       const allReports = await firebaseReportStorage.getAllReports();
       console.log('📊 Todos los reportes completados:', allReports);
       
-      const userReports = allReports.filter((report: any) => report.username === username);
+      // Filtrar reportes completados por usuario (usando creadoPor para consistencia)
+      const userReports = allReports.filter((report: any) => report.creadoPor === username);
       console.log('📊 Reportes del usuario:', userReports);
       
       const completedFormatted: Report[] = userReports.map((report: any) => ({
