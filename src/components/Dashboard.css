@@ -995,7 +995,7 @@
 
 /* ===== CONTENEDOR PRINCIPAL ===== */
 .dashboard-content {
-  padding: 100px 16px 40px; /* Espacio para topbar (50px) + cinta (30px) + margen */
+  padding: 88px 16px 40px; /* Espacio para topbar (60px) + cinta (28px) = justo debajo */
   width: 100%;
   margin: 0;
   overflow-x: hidden;
@@ -1546,11 +1546,11 @@ table tbody tr:nth-child(even) {
   }
   
   .dashboard {
-    padding-top: 100px;
+    padding-top: 60px;
   }
   
   .dashboard-content {
-    padding: var(--spacing-md) var(--spacing-sm);
+    padding: 88px var(--spacing-sm) var(--spacing-md);
   }
   
   .dashboard-subtitle {
@@ -1571,7 +1571,7 @@ table tbody tr:nth-child(even) {
 @media (min-width: 769px) and (max-width: 1024px) {
   .dashboard-content {
     max-width: 100%;
-    padding: var(--spacing-lg) var(--spacing-md);
+    padding: 88px var(--spacing-md) var(--spacing-lg);
   }
   
   .topbar {

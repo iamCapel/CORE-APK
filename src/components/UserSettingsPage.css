@@ -63,7 +63,9 @@ body::after {
 /* ── TOPBAR ── */
 .topbar {
   display: flex; 
-  align-items: center; 
+  align-items: center;
+  justify-content: flex-start; /* Mantener botón a la izquierda */
+  gap: 12px; /* Espaciado entre elementos */
   padding: 14px 16px;
   background: rgba(9,9,12,0.92);
   backdrop-filter: blur(20px); 

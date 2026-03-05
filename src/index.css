@@ -176,6 +176,7 @@ code {
 body.hide-back-icons button.back-button,
 body.hide-back-icons button.topbar-back-button,
 body.hide-back-icons button.topbar-back-btn,
-body.hide-back-icons button.topbar-back-btn-modern {
+body.hide-back-icons button.topbar-back-btn-modern,
+body.hide-back-icons button.back-btn {
   display: none !important;
 }
