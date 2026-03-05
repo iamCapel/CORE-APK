@@ -8,6 +8,7 @@ import LeafletMapView from './LeafletMapView';
 import PendingReportsModal from './PendingReportsModal';
 import MyReportsList from './MyReportsList';
 import MyReportsListModern from './MyReportsListModern';
+import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportView from './ReportView';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
@@ -595,6 +596,7 @@ const Dashboard: React.FC = () => {
   const [showUsersPage, setShowUsersPage] = useState(false);
   const [showGoogleMapView, setShowGoogleMapView] = useState(false);
   const [showLeafletMapView, setShowLeafletMapView] = useState(false);
+  const [showHierarchy, setShowHierarchy] = useState(false);
   const [interventionToEdit, setInterventionToEdit] = useState<any>(null);
 
   // ReportView states
@@ -1144,7 +1146,8 @@ const Dashboard: React.FC = () => {
       setShowCompleteProfileModal(true);
       return;
     }
-    setShowReportsPage(true);
+    setShowHierarchy(true);
+    setShowReportsPage(false);
     setShowReportForm(false);
     setShowExportPage(false);
     setShowUsersPage(false);
@@ -1255,6 +1258,7 @@ const Dashboard: React.FC = () => {
     setShowUsersPage(false);
     setShowGoogleMapView(false);
     setShowLeafletMapView(false);
+    setShowHierarchy(false);
     setInterventionToEdit(null);
     setActiveNav('dashboard'); // Volver al botón home en navegación inferior
   };
@@ -1299,6 +1303,16 @@ const Dashboard: React.FC = () => {
           />
         </div>
       </div>
+    );
+  }
+
+  // Si se debe mostrar la jerarquía de reportes
+  if (showHierarchy && user) {
+    return (
+      <MyReportsHierarchy 
+        username={user.username} 
+        onClose={handleBackToDashboard}
+      />
     );
   }
 
