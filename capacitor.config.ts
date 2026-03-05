@@ -4,14 +4,13 @@ const config: CapacitorConfig = {
   appId: 'com.mopc.core',
   appName: 'MOPC Core',
   webDir: 'build',
-  server: {
-    androidScheme: 'https'
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#ffffff",
-      showSpinner: false
+      backgroundColor: "#1a1a1a",
+      showSpinner: true,
+      splashFullScreen: true,
+      splashImmersive: true
     },
     Geolocation: {
       // Configuración para permisos de ubicación
