@@ -1,0 +1,402 @@
+/* Contenedor principal de la lista de informes */
+.reports-list-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 200px);
+}
+
+/* Header con título y filtros */
+.reports-header {
+  margin-bottom: 30px;
+  padding: 25px 30px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.reports-title {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #FF6B00;
+  text-align: center;
+}
+
+/* Botones de filtro */
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-btn {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+  border-radius: 12px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.filter-btn:hover {
+  background: rgba(255, 107, 0, 0.1);
+  border-color: rgba(255, 107, 0, 0.4);
+  color: #FF6B00;
+  transform: translateY(-1px);
+}
+
+.filter-btn.active {
+  background: rgba(255, 107, 0, 0.2);
+  border-color: rgba(255, 107, 0, 0.5);
+  color: #FF6B00;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.2);
+}
+
+/* Estados de carga */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #666;
+}
+
+.loading-spinner {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Lista de reportes */
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Item individual de reporte */
+.report-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FF6B00, #FF8C42);
+  border-radius: 3px 3px 0 0;
+}
+
+.report-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 0, 0.2);
+  border-color: rgba(255, 107, 0, 0.5);
+}
+
+.report-item.pending {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.4);
+}
+
+.report-item.pending::before {
+  background: linear-gradient(90deg, #FFC107, #FFD54F);
+}
+
+.report-item.pending:hover {
+  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+}
+
+.report-item.guardado {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.4);
+}
+
+.report-item.guardado::before {
+  background: linear-gradient(90deg, #2196F3, #42A5F5);
+}
+
+.report-item.guardado:hover {
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
+}
+
+.report-item.realizado {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.4);
+}
+
+.report-item.realizado::before {
+  background: linear-gradient(90deg, #4CAF50, #66BB6A);
+}
+
+.report-item.realizado:hover {
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+/* Número de reporte */
+.report-number {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 100px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Contenido del reporte */
+.report-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.report-intervention {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.report-address {
+  color: #666;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.report-user {
+  color: #777;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+}
+
+.report-datetime {
+  color: #888;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Estado del reporte */
+.report-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.status-badge.pendiente {
+  background: rgba(255, 193, 7, 0.2);
+  color: #F57C00;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-badge.guardado {
+  background: rgba(33, 150, 243, 0.2);
+  color: #1976D2;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.status-badge.realizado {
+  background: rgba(76, 175, 80, 0.2);
+  color: #388E3C;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+/* Estados vacíos */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 107, 0, 0.2);
+  border-radius: 16px;
+  margin: 40px 0;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reports-list-container {
+    padding: 15px;
+  }
+  
+  .reports-header {
+    padding: 20px;
+  }
+  
+  .reports-title {
+    font-size: 20px;
+  }
+  
+  .filter-buttons {
+    gap: 8px;
+  }
+  
+  .filter-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .report-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .report-number {
+    align-self: flex-start;
+    min-width: auto;
+  }
+  
+  .report-content {
+    width: 100%;
+  }
+  
+  .report-status {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-list-container {
+    padding: 10px;
+  }
+  
+  .reports-header {
+    padding: 15px;
+  }
+  
+  .reports-title {
+    font-size: 18px;
+  }
+  
+  .filter-buttons {
+    justify-content: center;
+  }
+  
+  .filter-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .report-item {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .report-intervention {
+    font-size: 15px;
+  }
+  
+  .report-address,
+  .report-user,
+  .report-datetime {
+    font-size: 12px;
+  }
+  
+  .status-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+/* Animaciones */
+.report-item {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glass effect mejorado */
+.report-item {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.reports-header {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 107, 0, 0.25);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.filter-btn {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 107, 0, 0.2);
+}

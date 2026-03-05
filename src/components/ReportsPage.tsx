@@ -4,6 +4,7 @@ import { pendingReportStorage } from '../services/pendingReportStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import PendingReportsModal from './PendingReportsModal';
 import DetailedReportView from './DetailedReportView';
+import ReportsList from './ReportsList';
 import './ReportsPage.css';
 
 interface User {
@@ -1234,48 +1235,11 @@ Observaciones: ${r.observaciones || 'Ninguna'}
           )}
           {currentView === 'lista' && (
             <div className="view-content">
-              <div className="lista-controls">
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Buscar..." 
-                  value={listSearch}
-                  onChange={e => setListSearch(e.target.value)}
-                />
-                <select
-                  className="type-filter"
-                  value={tipoFilter}
-                  onChange={e => setTipoFilter(e.target.value)}
-                >
-                  <option value="">Todos los tipos</option>
-                  {Array.from(new Set(reportsList.map(r => r.tipoIntervencion)))
-                    .filter(Boolean)
-                    .map(tipo => (
-                      <option key={tipo} value={tipo}>{tipo}</option>
-                    ))}
-                </select>
-              </div>
-              <div className="report-list-container">
-                {filteredReports.map(r => (
-                  <div key={r.id} className="report-list-item">
-                    <div className="report-main">
-                      <span className="report-type">{r.tipoIntervencion}</span>
-                      <span className="report-address">
-                        {`${r.region || ''} › ${r.provincia || ''} › ${r.municipio || ''} › ${r.sector || ''}`}
-                      </span>
-                    </div>
-                    <div className="report-meta">
-                      <span>{r.numeroReporte}</span>
-                      <span>{new Date(r.fechaCreacion).toLocaleDateString('es-ES')}</span>
-                    </div>
-                  </div>
-                ))}
-                {filteredReports.length === 0 && (
-                  <div className="no-data-message">
-                    <p>No se encontraron reportes</p>
-                  </div>
-                )}
-              </div>
+              <ReportsList 
+                user={user} 
+                onClose={onBack}
+                onEditReport={onEditReport}
+              />
             </div>
           )}
 
