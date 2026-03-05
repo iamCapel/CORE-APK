@@ -6,7 +6,7 @@ import UsersPage from './UsersPage';
 import GoogleMapView from './GoogleMapView';
 import LeafletMapView from './LeafletMapView';
 import PendingReportsModal from './PendingReportsModal';
-import MyReportsCalendar from './MyReportsCalendar';
+import MyReportsList from './MyReportsList';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 import { userStorage } from '../services/userStorage';
@@ -1224,7 +1224,7 @@ const Dashboard: React.FC = () => {
         </header>
         
         <div className="my-reports-content">
-          <MyReportsCalendar 
+          <MyReportsList 
             username={user.username} 
             onClose={() => setShowMyReportsModal(false)}
             onContinuePendingReport={handleContinuePendingReport}
@@ -1717,7 +1717,7 @@ const Dashboard: React.FC = () => {
               <button className="modal-close" onClick={() => setShowMyReportsModal(false)}>✕</button>
             </div>
             <div className="modal-body" style={{ padding: '20px' }}>
-              <MyReportsCalendar 
+              <MyReportsList 
                 username={user?.username || ''} 
                 onClose={() => setShowMyReportsModal(false)}
                 onContinuePendingReport={handleContinuePendingReport}
