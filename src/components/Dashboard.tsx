@@ -16,6 +16,29 @@ import NotificationBell from './NotificationBell';
 import MyReportsDropdown from './MyReportsDropdown';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import './Dashboard.css';
+import './BottomNavigation.css';
+
+/* ── Iconos para navegación inferior ── */
+const HomeIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+  </svg>
+);
+
+const CreateIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
+
+const OptionsIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M12 1v6m0 6v6m4.22-13.22 4.24 4.24M1.54 9.96l4.24 4.24M1.54 14.04l4.24-4.24M18.46 14.04l4.24-4.24"></path>
+  </svg>
+);
 
 /* ── Icono de usuario cuadrado para la topbar ── */
 const UserAvatarIcon: React.FC<{ photoUrl?: string }> = ({ photoUrl }) => {
@@ -560,6 +583,9 @@ const Dashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Bottom navigation state
+  const [activeNav, setActiveNav] = useState('dashboard');
+
   // Navigation states
   const [showReportsPage, setShowReportsPage] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
@@ -1088,6 +1114,42 @@ const Dashboard: React.FC = () => {
     setInterventionToEdit(null);
   };
 
+  // Funciones para manejar la navegación inferior
+  const handleBottomNavClick = (navId: string) => {
+    setActiveNav(navId);
+    
+    switch (navId) {
+      case 'dashboard':
+        setShowReportsPage(false);
+        setShowReportForm(false);
+        setShowExportPage(false);
+        setShowUsersPage(false);
+        setShowGoogleMapView(false);
+        setShowLeafletMapView(false);
+        setInterventionToEdit(null);
+        break;
+      case 'crear':
+        if (!isProfileComplete) {
+          setShowCompleteProfileModal(true);
+          return;
+        }
+        setShowReportForm(true);
+        setShowReportsPage(false);
+        setShowExportPage(false);
+        setShowUsersPage(false);
+        setShowGoogleMapView(false);
+        setShowLeafletMapView(false);
+        setInterventionToEdit(null);
+        break;
+      case 'reportes':
+        // Los reportes se manejan con el MyReportsDropdown existente
+        break;
+      case 'opciones':
+        setShowUserMenu(!showUserMenu);
+        break;
+    }
+  };
+
   const handleShowExportPage = () => {
     if (!isProfileComplete) {
       setShowCompleteProfileModal(true);
@@ -1514,6 +1576,53 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Barra de navegación inferior */}
+      <nav className="bottom-navigation">
+        <button 
+          className={`nav-item ${activeNav === 'dashboard' ? 'active' : ''}`}
+          onClick={() => handleBottomNavClick('dashboard')}
+          title="Dashboard"
+        >
+          <HomeIcon size={24} />
+          <span>Inicio</span>
+        </button>
+        
+        <button 
+          className={`nav-item ${activeNav === 'crear' ? 'active' : ''}`}
+          onClick={() => handleBottomNavClick('crear')}
+          title="Crear Reporte"
+        >
+          <CreateIcon size={24} />
+          <span>Crear</span>
+        </button>
+        
+        <div className="nav-item reports-dropdown">
+          <MyReportsDropdown 
+            username={user.username} 
+            onReportClick={(reportId: string) => {
+              firebaseReportStorage.getReport(reportId).then((report: any) => {
+                if (report) {
+                  setInterventionToEdit(report);
+                  setShowReportForm(true);
+                  setActiveNav('crear');
+                }
+              }).catch((error: any) => {
+                console.error('Error al cargar reporte:', error);
+              });
+            }}
+          />
+        </div>
+        
+        <button 
+          className={`nav-item ${activeNav === 'opciones' ? 'active' : ''}`}
+          onClick={() => handleBottomNavClick('opciones')}
+          title="Opciones"
+        >
+          <OptionsIcon size={24} />
+          <span>Opciones</span>
+        </button>
+      </nav>
 
       {/* Modal de Reportes Pendientes */}
       <PendingReportsModal
