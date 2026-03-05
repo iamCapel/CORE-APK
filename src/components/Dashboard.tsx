@@ -7,6 +7,8 @@ import GoogleMapView from './GoogleMapView';
 import LeafletMapView from './LeafletMapView';
 import PendingReportsModal from './PendingReportsModal';
 import MyReportsList from './MyReportsList';
+import MyReportsListModern from './MyReportsListModern';
+import ReportView from './ReportView';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 import { userStorage } from '../services/userStorage';
@@ -596,6 +598,10 @@ const Dashboard: React.FC = () => {
   const [showLeafletMapView, setShowLeafletMapView] = useState(false);
   const [interventionToEdit, setInterventionToEdit] = useState<any>(null);
 
+  // ReportView states
+  const [showReportView, setShowReportView] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+
   // GPS states
   const [isGpsEnabled, setIsGpsEnabled] = useState(false);
   const [gpsPosition, setGpsPosition] = useState<{ lat: number; lon: number } | null>(null);
@@ -728,6 +734,7 @@ const Dashboard: React.FC = () => {
         setShowPendingModal(false);
         setShowMyReportsModal(false); // Cerrar el modal de "Mis Reportes"
         setShowReportForm(true);
+        setActiveNav('crear'); // Activar el botón "crear" en la navegación inferior
       } else {
         console.error('❌ No se encontró el reporte pendiente en Firebase:', reportId);
         alert('No se pudo cargar el reporte pendiente');
@@ -752,6 +759,47 @@ const Dashboard: React.FC = () => {
       console.error('❌ Error eliminando reporte pendiente:', error);
       alert('Error al eliminar el reporte pendiente. Verifique su conexión a internet.');
     }
+  };
+
+  // Funciones para ReportView
+  // reportIdOrNumber puede ser el ID del reporte o el número de reporte (numeroReporte)
+  const handleOpenReportView = (reportIdOrNumber: string) => {
+    setSelectedReportId(reportIdOrNumber);
+    setShowReportView(true);
+  };
+
+  const handleCloseReportView = () => {
+    setShowReportView(false);
+    setSelectedReportId(null);
+    setActiveNav('dashboard'); // Volver al botón home
+  };
+
+  const handleEditReportFromView = (report: any) => {
+    console.log('Editando reporte desde ReportView:', report);
+    // Convertir el reporte al formato esperado por el formulario
+    const dataToLoad = {
+      id: report.id,
+      region: report.region,
+      provincia: report.provincia,
+      distrito: report.distrito,
+      municipio: report.municipio,
+      sector: report.sector,
+      tipoIntervencion: report.tipoIntervencion,
+      subTipoCanal: report.subTipoCanal,
+      observaciones: report.observaciones,
+      metricData: report.metricData || {},
+      gpsData: report.gpsData || {},
+      vehiculos: report.vehiculos || [],
+      fechaInicio: report.fechaInicio || (report.fechaCreacion ? report.fechaCreacion.split('T')[0] : ''),
+      fechaFinal: report.fechaFinal || '',
+      fechaReporte: report.fechaCreacion ? report.fechaCreacion.split('T')[0] : '',
+      estado: report.estado,
+      _isEditing: true
+    };
+    
+    setInterventionToEdit(dataToLoad);
+    setShowReportView(false);
+    setShowReportForm(true);
   };
 
   // Actualizar contador al cargar y cada vez que cambie localStorage
@@ -1207,6 +1255,7 @@ const Dashboard: React.FC = () => {
     setShowGoogleMapView(false);
     setShowLeafletMapView(false);
     setInterventionToEdit(null);
+    setActiveNav('dashboard'); // Volver al botón home en navegación inferior
   };
 
   // Si se debe mostrar la página de Mis Reportes
@@ -1214,7 +1263,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="my-reports-page">
         <header className="page-header">
-          <button className="back-button" onClick={() => setShowMyReportsModal(false)}>
+          <button className="back-button" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
@@ -1226,7 +1275,7 @@ const Dashboard: React.FC = () => {
         <div className="my-reports-content">
           <MyReportsList 
             username={user.username} 
-            onClose={() => setShowMyReportsModal(false)}
+            onClose={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}
             onContinuePendingReport={handleContinuePendingReport}
           />
         </div>
@@ -1660,19 +1709,29 @@ const Dashboard: React.FC = () => {
       {/* Modal de Reportes Pendientes */}
       <PendingReportsModal
         isOpen={showPendingModal}
-        onClose={() => setShowPendingModal(false)}
+        onClose={() => { setShowPendingModal(false); setActiveNav('dashboard'); }}
         reports={pendingReportsList}
         onContinueReport={handleContinuePendingReport}
         onCancelReport={handleCancelPendingReport}
       />
 
+      {/* Modal ReportView - Vista Detallada de Reportes */}
+      {showReportView && selectedReportId && (
+        <ReportView
+          reportId={selectedReportId}
+          onClose={handleCloseReportView}
+          onEdit={handleEditReportFromView}
+          user={user}
+        />
+      )}
+
       {/* Modal de Perfil de Usuario */}
       {showProfileModal && (
-        <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
+        <div className="modal-overlay" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>
           <div className="modal-content profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>👤 Mi Perfil</h2>
-              <button className="modal-close" onClick={() => setShowProfileModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>✕</button>
             </div>
             <div className="modal-body">
               <div className="profile-section">
@@ -1700,7 +1759,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowProfileModal(false)}>
+              <button className="btn btn-secondary" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>
                 Cerrar
               </button>
             </div>
@@ -1710,17 +1769,18 @@ const Dashboard: React.FC = () => {
 
       {/* Modal de Mis Reportes */}
       {showMyReportsModal && (
-        <div className="modal-overlay" onClick={() => setShowMyReportsModal(false)}>
+        <div className="modal-overlay" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>
           <div className="modal-content my-reports-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh' }}>
             <div className="modal-header">
               <h2>📋 Mis Reportes</h2>
-              <button className="modal-close" onClick={() => setShowMyReportsModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>✕</button>
             </div>
             <div className="modal-body" style={{ padding: '20px' }}>
-              <MyReportsList 
+              <MyReportsListModern 
                 username={user?.username || ''} 
-                onClose={() => setShowMyReportsModal(false)}
+                onClose={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}
                 onContinuePendingReport={handleContinuePendingReport}
+                onViewReport={handleOpenReportView}
               />
             </div>
           </div>

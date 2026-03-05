@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
-import './MyReportsList.css';
+import './MyReportsHierarchy.css';
 
 interface Report {
   id: string;
@@ -38,14 +38,14 @@ interface Region {
   provinces: Province[];
 }
 
-interface MyReportsListProps {
+interface MyReportsHierarchyProps {
   username: string;
   onClose: () => void;
   onContinuePendingReport?: (reportId: string) => void;
   onViewReport?: (reportId: string) => void;
 }
 
-const MyReportsList: React.FC<MyReportsListProps> = ({ 
+const MyReportsHierarchy: React.FC<MyReportsHierarchyProps> = ({ 
   username, 
   onClose, 
   onContinuePendingReport,
@@ -55,7 +55,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Estados para vista jerárquica
   const [regions, setRegions] = useState<Region[]>([]);
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
   const [expandedProvinces, setExpandedProvinces] = useState<Set<string>>(new Set());
@@ -65,7 +64,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const isUserReport = (report: any, username: string): boolean => {
     if (!username || !report) return false;
     
-    // Búsqueda exacta
     const exactMatches = [
       report.creadoPor,
       report.usuarioId, 
@@ -81,7 +79,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     
     if (exactMatches.includes(username)) return true;
     
-    // Búsqueda insensible a mayúsculas/minúsculas
     const lowerUsername = username.toLowerCase();
     const lowerMatches = exactMatches
       .filter(field => field && typeof field === 'string')
@@ -89,7 +86,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     
     if (lowerMatches.includes(lowerUsername)) return true;
     
-    // Búsqueda por coincidencia parcial (para usernames con variaciones)
     const partialMatches = exactMatches
       .filter(field => field && typeof field === 'string')
       .filter(field => field.includes(username) || username.includes(field));
@@ -250,7 +246,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
 
   if (loading) {
     return (
-      <div className="my-reports-list-container">
+      <div className="hierarchy-container">
         <div className="loading-state">
           <div className="loading-spinner">⏳</div>
           <p>Cargando reportes desde Firebase...</p>
@@ -261,7 +257,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
 
   if (error) {
     return (
-      <div className="my-reports-list-container">
+      <div className="hierarchy-container">
         <div className="error-state">
           <div className="error-icon">❌</div>
           <p>{error}</p>
@@ -274,112 +270,110 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   }
 
   return (
-    <div className="my-reports-list-container">
-      <div className="reports-header">
-        <h3 className="reports-title">📋 Mis Reportes Registrados</h3>
+    <div className="hierarchy-container">
+      <div className="hierarchy-header">
+        <h3 className="hierarchy-title">📋 Mis Reportes por Región</h3>
         <button className="refresh-button" onClick={loadReports} title="Recargar mis reportes">
           🔄
         </button>
       </div>
 
-      <div className="hierarchy-container">
-        <div className="hierarchy-tree">
-          {regions.map((region) => (
-            <div key={region.name} className="hierarchy-item region-item">
-              <div 
-                className="hierarchy-row"
-                onClick={() => toggleRegion(region.name)}
-                data-count={`${region.interventions} reportes`}
-              >
-                <div className="hierarchy-info">
-                  <span className="expand-icon">{expandedRegions.has(region.name) ? '▼' : '▶'}</span>
-                  <span className="hierarchy-name">{region.name}</span>
-                </div>
-                <div className="progress-bar-container">
-                  <div 
-                    className="progress-bar-fill"
-                    style={{ width: `${getProgressPercentage(region.interventions, maxRegionInterventions)}%` }}
-                  />
-                </div>
+      <div className="hierarchy-tree">
+        {regions.map((region) => (
+          <div key={region.name} className="hierarchy-item region-item">
+            <div 
+              className="hierarchy-row"
+              onClick={() => toggleRegion(region.name)}
+              data-count={`${region.interventions} reportes`}
+            >
+              <div className="hierarchy-info">
+                <span className="expand-icon">{expandedRegions.has(region.name) ? '▼' : '▶'}</span>
+                <span className="hierarchy-name">{region.name}</span>
               </div>
-
-              {expandedRegions.has(region.name) && (
-                <div className="hierarchy-children">
-                  {region.provinces.length === 0 ? (
-                    <div className="empty-message">No hay provincias con intervenciones registradas</div>
-                  ) : (
-                    region.provinces.map((province) => (
-                      <div key={province.name} className="hierarchy-item province-item">
-                        <div 
-                          className="hierarchy-row"
-                          onClick={(e) => toggleProvince(province.name, e)}
-                          data-count={`${province.interventions} reportes`}
-                        >
-                          <div className="hierarchy-info">
-                            <span className="expand-icon">{expandedProvinces.has(province.name) ? '▼' : '▶'}</span>
-                            <span className="hierarchy-name">{province.name}</span>
-                          </div>
-                          <div className="progress-bar-container">
-                            <div 
-                              className="progress-bar-fill"
-                              style={{ width: `${getProgressPercentage(province.interventions, getMaxProvinceInterventions(region.name))}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {expandedProvinces.has(province.name) && (
-                          <div className="hierarchy-children">
-                            {province.districts.map((district) => (
-                              <div key={district.name} className="hierarchy-item district-item">
-                                <div 
-                                  className="hierarchy-row"
-                                  onClick={(e) => toggleDistrict(district.name, e)}
-                                  data-count={`${district.interventions} reportes`}
-                                >
-                                  <div className="hierarchy-info">
-                                    <span className="expand-icon">{expandedDistricts.has(district.name) ? '▼' : '▶'}</span>
-                                    <span className="hierarchy-name">{district.name}</span>
-                                  </div>
-                                </div>
-
-                                {expandedDistricts.has(district.name) && (
-                                  <div className="reports-list">
-                                    {district.reports.map((report) => (
-                                      <div 
-                                        key={report.id}
-                                        className="report-item"
-                                      >
-                                        <div
-                                          className="report-info"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (report.estado === 'pendiente' && onContinuePendingReport) {
-                                              onContinuePendingReport(report.id);
-                                            } else if (onViewReport) {
-                                              onViewReport(report.reportNumber || report.id);
-                                            }
-                                          }}
-                                        >
-                                          <span className="report-number">#{report.reportNumber}</span>
-                                          <span className="report-creator">{report.createdBy}</span>
-                                          <span className="report-date">{report.date}</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
+              <div className="progress-bar-container">
+                <div 
+                  className="progress-bar-fill"
+                  style={{ width: `${getProgressPercentage(region.interventions, maxRegionInterventions)}%` }}
+                />
+              </div>
             </div>
-          ))}
-        </div>
+
+            {expandedRegions.has(region.name) && (
+              <div className="hierarchy-children">
+                {region.provinces.length === 0 ? (
+                  <div className="empty-message">No hay provincias con intervenciones registradas</div>
+                ) : (
+                  region.provinces.map((province) => (
+                    <div key={province.name} className="hierarchy-item province-item">
+                      <div 
+                        className="hierarchy-row"
+                        onClick={(e) => toggleProvince(province.name, e)}
+                        data-count={`${province.interventions} reportes`}
+                      >
+                        <div className="hierarchy-info">
+                          <span className="expand-icon">{expandedProvinces.has(province.name) ? '▼' : '▶'}</span>
+                          <span className="hierarchy-name">{province.name}</span>
+                        </div>
+                        <div className="progress-bar-container">
+                          <div 
+                            className="progress-bar-fill"
+                            style={{ width: `${getProgressPercentage(province.interventions, getMaxProvinceInterventions(region.name))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {expandedProvinces.has(province.name) && (
+                        <div className="hierarchy-children">
+                          {province.districts.map((district) => (
+                            <div key={district.name} className="hierarchy-item district-item">
+                              <div 
+                                className="hierarchy-row"
+                                onClick={(e) => toggleDistrict(district.name, e)}
+                                data-count={`${district.interventions} reportes`}
+                              >
+                                <div className="hierarchy-info">
+                                  <span className="expand-icon">{expandedDistricts.has(district.name) ? '▼' : '▶'}</span>
+                                  <span className="hierarchy-name">{district.name}</span>
+                                </div>
+                              </div>
+
+                              {expandedDistricts.has(district.name) && (
+                                <div className="reports-list">
+                                  {district.reports.map((report) => (
+                                    <div 
+                                      key={report.id}
+                                      className="report-item"
+                                    >
+                                      <div
+                                        className="report-info"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (report.estado === 'pendiente' && onContinuePendingReport) {
+                                            onContinuePendingReport(report.id);
+                                          } else if (onViewReport) {
+                                            onViewReport(report.reportNumber || report.id);
+                                          }
+                                        }}
+                                      >
+                                        <span className="report-number">#{report.reportNumber}</span>
+                                        <span className="report-creator">{report.createdBy}</span>
+                                        <span className="report-date">{report.date}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       {reports.length === 0 && (
@@ -391,4 +385,4 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   );
 };
 
-export default MyReportsList;
+export default MyReportsHierarchy;

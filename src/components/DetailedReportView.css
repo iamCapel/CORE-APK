@@ -100,6 +100,7 @@
 .hierarchy-row {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   padding: 4px 8px;
   cursor: pointer;
   transition: all 0.1s ease;
@@ -125,6 +126,7 @@
 .hierarchy-info {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
   flex: 1;
   min-width: 0;
@@ -151,7 +153,9 @@
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
+  text-align: left;
 }
 
 /* Iconos de tipo carpeta */
@@ -342,11 +346,13 @@
 .report-info {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   flex: 1;
   font-size: 12px;
   color: #666;
   cursor: pointer;
+  text-align: left;
 }
 
 .report-number {

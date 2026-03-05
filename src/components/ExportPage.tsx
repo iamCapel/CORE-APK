@@ -52,7 +52,7 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
     const pendingReports = pendingReportStorage.getAllPendingReports();
     return pendingReports.map(report => ({
       id: report.id,
-      reportNumber: `DCR-${report.id.split('_').pop()?.slice(-6) || '000000'}`,
+      reportNumber: `P-${report.id.slice(-6)}`,
       timestamp: report.timestamp,
       estado: 'pendiente',
       region: report.formData.region || 'N/A',

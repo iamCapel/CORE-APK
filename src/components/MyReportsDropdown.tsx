@@ -74,7 +74,7 @@ const MyReportsDropdown: React.FC<MyReportsDropdownProps> = ({
         .filter((r) => r.creadoPor === username)
         .map((r) => ({
           id: r.id,
-          reportNumber: r.numeroReporte || `R-${r.id?.slice(-6) || '000000'}`,
+          reportNumber: r.numeroReporte || 'SIN-NUMERO',
           region: r.region || '',
           provincia: r.provincia || '',
           municipio: r.municipio || '',

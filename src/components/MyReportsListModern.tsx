@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
-import './MyReportsList.css';
+import './MyReportsListModern.css';
 
 interface Report {
   id: string;
@@ -38,14 +38,14 @@ interface Region {
   provinces: Province[];
 }
 
-interface MyReportsListProps {
+interface MyReportsListModernProps {
   username: string;
   onClose: () => void;
   onContinuePendingReport?: (reportId: string) => void;
   onViewReport?: (reportId: string) => void;
 }
 
-const MyReportsList: React.FC<MyReportsListProps> = ({ 
+const MyReportsListModern: React.FC<MyReportsListModernProps> = ({ 
   username, 
   onClose, 
   onContinuePendingReport,
@@ -54,6 +54,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   
   // Estados para vista jerárquica
   const [regions, setRegions] = useState<Region[]>([]);
@@ -61,11 +62,32 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const [expandedProvinces, setExpandedProvinces] = useState<Set<string>>(new Set());
   const [expandedDistricts, setExpandedDistricts] = useState<Set<string>>(new Set());
 
+  // Configuración de estados con colores naranjas
+  const estadoConfig = {
+    pendiente: { 
+      label: "Pendiente", 
+      color: "#FF8C33", 
+      bg: "rgba(255,140,51,0.15)", 
+      border: "rgba(255,140,51,0.3)" 
+    },
+    guardado: { 
+      label: "Guardado", 
+      color: "#64B5F6", 
+      bg: "rgba(100,181,246,0.15)", 
+      border: "rgba(100,181,246,0.3)" 
+    },
+    realizado: { 
+      label: "Realizado", 
+      color: "#81C784", 
+      bg: "rgba(129,199,132,0.15)", 
+      border: "rgba(129,199,132,0.3)" 
+    },
+  };
+
   // Función mejorada para verificar si un reporte pertenece al usuario
   const isUserReport = (report: any, username: string): boolean => {
     if (!username || !report) return false;
     
-    // Búsqueda exacta
     const exactMatches = [
       report.creadoPor,
       report.usuarioId, 
@@ -81,7 +103,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     
     if (exactMatches.includes(username)) return true;
     
-    // Búsqueda insensible a mayúsculas/minúsculas
     const lowerUsername = username.toLowerCase();
     const lowerMatches = exactMatches
       .filter(field => field && typeof field === 'string')
@@ -89,7 +110,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     
     if (lowerMatches.includes(lowerUsername)) return true;
     
-    // Búsqueda por coincidencia parcial (para usernames con variaciones)
     const partialMatches = exactMatches
       .filter(field => field && typeof field === 'string')
       .filter(field => field.includes(username) || username.includes(field));
@@ -105,13 +125,17 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     try {
       setLoading(true);
       setError(null);
+      console.log('🔄 Cargando reportes para usuario:', username);
       
+      // Cargar reportes pendientes
       const pending = await firebasePendingReportStorage.getAllPendingReports();
       const userPendingReports = pending.filter((report: any) => isUserReport(report, username));
       
+      // Cargar reportes completados
       const allReports = await firebaseReportStorage.getAllReports();
       const userReports = allReports.filter((report: any) => isUserReport(report, username));
       
+      // Combinar y enviar a processReports para estructura jerárquica
       const combined = [
         ...userPendingReports.map((r: any) => ({
           ...r,
@@ -124,6 +148,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       ];
       
       processReports(combined);
+      console.log('✅ Reportes procesados en estructura jerárquica');
       
     } catch (error) {
       console.error('❌ Error al cargar reportes:', error);
@@ -134,6 +159,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   };
 
   const processReports = (allReports: any[]) => {
+    // Estructura jerárquica: Región > Provincia > Distrito > Reportes
     const hierarchyMap: Record<string, Record<string, Record<string, any[]>>> = {};
     const flatReports: Report[] = [];
     
@@ -166,6 +192,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       flatReports.push(formattedReport);
     });
     
+    // Construir estructura de regiones
     const regionNames = [
       'Ozama o Metropolitana', 'Cibao Norte', 'Cibao Sur', 'Cibao Nordeste',
       'Cibao Noroeste', 'Santiago', 'Valdesia', 'Enriquillo',
@@ -200,6 +227,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     setReports(flatReports);
   };
 
+  // Funciones toggle para expandir/colapsar
   const toggleRegion = (regionName: string) => {
     const newExpanded = new Set(expandedRegions);
     if (newExpanded.has(regionName)) {
@@ -248,9 +276,77 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
     return Math.max(...region.provinces.map(p => p.interventions));
   };
 
+  const handleReportClick = (report: Report) => {
+    setSelected(selected === report.id ? null : report.id);
+    
+    if (report.estado === 'pendiente' && onContinuePendingReport) {
+      setTimeout(() => onContinuePendingReport(report.id), 300);
+    } else if (report.estado !== 'pendiente' && onViewReport && report.reportNumber) {
+      // Pasar el número de reporte, NO el ID
+      setTimeout(() => onViewReport(report.reportNumber!), 300);
+    }
+  };
+
+  const formatDate = (fechaHora: string) => {
+    try {
+      const date = new Date(fechaHora);
+      const options: Intl.DateTimeFormatOptions = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      return date.toLocaleDateString('es-DO', options);
+    } catch {
+      return fechaHora.split(' ')[0] || 'Fecha desconocida';
+    }
+  };
+
+  const formatTime = (fechaHora: string) => {
+    try {
+      const date = new Date(fechaHora);
+      return date.toLocaleTimeString('es-DO', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    } catch {
+      return fechaHora.split(' ')[1] || 'Hora desconocida';
+    }
+  };
+
+  const LocationIcon = () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+      <circle cx="12" cy="10" r="3"/>
+    </svg>
+  );
+
+  const ClockIcon = () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+  );
+
+  const CalendarIcon = () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  );
+
+  const ChevronIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  );
+
   if (loading) {
     return (
-      <div className="my-reports-list-container">
+      <div className="modern-reports-container">
         <div className="loading-state">
           <div className="loading-spinner">⏳</div>
           <p>Cargando reportes desde Firebase...</p>
@@ -261,7 +357,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
 
   if (error) {
     return (
-      <div className="my-reports-list-container">
+      <div className="modern-reports-container">
         <div className="error-state">
           <div className="error-icon">❌</div>
           <p>{error}</p>
@@ -274,14 +370,17 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   }
 
   return (
-    <div className="my-reports-list-container">
-      <div className="reports-header">
-        <h3 className="reports-title">📋 Mis Reportes Registrados</h3>
-        <button className="refresh-button" onClick={loadReports} title="Recargar mis reportes">
-          🔄
-        </button>
+    <div className="modern-reports-container">
+      {/* Header */}
+      <div className="list-header">
+        <h2 className="list-title">Mis <span>Reportes</span></h2>
+        <span className="list-count">{reports.length} registros</span>
       </div>
 
+      {/* Divider */}
+      <div className="divider" />
+
+      {/* Vista Jerárquica */}
       <div className="hierarchy-container">
         <div className="hierarchy-tree">
           {regions.map((region) => (
@@ -391,4 +490,4 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   );
 };
 
-export default MyReportsList;
+export default MyReportsListModern;
