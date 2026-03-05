@@ -20,6 +20,7 @@ import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md
 import './Dashboard.css';
 import './BottomNavigation.css';
 import './MyReportsPage.css';
+import './ModernDashboard.css';
 
 /* ── Iconos para navegación inferior ── */
 const HomeIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
@@ -1262,15 +1263,33 @@ const Dashboard: React.FC = () => {
   if (showMyReportsModal && user) {
     return (
       <div className="my-reports-page">
-        <header className="page-header">
-          <button className="back-button" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
+        <div className="topbar-modern">
+          <button 
+            title="Volver al Dashboard" 
+            className="topbar-back-button-modern"
+            onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
             </svg>
-            Volver
           </button>
-          <h1 className="page-title">Mis Reportes</h1>
-        </header>
+          <div className="topbar-title-modern">MOPC - Intervenciones Realizadas</div>
+          <div className="topbar-actions-modern">
+            <div 
+              className="topbar-action-button-modern"
+              onClick={() => setShowPendingModal(true)}
+              style={{ cursor: 'pointer' }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {pendingCount > 0 && (
+                <span className="topbar-badge-modern">{pendingCount}</span>
+              )}
+            </div>
+          </div>
+        </div>
         
         <div className="my-reports-content">
           <MyReportsList 

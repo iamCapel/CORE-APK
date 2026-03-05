@@ -1,0 +1,448 @@
+/* Modal Overlay */
+.pending-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: 80px;
+  padding-right: 24px;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Modal Container */
+.pending-modal-container {
+  background-color: #ffffff;
+  border-radius: 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 75vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  animation: slideInRight 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Header */
+.pending-modal-header {
+  background: linear-gradient(135deg, #ff7a00 0%, #ff9a3d 100%);
+  padding: 16px 20px;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 2px 10px rgba(255, 122, 0, 0.2);
+}
+
+.pending-modal-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.pending-modal-header-text {
+  flex: 1;
+}
+
+.pending-modal-title {
+  margin: 0;
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pending-modal-subtitle {
+  margin: 4px 0 0 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pending-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.pending-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Content */
+.pending-modal-content {
+  padding: 12px;
+  max-height: calc(75vh - 76px);
+  overflow-y: auto;
+  background-color: #f8f9fa;
+}
+
+/* Empty State */
+.pending-modal-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.pending-modal-empty-icon {
+  margin-bottom: 12px;
+  opacity: 0.3;
+  color: #ff7a00;
+}
+
+.pending-modal-empty-title {
+  font-size: 14px;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  color: #666;
+}
+
+.pending-modal-empty-subtitle {
+  font-size: 12px;
+  margin: 0;
+  color: #999;
+}
+
+/* Lista */
+.pending-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Report Cards */
+.pending-report-card {
+  background-color: white;
+  border-radius: 14px;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pending-report-card.removing {
+  opacity: 0;
+  transform: translateX(100px) scale(0.8);
+  max-height: 0;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.pending-report-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Report Indicator (barra lateral) */
+.pending-report-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #ff7a00 0%, #ff9a3d 100%);
+  animation: pulse 2s infinite;
+}
+
+/* Report Main Content */
+.pending-report-main {
+  padding: 12px 12px 10px 16px;
+  flex: 1;
+}
+
+/* Report Header */
+.pending-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.pending-report-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.pending-report-type svg {
+  color: #ff7a00;
+  flex-shrink: 0;
+}
+
+.pending-report-number {
+  background-color: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* Report Location */
+.pending-report-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.pending-report-location svg {
+  color: #ff7a00;
+  flex-shrink: 0;
+}
+
+.pending-report-location strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.pending-report-location span {
+  color: #999;
+}
+
+/* Report Meta */
+.pending-report-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: #999;
+  flex-wrap: wrap;
+}
+
+.pending-report-time,
+.pending-report-user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pending-report-time svg,
+.pending-report-user svg {
+  color: #999;
+  flex-shrink: 0;
+}
+
+/* Report Actions */
+.pending-report-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 12px 12px 12px;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 10px;
+}
+
+.pending-action-delete,
+.pending-action-continue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pending-action-delete {
+  background-color: transparent;
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+}
+
+.pending-action-delete:hover {
+  background-color: #e74c3c;
+  color: white;
+  transform: scale(1.05);
+}
+
+.pending-action-continue {
+  background-color: #27ae60;
+  color: white;
+  box-shadow: 0 2px 6px rgba(39, 174, 96, 0.2);
+}
+
+.pending-action-continue:hover {
+  background-color: #229954;
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+}
+
+.pending-action-delete svg,
+.pending-action-continue svg {
+  flex-shrink: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Scrollbar */
+.pending-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pending-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pending-modal-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+.pending-modal-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pending-modal-overlay {
+    padding-top: 70px;
+    padding-right: 12px;
+  }
+
+  .pending-modal-container {
+    width: 360px;
+    max-height: 70vh;
+  }
+
+  .pending-modal-header {
+    padding: 14px 16px;
+  }
+
+  .pending-modal-title {
+    font-size: 16px;
+  }
+
+  .pending-modal-subtitle {
+    font-size: 11px;
+  }
+
+  .pending-modal-close {
+    width: 28px;
+    height: 28px;
+  }
+
+  .pending-modal-content {
+    padding: 10px;
+    max-height: calc(70vh - 70px);
+  }
+
+  .pending-report-main {
+    padding: 10px 10px 8px 14px;
+  }
+
+  .pending-report-type {
+    font-size: 12px;
+  }
+
+  .pending-report-location {
+    font-size: 11px;
+  }
+
+  .pending-report-meta {
+    font-size: 10px;
+  }
+
+  .pending-report-actions {
+    padding: 0 10px 10px 10px;
+    padding-top: 8px;
+  }
+
+  .pending-action-delete,
+  .pending-action-continue {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pending-modal-overlay {
+    padding-top: 60px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .pending-modal-container {
+    width: 100%;
+    max-width: calc(100vw - 16px);
+    max-height: 65vh;
+  }
+
+  .pending-report-number {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .pending-report-location {
+    font-size: 10px;
+  }
+
+  .pending-report-meta {
+    font-size: 9px;
+    gap: 8px;
+  }
+}
