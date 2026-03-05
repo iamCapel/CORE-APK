@@ -361,6 +361,23 @@ const ReportForm: React.FC<ReportFormProps> = ({
       if (observaciones) completedFields.push('observaciones');
       const progress = Math.round((completedFields.length / 5) * 100);
 
+      // Construir formData solo con campos que tienen valor (Firebase no acepta undefined)
+      const formData: any = {
+        metricData: plantillaValues || {}
+      };
+      
+      if (region) formData.region = region;
+      if (provincia) formData.provincia = provincia;
+      if (municipio) formData.municipio = municipio;
+      if (distritoFinal) formData.distrito = distritoFinal;
+      if (sectorFinal) formData.sector = sectorFinal;
+      if (tipoIntervencion) formData.tipoIntervencion = tipoIntervencion;
+      if (subTipoCanal) formData.subTipoCanal = subTipoCanal;
+      if (observaciones) formData.observaciones = observaciones;
+      if (vehiculos.length > 0) formData.vehiculos = vehiculos;
+      if (autoGpsFields && Object.keys(autoGpsFields).length > 0) formData.gpsData = autoGpsFields;
+      if (fechaReporte) formData.fechaProyecto = fechaReporte;
+
       // Construir objeto compatible con interfaz PendingReport
       const pendingData = {
         id,
@@ -371,28 +388,16 @@ const ReportForm: React.FC<ReportFormProps> = ({
         progress,
         fieldsCompleted: completedFields,
         currentStep: 0,
-        formData: {
-          region: region || undefined,
-          provincia: provincia || undefined,
-          municipio: municipio || undefined,
-          distrito: distritoFinal || undefined,
-          sector: sectorFinal || undefined,
-          tipoIntervencion: tipoIntervencion || undefined,
-          subTipoCanal: subTipoCanal || undefined,
-          observaciones: observaciones || undefined,
-          metricData: plantillaValues || {},
-          vehiculos: vehiculos.length > 0 ? vehiculos : undefined,
-          gpsData: Object.keys(autoGpsFields || {}).length > 0 ? autoGpsFields : undefined,
-          fechaProyecto: fechaReporte || undefined
-        }
+        formData
       };
 
+      console.log('💾 Guardando reporte pendiente:', pendingData);
       await firebasePendingReportStorage.savePendingReport(pendingData);
       setCurrentPendingReportId(id);
       alert('Reporte guardado como pendiente.');
     } catch (err) {
-      console.error('Error guardando pendiente:', err);
-      alert('Error al guardar reporte pendiente');
+      console.error('❌ Error guardando pendiente:', err);
+      alert('Error al guardar reporte pendiente: ' + (err instanceof Error ? err.message : String(err)));
     }
     setShowPendingAnimation(false);
   };
