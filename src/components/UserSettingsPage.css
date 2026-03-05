@@ -43,9 +43,21 @@ body::after {
   z-index: 1; 
   max-width: 430px; 
   margin: 0 auto; 
-  min-height: 100vh; 
-  padding-bottom: 80px;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height para móviles */
+  overflow-y: auto;
   background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor scrollable */
+.page > * {
+  flex-shrink: 0;
+}
+
+.section:last-of-type {
+  padding-bottom: max(80px, env(safe-area-inset-bottom, 20px));
 }
 
 /* ── TOPBAR ── */
