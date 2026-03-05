@@ -17,6 +17,7 @@ import MyReportsDropdown from './MyReportsDropdown';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import './Dashboard.css';
 import './BottomNavigation.css';
+import './MyReportsPage.css';
 
 /* ── Iconos para navegación inferior ── */
 const HomeIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
@@ -1109,10 +1110,6 @@ const Dashboard: React.FC = () => {
     setShowReportsPage(false);
     setShowExportPage(false);
     setShowUsersPage(false);
-    setShowGoogleMapView(false);
-    setShowLeafletMapView(false);
-    setInterventionToEdit(null);
-  };
 
   // Funciones para manejar la navegación inferior
   const handleBottomNavClick = (navId: string) => {
@@ -1142,7 +1139,18 @@ const Dashboard: React.FC = () => {
         setInterventionToEdit(null);
         break;
       case 'reportes':
-        // Los reportes se manejan con el MyReportsDropdown existente
+        // Cargar página completa de Mis Reportes
+        if (!isProfileComplete) {
+          setShowCompleteProfileModal(true);
+          return;
+        }
+        setShowMyReportsModal(true);
+        setShowReportsPage(false);
+        setShowReportForm(false);
+        setShowExportPage(false);
+        setShowUsersPage(false);
+        setShowGoogleMapView(false);
+        setShowLeafletMapView(false);
         break;
       case 'opciones':
         setShowUserMenu(!showUserMenu);
@@ -1196,6 +1204,31 @@ const Dashboard: React.FC = () => {
     setShowLeafletMapView(false);
     setInterventionToEdit(null);
   };
+
+  // Si se debe mostrar la página de Mis Reportes
+  if (showMyReportsModal && user) {
+    return (
+      <div className="my-reports-page">
+        <header className="page-header">
+          <button className="back-button" onClick={() => setShowMyReportsModal(false)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Volver
+          </button>
+          <h1 className="page-title">Mis Reportes</h1>
+        </header>
+        
+        <div className="my-reports-content">
+          <MyReportsCalendar 
+            username={user.username} 
+            onClose={() => setShowMyReportsModal(false)}
+            onContinuePendingReport={handleContinuePendingReport}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Si se debe mostrar la página de informes
   if (showReportsPage && user) {
@@ -1597,22 +1630,18 @@ const Dashboard: React.FC = () => {
           <span>Crear</span>
         </button>
         
-        <div className="nav-item reports-dropdown">
-          <MyReportsDropdown 
-            username={user.username} 
-            onReportClick={(reportId: string) => {
-              firebaseReportStorage.getReport(reportId).then((report: any) => {
-                if (report) {
-                  setInterventionToEdit(report);
-                  setShowReportForm(true);
-                  setActiveNav('crear');
-                }
-              }).catch((error: any) => {
-                console.error('Error al cargar reporte:', error);
-              });
-            }}
-          />
-        </div>
+        <button 
+          className={`nav-item ${activeNav === 'reportes' ? 'active' : ''}`}
+          onClick={() => handleBottomNavClick('reportes')}
+          title="Mis Reportes"
+        >
+          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span>Reportes</span>
+        </button>
         
         <button 
           className={`nav-item ${activeNav === 'opciones' ? 'active' : ''}`}
