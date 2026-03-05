@@ -27,6 +27,7 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const [pendingReports, setPendingReports] = useState<Report[]>([]);
   const [completedReports, setCompletedReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadReports();
@@ -35,9 +36,13 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const loadReports = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('🔄 Cargando reportes para usuario:', username);
       
       // Cargar reportes pendientes
       const pending = await firebasePendingReportStorage.getAllPendingReports();
+      console.log('📊 Reportes pendientes crudos:', pending);
+      
       const pendingFormatted: Report[] = pending.map((report: any) => ({
         id: report._pendingReportId || report.id || '',
         reportNumber: `P-${report._pendingReportId?.slice(-6) || '000000'}`,
@@ -47,10 +52,15 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
         estado: 'pendiente' as const,
         timestamp: report.timestamp
       }));
+      console.log('✅ Reportes pendientes formateados:', pendingFormatted);
 
       // Cargar reportes completados
       const allReports = await firebaseReportStorage.getAllReports();
+      console.log('📊 Todos los reportes completados:', allReports);
+      
       const userReports = allReports.filter((report: any) => report.username === username);
+      console.log('📊 Reportes del usuario:', userReports);
+      
       const completedFormatted: Report[] = userReports.map((report: any) => ({
         id: report.id || '',
         reportNumber: report.reportNumber || `R-${report.id?.slice(-6) || '000000'}`,
@@ -60,11 +70,15 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
         estado: report.estado === 'aprobado' ? 'realizado' as const : 'guardado' as const,
         timestamp: report.timestamp
       }));
+      console.log('✅ Reportes completados formateados:', completedFormatted);
 
       setPendingReports(pendingFormatted);
       setCompletedReports(completedFormatted);
+      
+      console.log('📈 Totales - Pendientes:', pendingFormatted.length, 'Completados:', completedFormatted.length);
     } catch (error) {
-      console.error('Error al cargar reportes:', error);
+      console.error('❌ Error al cargar reportes:', error);
+      setError('No se pudieron cargar los reportes. Intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +130,21 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       <div className="my-reports-list-container">
         <div className="loading-state">
           <div className="loading-spinner">⏳</div>
-          <p>Cargando reportes...</p>
+          <p>Cargando reportes desde Firebase...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="my-reports-list-container">
+        <div className="error-state">
+          <div className="error-icon">❌</div>
+          <p>{error}</p>
+          <button className="retry-button" onClick={loadReports}>
+            🔄 Reintentar
+          </button>
         </div>
       </div>
     );
@@ -124,6 +152,21 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
 
   return (
     <div className="my-reports-list-container">
+      {/* Header con refresh */}
+      <div className="reports-header">
+        <h3 className="reports-title">
+          📋 Mis Reportes
+        </h3>
+        <button 
+          className="refresh-button" 
+          onClick={loadReports}
+          disabled={loading}
+          title="Recargar reportes"
+        >
+          🔄
+        </button>
+      </div>
+
       {/* Sección de Reportes Pendientes */}
       <div className="reports-section pending-section">
         <div className="section-header">
