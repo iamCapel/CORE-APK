@@ -15,7 +15,6 @@ import { userStorage } from '../services/userStorage';
 import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import NotificationBell from './NotificationBell';
-import MyReportsDropdown from './MyReportsDropdown';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import './Dashboard.css';
 import './BottomNavigation.css';
@@ -1463,16 +1462,6 @@ const Dashboard: React.FC = () => {
                 read: false,
               }))}
               onOpen={() => setShowPendingModal(true)}
-            />
-
-            {/* Mis Reportes Dropdown */}
-            <MyReportsDropdown
-              username={user.username}
-              onReportClick={(reportId) => {
-                // Opcional: Abrir la vista detallada del reporte
-                console.log('Reporte clickeado:', reportId);
-                // Aquí podrías abrir un modal o navegar a la vista del reporte
-              }}
             />
 
             <div className="topbar-divider" />
