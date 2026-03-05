@@ -1,38 +1,50 @@
-/* Contenedor principal de la lista de reportes - Versión móvil compacta */
+/* Contenedor principal de la lista de reportes - Estilo Dashboard */
 .my-reports-list-container {
   max-width: 100%;
   margin: 0 auto;
   padding: 10px;
   min-height: calc(100vh - 120px);
+  background: var(--dark-bg);
 }
 
-/* Header con refresh */
+/* Header con refresh - Estilo Dashboard */
 .reports-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 12px 15px;
-  background: rgba(255, 107, 0, 0.08);
-  border: 1px solid rgba(255, 107, 0, 0.2);
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.reports-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .reports-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #FF6B00;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Rajdhani', 'Inter', sans-serif;
 }
 
 .refresh-button {
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 107, 0, 0.3);
-  border-radius: 6px;
-  color: #FF6B00;
+  padding: 8px 12px;
+  background: rgba(255,107,0,0.10);
+  border: 1px solid rgba(255,107,0,0.3);
+  border-radius: 12px;
+  color: var(--orange);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -41,8 +53,10 @@
 }
 
 .refresh-button:hover:not(:disabled) {
-  background: rgba(255, 107, 0, 0.1);
+  background: rgba(255,107,0,0.15);
+  border-color: rgba(255,107,0,0.4);
   transform: rotate(180deg);
+  box-shadow: 0 0 20px rgba(255,107,0,0.3);
 }
 
 .refresh-button:disabled {
@@ -113,51 +127,63 @@
   50% { opacity: 0.5; }
 }
 
-/* Secciones de reportes - Compactas */
+/* Secciones de reportes - Estilo Dashboard */
 .reports-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .section-header {
-  margin-bottom: 12px;
-  padding: 10px 15px;
-  background: rgba(255, 107, 0, 0.08);
-  border: 1px solid rgba(255, 107, 0, 0.2);
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  margin-bottom: 16px;
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .section-title {
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
-  color: #FF6B00;
+  font-weight: 700;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
 }
 
 .report-count {
-  background: rgba(255, 107, 0, 0.15);
-  color: #FF6B00;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 500;
+  background: rgba(255,107,0,0.15);
+  color: var(--orange);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255,107,0,0.2);
 }
 
-/* Separador entre secciones - Más delgado */
+/* Separador entre secciones - Estilo Dashboard */
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, 
     transparent 0%, 
-    rgba(255, 107, 0, 0.2) 20%, 
-    rgba(255, 107, 0, 0.3) 50%, 
-    rgba(255, 107, 0, 0.2) 80%, 
+    var(--glass-border) 20%, 
+    var(--glass-border-hover) 50%, 
+    var(--glass-border) 80%, 
     transparent 100%
   );
-  margin: 25px 0;
+  margin: 30px 0;
   border-radius: 1px;
 }
 
@@ -168,120 +194,127 @@
   gap: 8px;
 }
 
-/* Item individual de reporte - Compacto y rígido */
+/* Item individual de reporte - Estilo Dashboard rígido */
 .report-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 107, 0, 0.2);
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  min-height: 60px;
+  min-height: 70px;
+  cursor: pointer;
 }
 
 .report-item::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #FF6B00, #FF8C42);
-  border-radius: 2px 2px 0 0;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .report-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(255, 107, 0, 0.15);
-  border-color: rgba(255, 107, 0, 0.3);
+  border-color: var(--glass-border-hover);
+  background: rgba(255,107,0,0.05);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.3),
+    0 0 20px rgba(255,107,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .report-item.pending {
-  background: rgba(255, 193, 7, 0.08);
-  border-color: rgba(255, 193, 7, 0.3);
-}
-
-.report-item.pending::before {
-  background: linear-gradient(90deg, #FFC107, #FFD54F);
+  border-color: rgba(255,193,7,0.3);
+  background: rgba(255,193,7,0.05);
 }
 
 .report-item.pending:hover {
-  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+  border-color: rgba(255,193,7,0.5);
+  background: rgba(255,193,7,0.08);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.3),
+    0 0 20px rgba(255,193,7,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .report-item.completed {
-  background: rgba(76, 175, 80, 0.08);
-  border-color: rgba(76, 175, 80, 0.3);
-}
-
-.report-item.completed::before {
-  background: linear-gradient(90deg, #4CAF50, #66BB6A);
+  border-color: rgba(76,175,80,0.3);
+  background: rgba(76,175,80,0.05);
 }
 
 .report-item.completed:hover {
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+  border-color: rgba(76,175,80,0.5);
+  background: rgba(76,175,80,0.08);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.3),
+    0 0 20px rgba(76,175,80,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
-/* Número de reporte - Más pequeño */
+/* Número de reporte - Estilo Dashboard */
 .report-number {
-  background: linear-gradient(135deg, #2c3e50, #34495e);
+  background: linear-gradient(135deg, var(--orange), var(--orange-light));
   color: white;
-  padding: 6px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 12px;
-  min-width: 70px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 80px;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(255,107,0,0.3);
   flex-shrink: 0;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  border: 1px solid rgba(255,107,0,0.2);
 }
 
-/* Contenido del reporte - Compacto */
+/* Contenido del reporte - Estilo Dashboard */
 .report-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
 }
 
 .report-intervention {
-  font-weight: 600;
-  font-size: 14px;
-  color: #2c3e50;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
 }
 
 .report-address {
-  color: #666;
-  font-size: 12px;
+  color: var(--text-sub);
+  font-size: 13px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .report-datetime {
-  color: #888;
-  font-size: 11px;
+  color: var(--text-muted);
+  font-size: 12px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   white-space: nowrap;
 }
 
-/* Estado del reporte - Compacto */
+/* Estado del reporte - Estilo Dashboard */
 .report-status {
   display: flex;
   align-items: center;
@@ -289,106 +322,132 @@
 }
 
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   white-space: nowrap;
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .status-badge.pendiente {
-  background: rgba(255, 193, 7, 0.15);
-  color: #F57C00;
-  border: 1px solid rgba(255, 193, 7, 0.25);
+  background: rgba(255,193,7,0.15);
+  color: #FFB300;
+  border-color: rgba(255,193,7,0.3);
 }
 
 .status-badge.guardado {
-  background: rgba(33, 150, 243, 0.15);
-  color: #1976D2;
-  border: 1px solid rgba(33, 150, 243, 0.25);
+  background: rgba(33,150,243,0.15);
+  color: #64B5F6;
+  border-color: rgba(33,150,243,0.3);
 }
 
 .status-badge.realizado {
-  background: rgba(76, 175, 80, 0.15);
-  color: #388E3C;
-  border: 1px solid rgba(76, 175, 80, 0.25);
+  background: rgba(76,175,80,0.15);
+  color: #81C784;
+  border-color: rgba(76,175,80,0.3);
 }
 
-/* Estados vacíos - Compactos */
+/* Estados vacíos - Estilo Dashboard */
 .empty-state {
   text-align: center;
-  padding: 30px 15px;
-  color: #999;
+  padding: 40px 20px;
+  color: var(--text-muted);
   font-style: italic;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px dashed rgba(255, 107, 0, 0.15);
-  border-radius: 8px;
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border);
+  border-radius: 20px;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  font-family: 'Rajdhani', 'Inter', sans-serif;
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
 }
 
-/* Responsive - Optimizado para móvil */
+/* Responsive - Optimizado para móvil con estilo Dashboard */
 @media (max-width: 768px) {
   .my-reports-list-container {
     padding: 8px;
   }
   
-  .report-item {
-    padding: 10px;
-    gap: 10px;
-    min-height: 55px;
+  .reports-header {
+    padding: 14px 16px;
   }
   
-  .report-number {
-    min-width: 60px;
-    font-size: 11px;
-    padding: 5px 6px;
-  }
-  
-  .report-intervention {
-    font-size: 13px;
-  }
-  
-  .report-address {
-    font-size: 11px;
-  }
-  
-  .report-datetime {
-    font-size: 10px;
+  .reports-title {
+    font-size: 16px;
   }
   
   .section-header {
-    padding: 8px 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
   }
   
   .section-title {
     font-size: 15px;
   }
   
+  .report-item {
+    padding: 14px 16px;
+    gap: 14px;
+    min-height: 65px;
+  }
+  
+  .report-number {
+    min-width: 70px;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .report-intervention {
+    font-size: 14px;
+  }
+  
+  .report-address {
+    font-size: 12px;
+  }
+  
+  .report-datetime {
+    font-size: 11px;
+  }
+  
   .status-badge {
-    font-size: 9px;
-    padding: 3px 6px;
+    font-size: 10px;
+    padding: 5px 10px;
   }
 }
 
 @media (max-width: 480px) {
   .my-reports-list-container {
-    padding: 5px;
+    padding: 6px;
   }
   
   .reports-section {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .reports-header {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  
+  .reports-title {
+    font-size: 15px;
   }
   
   .section-header {
-    padding: 6px 10px;
-    margin-bottom: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
   }
   
   .section-title {
@@ -396,47 +455,47 @@
   }
   
   .report-count {
-    font-size: 11px;
-    padding: 1px 4px;
+    font-size: 12px;
+    padding: 3px 8px;
   }
   
   .report-item {
-    padding: 8px;
-    gap: 8px;
-    min-height: 50px;
+    padding: 12px 14px;
+    gap: 12px;
+    min-height: 60px;
   }
   
   .report-number {
-    min-width: 50px;
-    font-size: 10px;
-    padding: 4px 5px;
+    min-width: 60px;
+    font-size: 11px;
+    padding: 5px 8px;
   }
   
   .report-intervention {
-    font-size: 12px;
+    font-size: 13px;
   }
   
   .report-address,
   .report-datetime {
-    font-size: 10px;
+    font-size: 11px;
   }
   
   .status-badge {
-    font-size: 8px;
-    padding: 2px 4px;
-    gap: 2px;
+    font-size: 9px;
+    padding: 4px 8px;
+    gap: 3px;
   }
   
   .section-divider {
-    margin: 20px 0;
+    margin: 24px 0;
   }
   
   .empty-state {
-    padding: 20px 10px;
+    padding: 30px 15px;
   }
   
   .empty-state p {
-    font-size: 13px;
+    font-size: 14px;
   }
 }
 
