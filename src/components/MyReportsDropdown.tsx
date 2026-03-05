@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import firebaseReportStorage from '../services/firebaseReportStorage';
+import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 
 // Iconos SVG simples para evitar problemas con react-icons
 const BarChartIcon = ({ size = 20, color = "currentColor" }: { size?: number; color?: string }) => (
@@ -63,29 +64,60 @@ const MyReportsDropdown: React.FC<MyReportsDropdownProps> = ({
     
     setLoading(true);
     try {
+      console.log('🔄 MyReportsDropdown: Cargando reportes para usuario:', username);
+      
+      // Cargar reportes completados
       const allReports = await firebaseReportStorage.getAllReports();
-      const userReports = allReports
-        .filter((r) => r.creadoPor === username || r.usuarioId === username)
+      console.log('📊 Todos los reportes completados:', allReports);
+      
+      const userCompletedReports = allReports
+        .filter((r) => r.creadoPor === username)
+        .map((r) => ({
+          id: r.id,
+          reportNumber: r.numeroReporte || `R-${r.id?.slice(-6) || '000000'}`,
+          region: r.region || '',
+          provincia: r.provincia || '',
+          municipio: r.municipio || '',
+          estado: r.estado || 'completado',
+          timestamp: r.timestamp || '',
+          fechaInicio: r.fechaInicio,
+          fechaFinal: r.fechaFinal,
+          tipoIntervencion: r.tipoIntervencion || 'Sin especificar',
+          direccion: `${r.region || ''}, ${r.provincia || ''}, ${r.municipio || ''}`,
+        }));
+      
+      // Cargar reportes pendientes
+      const pendingReports = await firebasePendingReportStorage.getAllPendingReports();
+      console.log('📊 Todos los reportes pendientes:', pendingReports);
+      
+      const userPendingReports = pendingReports
+        .filter((r) => r.userId === username)
+        .map((r) => ({
+          id: r.id || '',
+          reportNumber: `P-${r.id?.slice(-6) || '000000'}`,
+          region: r.formData?.region || '',
+          provincia: r.formData?.provincia || '',
+          municipio: r.formData?.municipio || '',
+          estado: 'pendiente' as const,
+          timestamp: r.timestamp || '',
+          tipoIntervencion: r.formData?.tipoIntervencion || 'Sin especificar',
+          direccion: `${r.formData?.region || ''}, ${r.formData?.provincia || ''}, ${r.formData?.municipio || ''}`,
+        }));
+      
+      // Combinar y ordenar todos los reportes
+      const allUserReports = [...userPendingReports, ...userCompletedReports]
         .sort((a, b) => {
           const dateA = new Date(b.timestamp || 0).getTime();
           const dateB = new Date(a.timestamp || 0).getTime();
           return dateA - dateB;
-        })
-        .map((r) => ({
-          id: r.id,
-          reportNumber: r.numeroReporte || 'Sin número',
-          region: r.region || '',
-          provincia: r.provincia || '',
-          municipio: r.municipio || '',
-          estado: r.estado || 'pendiente',
-          timestamp: r.timestamp || '',
-          fechaInicio: r.fechaInicio,
-          fechaFinal: r.fechaFinal,
-        }));
+        });
       
-      setReports(userReports);
+      console.log('✅ Reportes combinados del usuario:', allUserReports);
+      console.log('📈 Totales - Pendientes:', userPendingReports.length, 'Completados:', userCompletedReports.length);
+      
+      setReports(allUserReports);
     } catch (error) {
-      console.error('Error cargando reportes del usuario:', error);
+      console.error('❌ Error cargando reportes del usuario:', error);
     } finally {
       setLoading(false);
     }
