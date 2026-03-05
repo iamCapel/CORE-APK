@@ -579,6 +579,9 @@ const Dashboard: React.FC = () => {
     }
   });
 
+  // Usar el hook de GPS
+  const gpsTracker = useGpsTracker();
+
   const [searchValue, setSearchValue] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
 
