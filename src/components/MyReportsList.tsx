@@ -29,6 +29,42 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Función mejorada para verificar si un reporte pertenece al usuario
+  const isUserReport = (report: any, username: string): boolean => {
+    if (!username || !report) return false;
+    
+    // Búsqueda exacta
+    const exactMatches = [
+      report.creadoPor,
+      report.usuarioId, 
+      report.username,
+      report.userName,
+      report.formData?.username,
+      report.formData?.userName,
+      report.formData?.userId,
+      report.user?.username,
+      report.user?.name,
+      report.usuario?.username
+    ];
+    
+    if (exactMatches.includes(username)) return true;
+    
+    // Búsqueda insensible a mayúsculas/minúsculas
+    const lowerUsername = username.toLowerCase();
+    const lowerMatches = exactMatches
+      .filter(field => field && typeof field === 'string')
+      .map(field => field.toLowerCase());
+    
+    if (lowerMatches.includes(lowerUsername)) return true;
+    
+    // Búsqueda por coincidencia parcial (para usernames con variaciones)
+    const partialMatches = exactMatches
+      .filter(field => field && typeof field === 'string')
+      .filter(field => field.includes(username) || username.includes(field));
+    
+    return partialMatches.length > 0;
+  };
+
   useEffect(() => {
     loadReports();
   }, [username]);
@@ -43,9 +79,21 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       const pending = await firebasePendingReportStorage.getAllPendingReports();
       console.log('📊 Todos los reportes pendientes:', pending);
       
-      // Filtrar reportes pendientes por usuario (usando userId para consistencia)
-      const userPendingReports = pending.filter((report: any) => report.userId === username);
+      // Filtrar reportes pendientes por usuario (usando función mejorada)
+      const userPendingReports = pending.filter((report: any) => isUserReport(report, username));
+      
       console.log('📊 Reportes pendientes del usuario:', userPendingReports);
+      console.log('🔍 Análisis de campos en pendientes:', 
+        userPendingReports.map(r => ({
+          id: r.id,
+          userId: r.userId,
+          username: (r as any).username,
+          userName: (r as any).userName,
+          formDataUsername: (r as any).formData?.username,
+          formDataUserId: (r as any).formData?.userId,
+          matchType: 'userReport function'
+        }))
+      );
       
       const pendingFormatted: Report[] = userPendingReports.map((report: any) => ({
         id: report._pendingReportId || report.id || '',
@@ -62,9 +110,21 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       const allReports = await firebaseReportStorage.getAllReports();
       console.log('📊 Todos los reportes completados:', allReports);
       
-      // Filtrar reportes completados por usuario (usando creadoPor para consistencia)
-      const userReports = allReports.filter((report: any) => report.creadoPor === username);
-      console.log('📊 Reportes del usuario:', userReports);
+      // Filtrado mejorado para reportes completados - usando función unificada
+      const userReports = allReports.filter((report: any) => isUserReport(report, username));
+      
+      console.log('📊 Reportes filtrados del usuario:', userReports);
+      console.log('🔍 Análisis de campos en completados:', 
+        userReports.map(r => ({
+          id: r.id,
+          creadoPor: r.creadoPor,
+          usuarioId: r.usuarioId,
+          username: (r as any).username,
+          formDataUsername: (r as any).formData?.username,
+          userName: (r as any).userName,
+          matchType: 'userReport function'
+        }))
+      );
       
       const completedFormatted: Report[] = userReports.map((report: any) => ({
         id: report.id || '',
