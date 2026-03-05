@@ -13,6 +13,25 @@
   --text-sub: rgba(255,255,255,0.55);
 }
 
+/* ===== TOPBAR MODERNA ===== */
+.topbar-modern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, rgba(20, 20, 28, 0.72) 0%, rgba(28, 28, 38, 0.9) 100%);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0 0 18px 18px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
 .admin-login-link {
   transition: color 0.2s;
 }

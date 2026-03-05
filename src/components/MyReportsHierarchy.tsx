@@ -277,7 +277,6 @@ const MyReportsHierarchy: React.FC<MyReportsHierarchyProps> = ({
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
           </svg>
         </button>
-        <div className="topbar-title-modern">MOPC - Mis Reportes por Región</div>
         <div className="topbar-actions-modern">
           <div className="topbar-action-button-modern" onClick={loadReports} title="Recargar mis reportes">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

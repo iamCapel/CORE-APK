@@ -266,7 +266,6 @@ const UserSettingsPage: React.FC<UserSettingsPageProps> = ({ user, onBack, onLog
         <button className="back-btn" onClick={onBack} title="Volver">
           <BackIcon />
         </button>
-        <div className="topbar-title">Configuración</div>
         <div className="topbar-spacer" />
       </div>
 

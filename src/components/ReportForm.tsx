@@ -868,8 +868,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
           </svg>
         </button>
 
-        <div className="topbar-title-modern">MOPC - Registro de Actividades</div>
-
         <div className="topbar-actions-modern">
           <div className="topbar-action-button-modern" onClick={() => setShowPendingModal(true)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
