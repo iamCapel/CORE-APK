@@ -41,9 +41,13 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       
       // Cargar reportes pendientes
       const pending = await firebasePendingReportStorage.getAllPendingReports();
-      console.log('📊 Reportes pendientes crudos:', pending);
+      console.log('📊 Todos los reportes pendientes:', pending);
       
-      const pendingFormatted: Report[] = pending.map((report: any) => ({
+      // Filtrar reportes pendientes por usuario
+      const userPendingReports = pending.filter((report: any) => report.username === username);
+      console.log('📊 Reportes pendientes del usuario:', userPendingReports);
+      
+      const pendingFormatted: Report[] = userPendingReports.map((report: any) => ({
         id: report._pendingReportId || report.id || '',
         reportNumber: `P-${report._pendingReportId?.slice(-6) || '000000'}`,
         tipoIntervencion: report.tipoIntervencion || 'Sin especificar',
@@ -75,7 +79,8 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       setPendingReports(pendingFormatted);
       setCompletedReports(completedFormatted);
       
-      console.log('📈 Totales - Pendientes:', pendingFormatted.length, 'Completados:', completedFormatted.length);
+      console.log('📈 Totales del usuario - Pendientes:', pendingFormatted.length, 'Completados:', completedFormatted.length);
+      console.log('📈 Total general de reportes del usuario:', pendingFormatted.length + completedFormatted.length);
     } catch (error) {
       console.error('❌ Error al cargar reportes:', error);
       setError('No se pudieron cargar los reportes. Intente nuevamente.');
@@ -155,13 +160,13 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
       {/* Header con refresh */}
       <div className="reports-header">
         <h3 className="reports-title">
-          📋 Mis Reportes
+          📋 Mis Reportes Registrados
         </h3>
         <button 
           className="refresh-button" 
           onClick={loadReports}
           disabled={loading}
-          title="Recargar reportes"
+          title="Recargar mis reportes"
         >
           🔄
         </button>
