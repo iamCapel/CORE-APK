@@ -271,11 +271,22 @@ const MyReportsHierarchy: React.FC<MyReportsHierarchyProps> = ({
 
   return (
     <div className="hierarchy-container">
-      <div className="hierarchy-header">
-        <h3 className="hierarchy-title">📋 Mis Reportes por Región</h3>
-        <button className="refresh-button" onClick={loadReports} title="Recargar mis reportes">
-          🔄
+      <div className="topbar-modern">
+        <button title="Volver al Dashboard" className="topbar-back-button-modern" onClick={onClose}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+          </svg>
         </button>
+        <div className="topbar-title-modern">MOPC - Mis Reportes por Región</div>
+        <div className="topbar-actions-modern">
+          <div className="topbar-action-button-modern" onClick={loadReports} title="Recargar mis reportes">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 4v6h-6"></path>
+              <path d="M1 20v-6h6"></path>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          </div>
+        </div>
       </div>
 
       <div className="hierarchy-tree">

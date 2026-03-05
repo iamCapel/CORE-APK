@@ -76,7 +76,7 @@
   background: rgba(10, 10, 12, 0.82);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  z-index: 900;
+  z-index: 9999;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.04),
@@ -976,12 +976,15 @@
 
 /* ===== CONTENEDOR PRINCIPAL ===== */
 .dashboard-content {
-  padding: 20px 16px 40px;
+  padding: 100px 16px 40px; /* Espacio para topbar (50px) + cinta (30px) + margen */
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
   overflow-x: hidden;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alineación a la izquierda, no centrado */
 }
 
 /* ===== HEADER MINIMALISTA (OCULTO) ===== */
@@ -2460,20 +2463,150 @@ select option[value="otros"] {
 .dashboard-main {
   padding: 8px 0 24px;
   animation: fadeIn 0.5s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* ===== TOPBAR DE NOTIFICACIONES ===== */
+.notification-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: linear-gradient(135deg, rgba(20, 20, 28, 0.95) 0%, rgba(28, 28, 38, 0.98) 100%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 107, 0, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  height: 50px;
+}
+
+.notification-topbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 100%;
+  max-width: 100%;
+}
+
+.notification-topbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.app-title {
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--orange);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.notification-topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.notification-bell-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.notification-bell-button:hover {
+  color: var(--orange);
+  background: rgba(255, 107, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.notification-bell-button svg {
+  transition: transform 0.3s ease;
+}
+
+.notification-bell-button:hover svg {
+  transform: rotate(15deg);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--orange);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  border: 2px solid rgba(20, 20, 28, 0.8);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(255, 107, 0, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 107, 0, 0);
+  }
 }
 
 /* ===== GREETING / PAGE HEADER ===== */
 .dashboard-greeting {
-  margin-bottom: 22px;
+  position: fixed;
+  top: 50px; /* Debajo de la topbar de notificaciones */
+  left: 0;
+  right: 0;
+  z-index: 9999;
   animation: fadeUp 0.5s ease both;
+  overflow: hidden;
+  background: linear-gradient(90deg, #1a1a1e 0%, #2a2a2e 100%);
+  padding: 8px 0;
+  border-top: 2px solid rgba(255, 107, 0, 0.3);
+  border-bottom: 2px solid rgba(255, 107, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .dashboard-greeting-label {
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 14px;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 5px;
+  color: var(--orange);
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+  animation: scrollText 15s linear infinite;
+  padding-left: 100%;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: 'Rajdhani', 'Inter', sans-serif;
+}
+
+@keyframes scrollText {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 .dashboard-greeting-title {

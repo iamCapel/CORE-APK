@@ -275,13 +275,6 @@ const MyReportsList: React.FC<MyReportsListProps> = ({
 
   return (
     <div className="my-reports-list-container">
-      <div className="reports-header">
-        <h3 className="reports-title">📋 Mis Reportes Registrados</h3>
-        <button className="refresh-button" onClick={loadReports} title="Recargar mis reportes">
-          🔄
-        </button>
-      </div>
-
       <div className="hierarchy-container">
         <div className="hierarchy-tree">
           {regions.map((region) => (

@@ -903,108 +903,14 @@ Observaciones: ${r.observaciones || 'Ninguna'}
   return (
     <div className="reports-page">
       <div className="reports-container">
-        {/* Topbar Reconstruido */}
-        <div className="reports-topbar-modern">
-          <div className="topbar-left-section">
-            <button className="topbar-back-btn-modern" onClick={onBack}>
-              <span className="back-arrow">←</span>
-              <span className="back-text">Dashboard</span>
-            </button>
-            <div className="topbar-divider"></div>
-            <div className="topbar-title-section">
-              <h1 className="topbar-main-title">Informes y Estadísticas</h1>
-              <p className="topbar-subtitle">Análisis de intervenciones por región</p>
-            </div>
-          </div>
-          
-          <div className="topbar-right-section">
-            {/* Icono de notificaciones */}
-            <div className="notification-container" style={{ position: 'relative', marginRight: '16px' }}>
-              <img 
-                src="/images/notification-bell-icon.svg" 
-                alt="Notificaciones" 
-                className="notification-icon"
-                style={{
-                  width: '24px', 
-                  height: '24px',
-                  filter: 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  animation: pendingCount > 0 ? 'bellShake 0.5s ease-in-out infinite alternate' : 'none'
-                }}
-                onClick={() => setShowPendingModal(true)}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.filter = 'drop-shadow(0 3px 6px rgba(255, 152, 0, 0.6))';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(255, 152, 0, 0.4))';
-                }}
-              />
-              {pendingCount > 0 && (
-                <span 
-                  style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-6px',
-                    backgroundColor: '#e74c3c',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    border: '2px solid white',
-                    animation: 'badgeGlow 2s infinite'
-                  }}
-                >
-                  {pendingCount > 99 ? '99+' : pendingCount}
-                </span>
-              )}
-            </div>
-
-            <div className="view-selector-topbar">
-              <button 
-                className={`view-btn-topbar ${currentView === 'estadisticas' ? 'active' : ''}`}
-                onClick={() => setCurrentView('estadisticas')}
-              >
-                <span className="view-icon">📊</span>
-                <span className="view-label">Estadísticas</span>
-              </button>
-              <button 
-                className={`view-btn-topbar ${currentView === 'detallado' ? 'active' : ''}`}
-                onClick={() => setCurrentView('detallado')}
-              >
-                <span className="view-icon">📄</span>
-                <span className="view-label">Informe Detallado</span>
-              </button>
-              <button 
-                className={`view-btn-topbar ${currentView === 'vehiculos' ? 'active' : ''}`}
-                onClick={() => setCurrentView('vehiculos')}
-              >
-                <span className="view-icon">🚜</span>
-                <span className="view-label">Vehículos Pesados</span>
-              </button>
-              <button 
-                className={`view-btn-topbar ${currentView === 'exportar' ? 'active' : ''}`}
-                onClick={() => setCurrentView('exportar')}
-              >
-                <span className="view-icon">📥</span>
-                <span className="view-label">Exportar Informe</span>
-              </button>
-              <button
-                className={`view-btn-topbar ${currentView === 'lista' ? 'active' : ''}`}
-                onClick={() => setCurrentView('lista')}
-              >
-                <span className="view-icon">📁</span>
-                <span className="view-label">Listado</span>
-              </button>
-            </div>
-          </div>
+        {/* Topbar MOPC */}
+        <div className="topbar-modern">
+          <button title="Volver al Dashboard" className="topbar-back-button-modern" onClick={onBack}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+            </svg>
+          </button>
+          <div className="topbar-title-modern">MOPC - Intervenciones Realizadas</div>
         </div>
         
         <div className="reports-content">

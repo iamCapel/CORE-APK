@@ -1460,11 +1460,36 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
-      <header className="topbar">
-        <div className="topbar-center">
-          <span className="topbar-logo">MOPC</span>
+      {/* Topbar de notificaciones */}
+      <div className="notification-topbar">
+        <div className="notification-topbar-content">
+          <div className="notification-topbar-left">
+            <span className="app-title">MOPC</span>
+          </div>
+          <div className="notification-topbar-right">
+            <button 
+              className="notification-bell-button"
+              onClick={() => setShowPendingModal(true)}
+              title="Reportes Pendientes"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {pendingCount > 0 && (
+                <span className="notification-badge">
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
-      </header>
+      </div>
+
+      {/* Cinta animada en el extremo superior */}
+      <div className="dashboard-greeting">
+        <div className="dashboard-greeting-label">VICEMINISTERIO DE COORDINACION REGIONAL</div>
+      </div>
 
       <div className="dashboard-content">
         {/* Notificación de perfil incompleto */}
@@ -1493,12 +1518,6 @@ const Dashboard: React.FC = () => {
         </header>
 
         <div className="dashboard-main">
-          {/* Saludo / encabezado de página */}
-          <div className="dashboard-greeting">
-            <div className="dashboard-greeting-label">Bienvenido de vuelta, {user?.name?.split(' ')[0]}</div>
-            <h1 className="dashboard-greeting-title">Panel de <span>Control</span></h1>
-          </div>
-
           {/* TODO: el diseño original usaba "cards" para cada acción.
               Para que el dashboard se parezca más a una app móvil podemos
               usar iconos circulares y etiquetas pequeñas. Se introduce el
