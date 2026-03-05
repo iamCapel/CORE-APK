@@ -628,8 +628,13 @@ const Dashboard: React.FC = () => {
   // Función para actualizar el contador de pendientes del usuario actual
   const updatePendingCount = async () => {
     try {
-      // Obtener reportes pendientes del usuario actual
-      const userPending = await firebasePendingReportStorage.getUserPendingReports(user?.username || '');
+      // Obtener reportes con estado 'pendiente' de la colección principal
+      const allPending = await firebaseReportStorage.getReportsByEstado('pendiente');
+      
+      // Filtrar solo los del usuario actual
+      const userPending = allPending.filter(report => 
+        report.usuarioId === user?.username || report.creadoPor === user?.username
+      );
       
       setPendingCount(userPending.length);
       console.log(`📊 Reportes pendientes del usuario ${user?.username}:`, userPending.length);
@@ -642,24 +647,28 @@ const Dashboard: React.FC = () => {
   // Función para obtener lista detallada de reportes pendientes del usuario
   const getPendingReports = async () => {
     try {
-      // Obtener reportes pendientes del usuario actual
-      const userPending = await firebasePendingReportStorage.getUserPendingReports(user?.username || '');
+      // Obtener reportes con estado 'pendiente' de la colección principal
+      const allPending = await firebaseReportStorage.getReportsByEstado('pendiente');
+      
+      // Filtrar solo los del usuario actual
+      const userPending = allPending.filter(report => 
+        report.usuarioId === user?.username || report.creadoPor === user?.username
+      );
 
       const formatted = userPending.map(report => {
         try {
-          const formData = report.formData || {};
           return {
             id: report.id,
-            reportNumber: `P-${new Date().getFullYear()}-${report.id.slice(-6)}`,
-            numeroReporte: `P-${new Date().getFullYear()}-${report.id.slice(-6)}`,
-            timestamp: report.timestamp || new Date().toISOString(),
-            estado: 'pendiente',
-            region: formData.region || 'N/A',
-            provincia: formData.provincia || 'N/A',
-            municipio: formData.municipio || 'N/A',
-            distrito: formData.distrito || 'N/A',
-            tipoIntervencion: formData.tipoIntervencion || 'No especificado',
-            creadoPor: report.userName || 'Desconocido'
+            reportNumber: report.numeroReporte || `P-${report.id.slice(-6)}`,
+            numeroReporte: report.numeroReporte || `P-${report.id.slice(-6)}`,
+            timestamp: report.timestamp || report.fechaCreacion,
+            estado: report.estado,
+            region: report.region || 'N/A',
+            provincia: report.provincia || 'N/A',
+            municipio: report.municipio || 'N/A',
+            distrito: report.distrito || 'N/A',
+            tipoIntervencion: report.tipoIntervencion || 'No especificado',
+            creadoPor: report.creadoPor || 'Desconocido'
           };
         } catch {
           return {
@@ -689,35 +698,35 @@ const Dashboard: React.FC = () => {
     try {
       console.log('📋 Cargando reporte pendiente desde Firebase:', reportId);
       
-      // Cargar desde la colección de pendingReports
-      const pendingReport = await firebasePendingReportStorage.getPendingReport(reportId);
+      // Cargar desde la colección principal de reportes (no desde pendingReports)
+      const pendingReport = await firebaseReportStorage.getReport(reportId);
       
-      console.log('📦 Datos del reporte pendiente:', pendingReport);
+      console.log('📦 Datos del reporte desde Firebase:', pendingReport);
       
-      if (pendingReport) {
-        // Extraer datos de formData si existe, sino usar los campos directos
-        const formData = pendingReport.formData || {};
-        
-        // Convertir el reporte pendiente a formato de edición
+      if (pendingReport && pendingReport.estado === 'pendiente') {
+        // Convertir el reporte completo a formato de edición
         const dataToLoad = {
           id: pendingReport.id,
-          region: formData.region || '',
-          provincia: formData.provincia || '',
-          distrito: formData.distrito || '',
-          municipio: formData.municipio || '',
-          sector: formData.sector || '',
-          sectorPersonalizado: formData.sectorPersonalizado || '',
-          mostrarSectorPersonalizado: formData.mostrarSectorPersonalizado || false,
-          distritoPersonalizado: formData.distritoPersonalizado || '',
-          mostrarDistritoPersonalizado: formData.mostrarDistritoPersonalizado || false,
-          tipoIntervencion: formData.tipoIntervencion || '',
-          subTipoCanal: formData.subTipoCanal || '',
-          observaciones: formData.observaciones || '',
-          plantillaValues: formData.metricData || {},
-          autoGpsFields: formData.gpsData || {},
-          vehiculos: formData.vehiculos || [],
-          fechaReporte: formData.fechaProyecto || '',
-          _pendingReportId: pendingReport.id // ID del reporte pendiente
+          region: pendingReport.region,
+          provincia: pendingReport.provincia,
+          distrito: pendingReport.distrito,
+          municipio: pendingReport.municipio,
+          sector: pendingReport.sector,
+          tipoIntervencion: pendingReport.tipoIntervencion,
+          subTipoCanal: pendingReport.subTipoCanal,
+          observaciones: pendingReport.observaciones,
+          plantillaValues: pendingReport.metricData || {},
+          autoGpsFields: pendingReport.gpsData || {},
+          vehiculos: pendingReport.vehiculos || [],
+          fechaInicio: pendingReport.fechaInicio || (pendingReport.fechaCreacion ? pendingReport.fechaCreacion.split('T')[0] : ''),
+          fechaFinal: pendingReport.fechaFinal || '',
+          fechaReporte: pendingReport.fechaCreacion ? pendingReport.fechaCreacion.split('T')[0] : '',
+          estado: pendingReport.estado,
+          // Restaurar datos multi-día si existen
+          diasTrabajo: pendingReport.diasTrabajo || [],
+          reportesPorDia: pendingReport.reportesPorDia || {},
+          diaActual: pendingReport.diaActual || 0,
+          _pendingReportId: pendingReport.id // ID del reporte pendiente para actualizar
         };
         
         console.log('✅ Datos a cargar en el formulario:', dataToLoad);
@@ -728,11 +737,11 @@ const Dashboard: React.FC = () => {
         setShowReportForm(true);
         setActiveNav('crear');
       } else {
-        console.error('❌ No se encontró el reporte pendiente:', reportId);
+        console.error('❌ No se encontró el reporte pendiente en Firebase:', reportId);
         alert('No se pudo cargar el reporte pendiente');
       }
     } catch (error) {
-      console.error('❌ Error al cargar el reporte pendiente:', error);
+      console.error('❌ Error al cargar el reporte pendiente desde Firebase:', error);
       alert('Error al cargar el reporte pendiente');
     }
   };
@@ -740,9 +749,9 @@ const Dashboard: React.FC = () => {
   // Función para cancelar/eliminar un reporte pendiente
   const handleCancelPendingReport = async (reportId: string) => {
     try {
-      // Eliminar de la colección de pendingReports
-      await firebasePendingReportStorage.deletePendingReport(reportId);
-      console.log('✅ Reporte pendiente eliminado');
+      // Eliminar de la colección principal de Firebase
+      await firebaseReportStorage.deleteReport(reportId);
+      console.log('✅ Reporte pendiente eliminado de Firebase');
       await updatePendingCount();
       // Actualizar la vista del modal
       setShowPendingModal(false);

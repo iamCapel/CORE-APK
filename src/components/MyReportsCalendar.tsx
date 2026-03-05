@@ -453,7 +453,7 @@ const MyReportsCalendar: React.FC<MyReportsCalendarProps> = ({ username, onClose
                             console.log('🗑️ Eliminando reporte pendiente desde Firebase:', report.id);
                             try {
                               // Eliminar SOLO de Firebase
-                              await firebasePendingReportStorage.deletePendingReport(report.id);
+                              await firebaseReportStorage.deleteReport(report.id);
                               console.log('✅ Reporte eliminado exitosamente de Firebase');
                               await loadPendingReports();
                             } catch (error) {

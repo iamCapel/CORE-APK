@@ -347,59 +347,52 @@ const ReportForm: React.FC<ReportFormProps> = ({
     }
     
     setShowPendingAnimation(true);
-    try {
-      // generate an identifier for this pending report
-      const id = crypto.randomUUID ? crypto.randomUUID() : `pending-${Date.now()}`;
-      const now = new Date().toISOString();
-
-      // Calcular progreso basado en campos completados
-      const completedFields: string[] = [];
-      if (region) completedFields.push('region');
-      if (provincia) completedFields.push('provincia');
-      if (municipio) completedFields.push('municipio');
-      if (tipoIntervencion) completedFields.push('tipoIntervencion');
-      if (observaciones) completedFields.push('observaciones');
-      const progress = Math.round((completedFields.length / 5) * 100);
-
-      // Construir formData solo con campos que tienen valor (Firebase no acepta undefined)
-      const formData: any = {
-        metricData: plantillaValues || {}
-      };
-      
-      if (region) formData.region = region;
-      if (provincia) formData.provincia = provincia;
-      if (municipio) formData.municipio = municipio;
-      if (distritoFinal) formData.distrito = distritoFinal;
-      if (sectorFinal) formData.sector = sectorFinal;
-      if (tipoIntervencion) formData.tipoIntervencion = tipoIntervencion;
-      if (subTipoCanal) formData.subTipoCanal = subTipoCanal;
-      if (observaciones) formData.observaciones = observaciones;
-      if (vehiculos.length > 0) formData.vehiculos = vehiculos;
-      if (autoGpsFields && Object.keys(autoGpsFields).length > 0) formData.gpsData = autoGpsFields;
-      if (fechaReporte) formData.fechaProyecto = fechaReporte;
-
-      // Construir objeto compatible con interfaz PendingReport
-      const pendingData = {
-        id,
-        timestamp: now,
-        lastModified: now,
-        userId: user?.username || 'desconocido',
-        userName: user?.name || 'Desconocido',
-        progress,
-        fieldsCompleted: completedFields,
-        currentStep: 0,
-        formData
-      };
-
-      console.log('💾 Guardando reporte pendiente:', pendingData);
-      await firebasePendingReportStorage.savePendingReport(pendingData);
-      setCurrentPendingReportId(id);
-      alert('Reporte guardado como pendiente.');
-    } catch (err) {
-      console.error('❌ Error guardando pendiente:', err);
-      alert('Error al guardar reporte pendiente: ' + (err instanceof Error ? err.message : String(err)));
-    }
-    setShowPendingAnimation(false);
+    
+    setTimeout(async () => {
+      try {
+        // Guardar como PENDIENTE en la colección principal (no aparecerá en estadísticas)
+        const reportData = {
+          timestamp: fechaReporte ? new Date(fechaReporte).toISOString() : new Date().toISOString(),
+          fechaCreacion: fechaReporte ? new Date(fechaReporte).toISOString() : new Date().toISOString(),
+          creadoPor: user?.name || 'Desconocido',
+          usuarioId: user?.username || 'desconocido',
+          region,
+          provincia,
+          distrito: distritoFinal,
+          municipio,
+          sector: sectorFinal,
+          tipoIntervencion: tipoIntervencion === 'Canalización' ? `${tipoIntervencion}:${subTipoCanal}` : tipoIntervencion,
+          subTipoCanal: tipoIntervencion === 'Canalización' ? subTipoCanal : undefined,
+          observaciones: observaciones || undefined,
+          metricData: plantillaValues,
+          gpsData: autoGpsFields,
+          vehiculos: vehiculos,
+          imagesPerDay: Object.keys(imagesPerDay).length > 0 ? imagesPerDay : undefined,
+          estado: 'pendiente' as const,  // 🟠 PENDIENTE
+          // Guardar datos multi-día si existen
+          diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
+          reportesPorDia: diasTrabajo.length > 0 ? reportesPorDia : undefined,
+          fechaInicio: fechaInicio || undefined,
+          fechaFinal: fechaFinal || undefined,
+          diaActual: diasTrabajo.length > 0 ? diaActual : undefined
+        };
+        
+        const savedReport = await reportStorage.saveReport(reportData);
+        await firebaseReportStorage.saveReport(savedReport);
+        setCurrentPendingReportId(savedReport.id);
+        
+        console.log('🟠 Reporte guardado como pendiente (sin estadísticas):', savedReport.id);
+        
+        setTimeout(() => {
+          setShowPendingAnimation(false);
+          alert('🟠 Reporte guardado como pendiente (no aparecerá en estadísticas)');
+        }, 1500);
+      } catch (error) {
+        console.error('❌ Error guardando reporte pendiente:', error);
+        setShowPendingAnimation(false);
+        alert('Error al guardar el reporte pendiente. Verifique su conexión a internet.');
+      }
+    }, 500);
   };
 
   // cancelar el formulario y borrar pendiente si existe
@@ -407,7 +400,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
     if (window.confirm('¿Está seguro de que desea cancelar? Se perderán los datos no guardados.')) {
       if (currentPendingReportId) {
         try {
-          await firebasePendingReportStorage.deletePendingReport(currentPendingReportId);
+          await firebaseReportStorage.deleteReport(currentPendingReportId);
         } catch (err) {
           console.error('Error eliminando pendiente al cancelar:', err);
         }
@@ -606,7 +599,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
         // Eliminar reporte pendiente si existe
         if (currentPendingReportId) {
           try {
-            await firebasePendingReportStorage.deletePendingReport(currentPendingReportId);
+            await firebaseReportStorage.deleteReport(currentPendingReportId);
             setCurrentPendingReportId(null);
             console.log('✅ Reporte pendiente eliminado después de guardar');
           } catch (err) {
@@ -669,7 +662,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
         // Eliminar reporte pendiente si existe
         if (currentPendingReportId) {
           try {
-            await firebasePendingReportStorage.deletePendingReport(currentPendingReportId);
+            await firebaseReportStorage.deleteReport(currentPendingReportId);
             setCurrentPendingReportId(null);
             console.log('✅ Reporte pendiente eliminado después de guardar');
           } catch (err) {
@@ -851,7 +844,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const handleCancelPendingReport = async (reportId: string) => {
     if (window.confirm('¿Está seguro de que desea cancelar este reporte pendiente?')) {
       try {
-        await firebasePendingReportStorage.deletePendingReport(reportId);
+        await firebaseReportStorage.deleteReport(reportId);
         console.log('✅ Reporte pendiente cancelado');
         getPendingReports(); // Actualizar la lista
       } catch (error) {
