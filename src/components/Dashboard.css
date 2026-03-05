@@ -2518,31 +2518,24 @@ select option[value="otros"] {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px 16px;
     padding: 0;
-    /* mobile override keeps effect */
-    background: rgba(255,255,255,0.06);
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.12);
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .dashboard-icons-grid {
     grid-template-columns: repeat(4, 1fr);
-    background: rgba(255,255,255,0.06);
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.12);
   }
 }
 
 @media (min-width: 1025px) {
   .dashboard-icons-grid {
     grid-template-columns: repeat(4, 1fr);
-    background: rgba(255,255,255,0.06);
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.12);
   }
 }
 
