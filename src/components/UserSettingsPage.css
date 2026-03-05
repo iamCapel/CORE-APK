@@ -1,0 +1,270 @@
+/* UserSettingsPage.css - Estilos para la página de configuración de usuario */
+
+.user-settings-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 60px;
+}
+
+/* Contenedor principal */
+.settings-content {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 80px;
+}
+
+/* Mensajes de notificación */
+.settings-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+.settings-message.success {
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: #4caf50;
+}
+
+.settings-message.error {
+  background: rgba(244, 67, 54, 0.15);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: #f44336;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tabs de navegación */
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.settings-tab {
+  flex: 1;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.settings-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-tab.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Secciones */
+.settings-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.settings-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 20px 0;
+}
+
+.settings-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Campos de formulario */
+.settings-field {
+  margin-bottom: 20px;
+}
+
+.settings-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333;
+  background: #fff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.settings-input::placeholder {
+  color: #999;
+}
+
+.settings-hint {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
+}
+
+/* Botones */
+.settings-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.settings-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.settings-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.settings-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.settings-btn-danger {
+  background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.settings-btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
+}
+
+.settings-btn-danger:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Zona de peligro (cerrar sesión) */
+.settings-danger-zone {
+  border: 2px solid rgba(244, 67, 54, 0.2);
+}
+
+.settings-danger-zone .settings-section-title {
+  color: #f44336;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-content {
+    padding: 16px;
+    padding-top: 70px;
+  }
+
+  .settings-section {
+    padding: 20px;
+  }
+
+  .settings-section-title {
+    font-size: 18px;
+  }
+
+  .settings-tabs {
+    gap: 6px;
+  }
+
+  .settings-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-content {
+    padding: 12px;
+    padding-top: 70px;
+  }
+
+  .settings-section {
+    padding: 16px;
+  }
+
+  .settings-section-title {
+    font-size: 16px;
+  }
+
+  .settings-input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .settings-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}

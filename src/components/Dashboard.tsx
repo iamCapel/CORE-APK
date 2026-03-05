@@ -10,6 +10,7 @@ import MyReportsList from './MyReportsList';
 import MyReportsListModern from './MyReportsListModern';
 import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportView from './ReportView';
+import UserSettingsPage from './UserSettingsPage';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 import { userStorage } from '../services/userStorage';
@@ -597,6 +598,7 @@ const Dashboard: React.FC = () => {
   const [showGoogleMapView, setShowGoogleMapView] = useState(false);
   const [showLeafletMapView, setShowLeafletMapView] = useState(false);
   const [showHierarchy, setShowHierarchy] = useState(false);
+  const [showSettingsPage, setShowSettingsPage] = useState(false);
   const [interventionToEdit, setInterventionToEdit] = useState<any>(null);
 
   // ReportView states
@@ -1209,7 +1211,14 @@ const Dashboard: React.FC = () => {
         setShowLeafletMapView(false);
         break;
       case 'opciones':
-        setShowUserMenu(!showUserMenu);
+        setShowSettingsPage(true);
+        setShowReportsPage(false);
+        setShowReportForm(false);
+        setShowExportPage(false);
+        setShowUsersPage(false);
+        setShowGoogleMapView(false);
+        setShowLeafletMapView(false);
+        setShowMyReportsModal(false);
         break;
     }
   };
@@ -1259,6 +1268,7 @@ const Dashboard: React.FC = () => {
     setShowGoogleMapView(false);
     setShowLeafletMapView(false);
     setShowHierarchy(false);
+    setShowSettingsPage(false);
     setInterventionToEdit(null);
     setActiveNav('dashboard'); // Volver al botón home en navegación inferior
   };
@@ -1303,6 +1313,17 @@ const Dashboard: React.FC = () => {
           />
         </div>
       </div>
+    );
+  }
+
+  // Si se debe mostrar la página de configuración
+  if (showSettingsPage && user) {
+    return (
+      <UserSettingsPage 
+        user={user} 
+        onBack={handleBackToDashboard}
+        onLogout={handleLogout}
+      />
     );
   }
 
