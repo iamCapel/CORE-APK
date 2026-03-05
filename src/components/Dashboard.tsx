@@ -17,6 +17,7 @@ import { userStorage } from '../services/userStorage';
 import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
+import { useGpsTracker } from '../hooks/useGpsTracker';
 import './Dashboard.css';
 import './BottomNavigation.css';
 import './MyReportsPage.css';
