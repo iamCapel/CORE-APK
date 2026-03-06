@@ -19,6 +19,7 @@ import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import { useGpsTracker } from '../hooks/useGpsTracker';
+import LiveLocationService from '../services/liveLocationService';
 import './Dashboard.css';
 import './BottomNavigation.css';
 import './MyReportsPage.css';
@@ -928,6 +929,30 @@ const Dashboard: React.FC = () => {
     };
     
     checkVerification();
+  }, [user]);
+
+  // Iniciar tracking en vivo cuando el usuario inicie sesión
+  useEffect(() => {
+    if (user && user.username) {
+      console.log('📍 Iniciando tracking en vivo para usuario:', user.username);
+      
+      const liveLocationService = LiveLocationService.getInstance();
+      
+      // Iniciar tracking en vivo
+      liveLocationService.startLiveTracking(user.username)
+        .then(() => {
+          console.log('✅ Tracking en vivo iniciado exitosamente');
+        })
+        .catch((error) => {
+          console.error('❌ Error iniciando tracking en vivo:', error);
+        });
+
+      // Limpiar tracking cuando el usuario cierre sesión
+      return () => {
+        console.log('📍 Deteniendo tracking en vivo para usuario:', user.username);
+        liveLocationService.stopLiveTracking();
+      };
+    }
   }, [user]);
 
   // Aplicar tema según el rol del usuario
