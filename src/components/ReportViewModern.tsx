@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import firebaseReportStorage from '../services/firebaseReportStorage';
 import './ReportViewModern.css';
 
 interface ReportData {
@@ -15,13 +16,11 @@ interface ReportData {
   metricData: Record<string, any>;
   gpsData?: Record<string, { lat: number; lon: number }>;
   vehiculos: Array<{
-    numero: string;
     tipo: string;
-    marca: string;
+    modelo: string;
     ficha: string;
   }>;
   observaciones?: string;
-  longitudIntervencion?: number;
 }
 
 interface ReportViewModernProps {
@@ -51,58 +50,36 @@ const ReportViewModern: React.FC<ReportViewModernProps> = ({
         setLoading(true);
         setError(null);
         
-        // Aquí deberías cargar los datos desde Firebase o tu API
-        // Por ahora, usaré datos de ejemplo
-        const mockReport: ReportData = {
-          id: reportId,
-          numeroReporte: 'DCR-2026-000005',
-          region: 'Cibao Norte',
-          provincia: 'Puerto Plata',
-          municipio: 'Puerto Plata',
-          distrito: 'San Piñe',
-          sector: 'San Piñe',
-          tipoIntervencion: 'Rehabilitación Camino Vecinal',
-          creadoPor: 'Usuario Capel',
-          fechaCreacion: '02/02/2026',
-          metricData: {
-            nombre_camino: 'San Piñe',
-            punto_inicial: '18.500000°N, 69.950000°W',
-            punto_alcanzado: '18.500000°N, 69.950000°W',
-            longitud_intervencion: 0.350,
-            suministro_extension_material: 320,
-            extraccion_material: 80,
-            suministro_colocacion_grava: 120,
-            relleno_compactacion: 120,
-            bote_material: 350,
-            limpieza_superficie: -0.01
-          },
-          gpsData: {
-            punto_inicial: { lat: 18.500000, lon: -69.950000 },
-            punto_alcanzado: { lat: 18.500000, lon: -69.950000 }
-          },
-          vehiculos: [
-            { numero: '01', tipo: 'Excavadora', marca: 'CAT', ficha: 'RE-067' },
-            { numero: '02', tipo: 'Motoniveladora', marca: 'CAT', ficha: 'MN-192' },
-            { numero: '03', tipo: 'Rodillo Liso', marca: 'CAT', ficha: 'RO-874' },
-            { numero: '04', tipo: 'Retroexcavadora', marca: 'CAT', ficha: 'RE-071' },
-            { numero: '05', tipo: 'Camión Volquete', marca: 'CAT', ficha: 'CV-1102' },
-            { numero: '06', tipo: 'Camión Volquete', marca: 'CAT', ficha: 'CV-1023' },
-            { numero: '07', tipo: 'Camión Volquete', marca: 'CAT', ficha: 'CV-1023' },
-            { numero: '08', tipo: 'Camión Volquete', marca: '—', ficha: 'CV-1079' },
-            { numero: '09', tipo: 'Camión Volquete', marca: '—', ficha: 'CV-1079' },
-            { numero: '10', tipo: 'Camión Volquete', marca: '—', ficha: 'CV-1085' },
-            { numero: '11', tipo: 'Camión Volquete', marca: '—', ficha: 'CV-1062' },
-            { numero: '12', tipo: 'Camión Cisterna', marca: '—', ficha: 'CD-1196' },
-            { numero: '13', tipo: 'Minicargador', marca: '—', ficha: 'MC-018' }
-          ],
-          observaciones: 'Retro Pala RE-071 tiene el motor de arranque dañado. El técnico de la casa se llevó la pieza.\n\nMotoniveladora fuera de servicio por deslizadores y mantenimiento. Para conocimiento de los supervisores.',
-          longitudIntervencion: 0.350
-        };
+        // Cargar datos reales desde Firebase
+        const firebaseReport = await firebaseReportStorage.getReport(reportId);
         
-        setReport(mockReport);
+        if (firebaseReport) {
+          // Convertir datos de Firebase al formato esperado
+          const reportData: ReportData = {
+            id: firebaseReport.id,
+            numeroReporte: firebaseReport.numeroReporte || firebaseReport.id,
+            region: firebaseReport.region || 'N/A',
+            provincia: firebaseReport.provincia || 'N/A',
+            municipio: firebaseReport.municipio || 'N/A',
+            distrito: firebaseReport.distrito || 'N/A',
+            sector: firebaseReport.sector || 'N/A',
+            tipoIntervencion: firebaseReport.tipoIntervencion || 'No especificado',
+            creadoPor: firebaseReport.creadoPor || 'Desconocido',
+            fechaCreacion: firebaseReport.fechaCreacion || new Date().toISOString(),
+            metricData: firebaseReport.metricData || {},
+            gpsData: firebaseReport.gpsData || {},
+            vehiculos: firebaseReport.vehiculos || [],
+            observaciones: firebaseReport.observaciones || ''
+          };
+          
+          setReport(reportData);
+          console.log('✅ Reporte cargado desde Firebase:', reportData);
+        } else {
+          throw new Error('Reporte no encontrado');
+        }
       } catch (err) {
-        setError('Error al cargar el reporte');
-        console.error('Error loading report:', err);
+        console.error('❌ Error al cargar reporte:', err);
+        setError('No se pudo cargar el reporte. Por favor intente nuevamente.');
       } finally {
         setLoading(false);
       }
@@ -234,7 +211,7 @@ const ReportViewModern: React.FC<ReportViewModernProps> = ({
         </div>
         <div className="meta-cell">
           <div className="meta-lbl">Longitud</div>
-          <div className="meta-val">{report.longitudIntervencion || 0} km</div>
+          <div className="meta-val">{report.metricData.longitud_intervencion || 0} km</div>
         </div>
       </div>
 
@@ -300,10 +277,10 @@ const ReportViewModern: React.FC<ReportViewModernProps> = ({
                 <div className="field-val">{report.metricData.nombre_camino}</div>
               </div>
             )}
-            {report.longitudIntervencion && (
+            {report.metricData.longitud_intervencion && (
               <div className="field-row">
                 <div className="field-label">Longitud</div>
-                <div className="field-val accent">{report.longitudIntervencion} km</div>
+                <div className="field-val accent">{report.metricData.longitud_intervencion} km</div>
               </div>
             )}
           </div>
@@ -321,10 +298,10 @@ const ReportViewModern: React.FC<ReportViewModernProps> = ({
             <div className="vehicle-list">
               {report.vehiculos.map((vehicle, index) => (
                 <div className="vehicle-row" key={index}>
-                  <div className="vehicle-num">{vehicle.numero}</div>
+                  <div className="vehicle-num">{String(index + 1).padStart(2, '0')}</div>
                   <div className="vehicle-info">
                     <div className="vehicle-type">{vehicle.tipo}</div>
-                    <div className="vehicle-sub">{vehicle.marca}</div>
+                    <div className="vehicle-sub">{vehicle.modelo}</div>
                   </div>
                   <div className="vehicle-ficha">{vehicle.ficha}</div>
                   <div className="vehicle-arrow">›</div>
