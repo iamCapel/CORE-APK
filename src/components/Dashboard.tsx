@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -983,6 +984,60 @@ const Dashboard: React.FC = () => {
     };
 
     requestGpsPermission();
+  }, []);
+
+  // Manejar botón de retroceso de Android
+  useEffect(() => {
+    // Solo agregar listener en Android
+    if (Capacitor.getPlatform() === 'android') {
+      const handleBackButton = () => {
+        console.log('🔙 Botón de retroceso presionado');
+        
+        // Lógica de navegación hacia atrás
+        if (showReportView) {
+          console.log('🔙 Cerrando ReportViewModern');
+          handleCloseReportView();
+        } else if (showMyReportsModal) {
+          console.log('🔙 Cerrando Mis Reportes');
+          setShowMyReportsModal(false);
+          setActiveNav('dashboard');
+        } else if (showPendingModal) {
+          console.log('🔙 Cerrando Reportes Pendientes');
+          setShowPendingModal(false);
+          setActiveNav('dashboard');
+        } else if (showReportForm) {
+          console.log('🔙 Saliendo del formulario de reporte');
+          if (window.confirm('¿Está seguro que desea salir del formulario? Los datos no guardados se perderán.')) {
+            setShowReportForm(false);
+            setActiveNav('dashboard');
+            setInterventionToEdit(null);
+          }
+        } else if (showReportsPage || showExportPage || showUsersPage || showGoogleMapView || showLeafletMapView) {
+          console.log('🔙 Volviendo al dashboard');
+          handleBackToDashboard();
+        } else if (showHierarchy) {
+          console.log('🔙 Cerrando vista jerárquica');
+          setShowHierarchy(false);
+          setActiveNav('dashboard');
+        } else if (showSettingsPage) {
+          console.log('🔙 Cerrando configuración');
+          setShowSettingsPage(false);
+          setActiveNav('dashboard');
+        } else {
+          console.log('🔙 Ya está en el dashboard - no acción');
+        }
+      };
+
+      // Agregar listener para el botón de retroceso
+      const backButtonListener = (Capacitor as any).addListener('backButton', handleBackButton);
+      
+      // Limpiar listener al desmontar
+      return () => {
+        backButtonListener.remove();
+      };
+    }
+    
+    return () => {}; // No-op para otras plataformas
   }, []);
 
   // Navigation functions
