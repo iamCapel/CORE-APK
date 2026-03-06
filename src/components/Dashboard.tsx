@@ -1322,6 +1322,7 @@ const Dashboard: React.FC = () => {
             username={user.username} 
             onClose={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}
             onContinuePendingReport={handleContinuePendingReport}
+            onViewReport={handleOpenReportView}
           />
         </div>
       </div>
@@ -1345,6 +1346,7 @@ const Dashboard: React.FC = () => {
       <MyReportsHierarchy 
         username={user.username} 
         onClose={handleBackToDashboard}
+        onViewReport={handleOpenReportView}
       />
     );
   }
@@ -1797,7 +1799,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
-
       {/* Modal de Completar Perfil */}
       {showCompleteProfileModal && (
         <div className="modal-overlay" onClick={() => setShowCompleteProfileModal(false)}>
