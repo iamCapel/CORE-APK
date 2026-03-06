@@ -144,13 +144,13 @@ class LiveLocationService {
   // Enviar a Firebase Realtime Database
   private async sendToFirebase(locationData: LiveLocationData): Promise<void> {
     // Importar dinámicamente para evitar dependencias circulares
-    const { getDatabase, ref, push, set } = await import('firebase/database');
+    const { getFirestore, collection, addDoc } = await import('firebase/firestore');
     
-    const database = getDatabase();
-    const locationsRef = ref(database, 'live_locations');
+    const database = getFirestore();
+    const locationsRef = collection(database, 'live_locations');
     
-    // Crear referencia única para este dispositivo/usuario
-    const userDeviceRef = push(locationsRef, {
+    // Agregar documento a la colección con información del dispositivo
+    const docRef = await addDoc(locationsRef, {
       ...locationData,
       deviceInfo: {
         userAgent: navigator.userAgent,
@@ -159,7 +159,7 @@ class LiveLocationService {
       }
     });
 
-    console.log('📡 Ubicación guardada en Firebase Realtime:', userDeviceRef.key);
+    console.log('📡 Ubicación guardada en Firestore:', docRef.id);
   }
 
   // Enviar a API REST (fallback)
@@ -216,29 +216,29 @@ class LiveLocationService {
     localStorage.setItem('last_known_location', JSON.stringify(locationData));
   }
 
-  // Obtener lista de dispositivos activos (desde Firebase)
+  // Obtener lista de dispositivos activos (desde Firestore)
   async getActiveDevices(): Promise<LiveLocationData[]> {
     try {
-      const { getDatabase, ref, onValue } = await import('firebase/database');
-      const database = getDatabase();
-      const activeDevicesRef = ref(database, 'active_devices');
+      const { getFirestore, collection, query, where, getDocs } = await import('firebase/firestore');
+      const database = getFirestore();
+      const locationsRef = collection(database, 'live_locations');
       
-      return new Promise((resolve) => {
-        onValue(activeDevicesRef, (snapshot: any) => {
-          const devices: LiveLocationData[] = [];
-          snapshot.forEach((childSnapshot: any) => {
-            const deviceData = childSnapshot.val() as LiveLocationData;
-            if (deviceData && deviceData.timestamp) {
-              // Solo incluir dispositivos con actividad reciente (últimos 5 minutos)
-              const deviceAge = Date.now() - new Date(deviceData.timestamp).getTime();
-              if (deviceAge < 5 * 60 * 1000) { // 5 minutos
-                devices.push(deviceData);
-              }
-            }
-          });
-          resolve(devices);
-        });
+      // Calcular el timestamp de hace 5 minutos
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      
+      // Query para obtener solo ubicaciones recientes
+      const q = query(locationsRef, where('timestamp', '>=', fiveMinutesAgo));
+      const snapshot = await getDocs(q);
+      
+      const devices: LiveLocationData[] = [];
+      snapshot.forEach((doc) => {
+        const deviceData = doc.data() as LiveLocationData;
+        if (deviceData && deviceData.timestamp) {
+          devices.push(deviceData);
+        }
       });
+      
+      return devices;
       
     } catch (error) {
       console.error('❌ Error obteniendo dispositivos activos:', error);
@@ -249,27 +249,25 @@ class LiveLocationService {
   // Limpiar datos antiguos
   async cleanupOldLocations(): Promise<void> {
     try {
-      const { getDatabase, ref, onValue, remove } = await import('firebase/database');
-      const database = getDatabase();
-      const locationsRef = ref(database, 'live_locations');
+      const { getFirestore, collection, query, where, getDocs, deleteDoc } = await import('firebase/firestore');
+      const database = getFirestore();
+      const locationsRef = collection(database, 'live_locations');
       
-      // Obtener todas las ubicaciones
-      const snapshot = await new Promise<any>((resolve) => {
-        onValue(locationsRef, resolve, { onlyOnce: true });
+      // Calcular el timestamp de hace 24 horas
+      const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      // Query para obtener ubicaciones antiguas
+      const q = query(locationsRef, where('timestamp', '<', cutoffTime));
+      const snapshot = await getDocs(q);
+      
+      // Eliminar documentos antiguos
+      const deletePromises = snapshot.docs.map(doc => {
+        console.log('🗑️ Ubicación antigua eliminada:', doc.data().timestamp);
+        return deleteDoc(doc.ref);
       });
       
-      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000); // 24 horas
-      
-      snapshot.forEach((childSnapshot: any) => {
-        const locationData = childSnapshot.val() as LiveLocationData;
-        if (locationData && locationData.timestamp) {
-          const locationTime = new Date(locationData.timestamp).getTime();
-          if (locationTime < cutoffTime) {
-            remove(childSnapshot.ref);
-            console.log('🗑️ Ubicación antigua eliminada:', locationData.timestamp);
-          }
-        }
-      });
+      await Promise.all(deletePromises);
+      console.log(`✅ ${deletePromises.length} ubicaciones antiguas eliminadas`);
       
     } catch (error) {
       console.error('❌ Error limpiando ubicaciones antiguas:', error);
