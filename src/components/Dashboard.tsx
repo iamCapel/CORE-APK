@@ -773,8 +773,16 @@ const Dashboard: React.FC = () => {
   // Funciones para ReportView
   // reportIdOrNumber puede ser el ID del reporte o el número de reporte (numeroReporte)
   const handleOpenReportView = (reportIdOrNumber: string) => {
+    console.log('🔍 handleOpenReportView llamado con:', reportIdOrNumber);
+    console.log('🔍 Estado actual:', { showReportView, selectedReportId });
+    
     setSelectedReportId(reportIdOrNumber);
     setShowReportView(true);
+    
+    console.log('🔍 Después de actualizar estado:', { 
+      showReportView: true, 
+      selectedReportId: reportIdOrNumber 
+    });
   };
 
   const handleCloseReportView = () => {
@@ -1729,13 +1737,16 @@ const Dashboard: React.FC = () => {
 
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}
       {showReportView && selectedReportId && (
-        <ReportViewModern
-          reportId={selectedReportId}
-          onClose={handleCloseReportView}
-          onEdit={handleEditReportFromView}
-          onDelete={handleDeleteReportFromView}
-          onExport={handleExportReportFromView}
-        />
+        <>
+          {console.log('🔍 Dashboard: Renderizando ReportViewModern con:', { showReportView, selectedReportId })}
+          <ReportViewModern
+            reportId={selectedReportId}
+            onClose={handleCloseReportView}
+            onEdit={handleEditReportFromView}
+            onDelete={handleDeleteReportFromView}
+            onExport={handleExportReportFromView}
+          />
+        </>
       )}
 
       {/* Modal de Perfil de Usuario */}

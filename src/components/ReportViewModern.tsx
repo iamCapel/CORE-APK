@@ -47,11 +47,15 @@ const ReportViewModern: React.FC<ReportViewModernProps> = ({
   useEffect(() => {
     const loadReport = async () => {
       try {
+        console.log('🔍 ReportViewModern useEffect llamado con reportId:', reportId);
         setLoading(true);
         setError(null);
         
         // Cargar datos reales desde Firebase
+        console.log('🔍 Buscando reporte en Firebase con ID:', reportId);
         const firebaseReport = await firebaseReportStorage.getReport(reportId);
+        
+        console.log('🔍 Respuesta de Firebase:', firebaseReport);
         
         if (firebaseReport) {
           // Convertir datos de Firebase al formato esperado
@@ -87,6 +91,8 @@ const ReportViewModern: React.FC<ReportViewModernProps> = ({
 
     if (reportId) {
       loadReport();
+    } else {
+      console.log('❌ ReportViewModern: reportId está vacío');
     }
   }, [reportId]);
 
