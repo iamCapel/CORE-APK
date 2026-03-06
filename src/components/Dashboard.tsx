@@ -9,7 +9,7 @@ import PendingReportsModal from './PendingReportsModal';
 import MyReportsList from './MyReportsList';
 import MyReportsListModern from './MyReportsListModern';
 import MyReportsHierarchy from './MyReportsHierarchy';
-import ReportView from './ReportView';
+import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
@@ -784,7 +784,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleEditReportFromView = (report: any) => {
-    console.log('Editando reporte desde ReportView:', report);
+    console.log('Editando reporte desde ReportViewModern:', report);
     // Convertir el reporte al formato esperado por el formulario
     const dataToLoad = {
       id: report.id,
@@ -803,12 +803,27 @@ const Dashboard: React.FC = () => {
       fechaFinal: report.fechaFinal || '',
       fechaReporte: report.fechaCreacion ? report.fechaCreacion.split('T')[0] : '',
       estado: report.estado,
-      _isEditing: true
+      // Restaurar datos multi-día si existen
+      diasTrabajo: report.diasTrabajo || [],
+      reportesPorDia: report.reportesPorDia || {},
+      diaActual: report.diaActual || 0,
     };
     
     setInterventionToEdit(dataToLoad);
     setShowReportView(false);
     setShowReportForm(true);
+  };
+
+  const handleDeleteReportFromView = (reportId: string) => {
+    console.log('Eliminando reporte desde ReportViewModern:', reportId);
+    // Aquí puedes implementar la lógica de eliminación
+    alert('Función de eliminación no implementada aún');
+  };
+
+  const handleExportReportFromView = (report: any) => {
+    console.log('Exportando reporte desde ReportViewModern:', report);
+    // Aquí puedes implementar la lógica de exportación
+    alert('Función de exportación no implementada aún');
   };
 
   // Actualizar contador al cargar y cada vez que cambie localStorage
@@ -1710,13 +1725,14 @@ const Dashboard: React.FC = () => {
         onCancelReport={handleCancelPendingReport}
       />
 
-      {/* Modal ReportView - Vista Detallada de Reportes */}
+      {/* Modal ReportViewModern - Vista Detallada de Reportes */}
       {showReportView && selectedReportId && (
-        <ReportView
+        <ReportViewModern
           reportId={selectedReportId}
           onClose={handleCloseReportView}
           onEdit={handleEditReportFromView}
-          user={user}
+          onDelete={handleDeleteReportFromView}
+          onExport={handleExportReportFromView}
         />
       )}
 
