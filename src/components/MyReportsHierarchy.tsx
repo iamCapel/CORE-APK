@@ -361,7 +361,8 @@ const MyReportsHierarchy: React.FC<MyReportsHierarchyProps> = ({
                                           if (report.estado === 'pendiente' && onContinuePendingReport) {
                                             onContinuePendingReport(report.id);
                                           } else if (onViewReport) {
-                                            onViewReport(report.reportNumber || report.id);
+                                            // Siempre pasar el ID real del reporte para buscar en Firebase
+                                            onViewReport(report.id);
                                           }
                                         }}
                                       >
