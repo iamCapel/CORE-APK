@@ -1,0 +1,35 @@
+.app-layout {
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+  padding-bottom: 80px; /* pb-20 = 5rem = 80px para navigation bar */
+}
+
+/* Para dispositivos móviles con navigation bar más grande */
+@media (max-width: 768px) {
+  .app-layout {
+    padding-bottom: 90px;
+  }
+}
+
+/* Para dispositivos muy pequeños */
+@media (max-width: 480px) {
+  .app-layout {
+    padding-bottom: 100px;
+  }
+}
+
+/* Asegurar que el contenido no se corte en pantallas pequeñas */
+@media (max-width: 640px) {
+  .app-layout {
+    min-height: 100vh;
+    height: auto;
+  }
+}
+
+/* Para pantallas grandes, mantener padding consistente */
+@media (min-width: 1024px) {
+  .app-layout {
+    padding-bottom: 80px;
+  }
+}

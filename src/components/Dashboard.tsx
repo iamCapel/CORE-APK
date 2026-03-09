@@ -12,6 +12,7 @@ import MyReportsListModern from './MyReportsListModern';
 import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
+import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 import { userStorage } from '../services/userStorage';
@@ -1509,12 +1510,14 @@ const Dashboard: React.FC = () => {
   // pantalla de login si no hay usuario
   if (!user) {
     return (
-      <div className="login-screen">
-        <div className="login-container">
-          <div className="login-box">
-            <div className="login-header">
-              <div className="login-logos">
-                <img src="/mopc-logo.png" alt="MOPC Logo" className="login-logo-left" />
+      <AppLayout>
+        <div className="login-screen">
+          <div className="login-container">
+            <div className="login-box">
+              <div className="login-header">
+                <div className="login-logos">
+                  <img src="/mopc-logo.png" alt="MOPC Logo" className="login-logo-left" />
+                  <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="login-logo-right" />
                 <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="login-logo-right" />
               </div>
               <h1 className="login-title">Dirección de Coordinación Regional</h1>
@@ -1567,16 +1570,16 @@ const Dashboard: React.FC = () => {
           </form>
 
           <div className="login-footer">
-            <p>© 2025 Ministerio de Obras Públicas y Comunicaciones</p>
+            <p> 2025 Ministerio de Obras Públicas y Comunicaciones</p>
           </div>
         </div>
-      </div>
-    </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="dashboard">
+    <AppLayout>
+      <div className="dashboard">
       {/* Topbar de notificaciones */}
       <div className="notification-topbar">
         <div className="notification-topbar-content">
