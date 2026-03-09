@@ -7,6 +7,7 @@ import PendingReportsModal from './PendingReportsModal';
 import { ModernSelect, ModernSelectOption } from './ModernSelect';
 import { ModernInput } from './ModernInput';
 import { ModernFormContainer } from './ModernFormContainer';
+import WheelDatePicker from './WheelDatePicker';
 import './ModernDashboard.css';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
@@ -63,7 +64,31 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const [mostrarDistritoPersonalizado, setMostrarDistritoPersonalizado] = useState(false);
   const [fechaReporte, setFechaReporte] = useState('');
   
-  // Estados para sistema multi-día
+  // Generar opciones de fechas para los selects
+  const generarOpcionesFechas = () => {
+    const fechas = [];
+    const fechaActual = new Date();
+    
+    // Generar fechas para los últimos 2 años y próximos 6 meses
+    for (let i = -730; i <= 180; i++) {
+      const fecha = new Date(fechaActual);
+      fecha.setDate(fechaActual.getDate() + i);
+      
+      fechas.push({
+        value: fecha.toISOString().split('T')[0],
+        label: fecha.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      });
+    }
+    
+    return fechas.reverse(); // Más recientes primero
+  };
+
+  const opcionesFechas = generarOpcionesFechas();
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFinal, setFechaFinal] = useState('');
   const [diasTrabajo, setDiasTrabajo] = useState<string[]>([]);
@@ -981,25 +1006,21 @@ const ReportForm: React.FC<ReportFormProps> = ({
               />
             )}
 
-            <ModernInput
-              id="fechaInicio"
-              type="date"
-              label="📅 Fecha de Inicio del Proyecto"
-              placeholder="Seleccionar fecha de inicio"
+            <WheelDatePicker
               value={fechaInicio}
-              onChange={(val) => setFechaInicio(String(val))}
+              onChange={setFechaInicio}
+              label="📅 Fecha de Inicio del Proyecto"
               icon="📅"
+              placeholder="Seleccionar fecha de inicio"
             />
 
-            <ModernInput
-              id="fechaFinal"
-              type="date"
-              label="📅 Fecha Final del Proyecto"
-              placeholder="Seleccionar fecha final"
+            <WheelDatePicker
               value={fechaFinal}
-              onChange={(val) => setFechaFinal(String(val))}
-              disabled={!fechaInicio}
+              onChange={setFechaFinal}
+              label="📅 Fecha Final del Proyecto"
               icon="📅"
+              placeholder="Seleccionar fecha final"
+              disabled={!fechaInicio}
             />
           </div>
 
