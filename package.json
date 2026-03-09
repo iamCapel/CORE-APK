@@ -5,8 +5,9 @@
   "dependencies": {
     "@capacitor/android": "^7.4.4",
     "@capacitor/app": "^7.1.2",
+    "@capacitor/camera": "^8.0.2",
     "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
+    "@capacitor/core": "^8.0.2",
     "@capacitor/geolocation": "^7.1.5",
     "@capacitor/splash-screen": "^7.0.3",
     "@emailjs/browser": "^4.4.1",
@@ -78,7 +79,6 @@
     ]
   },
   "devDependencies": {
-    "@capacitor/camera": "^7.0.3",
     "@types/cors": "^2.8.19"
   }
 }
