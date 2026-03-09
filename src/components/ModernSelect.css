@@ -56,6 +56,20 @@ body {
   line-height: 1.5;
 }
 
+/* Forzar fondo #282844 en todos los selects con máxima especificidad */
+.modern-select-mobile .modern-select-trigger,
+.modern-select-mobile .modern-select-trigger:hover,
+.modern-select-mobile.open .modern-select-trigger,
+.modern-select-mobile.disabled .modern-select-trigger {
+  background: #282844 !important;
+}
+
+.modern-select-mobile .modern-select-value,
+.modern-select-mobile .modern-select-value.placeholder,
+.modern-select-mobile .modern-select-value.has-value {
+  background: #282844 !important;
+}
+
 .modern-select-mobile {
   position: relative;
   width: 100%;
@@ -72,7 +86,7 @@ body {
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
-  background: var(--white);
+  background: #282844;
   border: 2px solid var(--gray);
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -96,6 +110,7 @@ body {
 }
 
 .modern-select-trigger:hover {
+  background: #282844;
   border-color: var(--primary-orange);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
@@ -106,6 +121,7 @@ body {
 }
 
 .modern-select-mobile.open .modern-select-trigger {
+  background: #282844;
   border-color: var(--primary-orange);
   box-shadow: var(--shadow-lg), 0 0 0 3px rgba(255, 122, 0, 0.1);
   transform: translateY(-2px);
@@ -145,6 +161,12 @@ body {
   /* texto principal de select: naranja intenso para destacar */
   color: var(--primary-orange-dark);
   font-weight: 500;
+  background: #282844;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .modern-select-value.placeholder {
@@ -152,6 +174,7 @@ body {
   color: var(--primary-orange-dark);
   font-weight: 400;
   opacity: 0.7;
+  background: #282844;
 }
 
 .modern-select-value.has-value {
@@ -232,8 +255,8 @@ body {
     rgba(18, 35, 56, 0.95) 50%,
     rgba(13, 27, 42, 0.98) 100%
   );
-  backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
   
   /* Borde con efecto glass */
   border: 1px solid rgba(96, 165, 250, 0.3);
@@ -256,8 +279,8 @@ body {
   padding: var(--spacing-md);
   border-bottom: 1px solid rgba(96, 165, 250, 0.2);
   background: rgba(59, 130, 246, 0.08);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .search-icon {
@@ -269,10 +292,11 @@ body {
   flex: 1;
   border: none;
   outline: none;
-  background: transparent;
+  background: #282844;
   font-size: var(--font-size-md);
   color: rgba(255, 255, 255, 0.95);
-  padding: var(--spacing-xs) 0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
 }
 
 .search-input::placeholder {
@@ -322,15 +346,15 @@ body {
   background: rgba(59, 130, 246, 0.15);
   border-color: rgba(96, 165, 250, 0.4);
   transform: translateX(2px);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .modern-select-option.highlighted {
   background: rgba(59, 130, 246, 0.2);
   border-color: rgba(96, 165, 250, 0.5);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .modern-select-option.selected {
@@ -353,8 +377,8 @@ body {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(96, 165, 250, 0.15) 100%);
   border-color: rgba(96, 165, 250, 0.4);
   color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .option-content {
@@ -413,13 +437,13 @@ body {
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .modern-select-trigger {
-    background: var(--user-primary);
+    background: #282844;
     border-color: var(--user-secondary);
     color: var(--white);
   }
 
   .modern-select-trigger:hover {
-    background: var(--user-primary-dark);
+    background: #282844;
     border-color: var(--primary-orange);
   }
 
