@@ -1,35 +1,57 @@
 .app-layout {
+  /* Altura mínima que se adapta automáticamente al contenido */
   min-height: 100vh;
+  height: auto;
+  
+  /* Ancho completo sin scroll horizontal */
   width: 100%;
+  max-width: 100vw;
   overflow-x: hidden;
-  padding-bottom: 80px; /* pb-20 = 5rem = 80px para navigation bar */
+  
+  /* Sin espacios en blanco - padding dinámico basado en contenido */
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  
+  /* Flexbox para contenido infinito y responsive */
+  display: flex;
+  flex-direction: column;
+  
+  /* Scroll vertical cuando el contenido lo necesita */
+  overflow-y: auto;
 }
 
-/* Para dispositivos móviles con navigation bar más grande */
+/* Contenido que se expande automáticamente */
+.app-layout > * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Para navegación inferior fija */
+.app-layout > *:last-child {
+  padding-bottom: 80px;
+}
+
+/* En dispositivos móviles con navigation bar más grande */
 @media (max-width: 768px) {
-  .app-layout {
+  .app-layout > *:last-child {
     padding-bottom: 90px;
   }
 }
 
 /* Para dispositivos muy pequeños */
 @media (max-width: 480px) {
-  .app-layout {
+  .app-layout > *:last-child {
     padding-bottom: 100px;
   }
 }
 
-/* Asegurar que el contenido no se corte en pantallas pequeñas */
-@media (max-width: 640px) {
-  .app-layout {
-    min-height: 100vh;
-    height: auto;
-  }
-}
-
-/* Para pantallas grandes, mantener padding consistente */
-@media (min-width: 1024px) {
-  .app-layout {
-    padding-bottom: 80px;
-  }
+/* Evitar scroll horizontal en todos los dispositivos */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
