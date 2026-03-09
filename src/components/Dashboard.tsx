@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -1014,6 +1015,8 @@ const Dashboard: React.FC = () => {
 
   // Manejar botón de retroceso de Android
   useEffect(() => {
+    let backButtonListener: any = null;
+
     // Solo agregar listener en Android
     if (Capacitor.getPlatform() === 'android') {
       const handleBackButton = () => {
@@ -1050,21 +1053,26 @@ const Dashboard: React.FC = () => {
           setShowSettingsPage(false);
           setActiveNav('dashboard');
         } else {
-          console.log('🔙 Ya está en el dashboard - no acción');
+          console.log('🔙 Ya está en el dashboard - salir de la app');
+          CapacitorApp.exitApp();
         }
       };
 
-      // Agregar listener para el botón de retroceso
-      const backButtonListener = (Capacitor as any).addListener('backButton', handleBackButton);
-      
-      // Limpiar listener al desmontar
-      return () => {
-        backButtonListener.remove();
-      };
+      // Agregar listener para el botón de retroceso usando el API oficial
+      CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+        handleBackButton();
+      }).then(listener => {
+        backButtonListener = listener;
+      });
     }
     
-    return () => {}; // No-op para otras plataformas
-  }, []);
+    // Limpiar listener al desmontar
+    return () => {
+      if (backButtonListener) {
+        backButtonListener.remove();
+      }
+    };
+  }, [showReportView, showMyReportsModal, showPendingModal, showReportForm, showReportsPage, showExportPage, showUsersPage, showGoogleMapView, showLeafletMapView, showHierarchy, showSettingsPage]);
 
   // Navigation functions
   const submitLogin = async (e: React.FormEvent) => {
@@ -1518,13 +1526,12 @@ const Dashboard: React.FC = () => {
                 <div className="login-logos">
                   <img src="/mopc-logo.png" alt="MOPC Logo" className="login-logo-left" />
                   <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="login-logo-right" />
-                <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="login-logo-right" />
+                </div>
+                <h1 className="login-title">Dirección de Coordinación Regional</h1>
+                <p className="login-subtitle">Sistema de Gestión de Obras Públicas</p>
               </div>
-              <h1 className="login-title">Dirección de Coordinación Regional</h1>
-              <p className="login-subtitle">Sistema de Gestión de Obras Públicas</p>
-          </div>
 
-          <form className="login-form" onSubmit={submitLogin}>
+              <form className="login-form" onSubmit={submitLogin}>
             <div className="form-group">
               <label htmlFor="username">Usuario</label>
               <input
@@ -1569,8 +1576,10 @@ const Dashboard: React.FC = () => {
             </button>
           </form>
 
-          <div className="login-footer">
-            <p> 2025 Ministerio de Obras Públicas y Comunicaciones</p>
+              <div className="login-footer">
+                <p> 2025 Ministerio de Obras Públicas y Comunicaciones</p>
+              </div>
+            </div>
           </div>
         </div>
       </AppLayout>
@@ -2004,6 +2013,7 @@ const Dashboard: React.FC = () => {
         </div>
       )}
     </div>
+    </AppLayout>
   );
 };
 

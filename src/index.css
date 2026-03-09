@@ -71,14 +71,31 @@
   --z-tooltip: 10000;
 }
 
+/* ========================================
+   RESET GLOBAL - EDGE-TO-EDGE LAYOUT
+   Todo el contenido pegado a los extremos
+   ======================================== */
+
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   -webkit-tap-highlight-color: transparent; /* Eliminar highlight azul en móvil */
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
   padding: 0;
+  width: 100vw;  /* Full viewport width - edge-to-edge */
+  min-height: 100vh;  /* Full viewport height mínimo */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -91,10 +108,17 @@ body {
   color: var(--text-primary);
   font-size: var(--font-size-md);
   line-height: 1.5;
-  width: 100%;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* overlays radiales al estilo glassmorphism del dashboard de ejemplo */

@@ -43,15 +43,33 @@ body::before {
   opacity: 0.5;
 }
 
+/* Backdrop para opacar toda la página detrás del modal */
+.modern-reports-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75); /* Fondo negro opaco */
+  backdrop-filter: blur(8px); /* Efecto blur */
+  -webkit-backdrop-filter: blur(8px);
+  z-index: -1;
+  pointer-events: none;
+}
+
 .modern-reports-container {
-  position: relative;
-  z-index: 1;
+  position: fixed; /* Cambiado a fixed para modal */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
   max-width: 100%;
   margin: 0;
   padding: 8px 8px 80px;
   font-family: var(--sans);
   color: var(--text);
-  height: 100vh;
   overflow-y: auto;
 }
 

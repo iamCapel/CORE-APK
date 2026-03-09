@@ -1,20 +1,38 @@
-/* Modern Form Container Styles */
+/* Modern Form Container Styles - Azul Marino Oscuro con Glass Effect */
 .modern-form-container {
-  background: var(--white);
-  border: 2px solid var(--gray);
+  /* Fondo azul marino oscuro con efecto glass ahumado */
+  background: linear-gradient(
+    135deg,
+    rgba(13, 27, 42, 0.95) 0%,
+    rgba(18, 35, 56, 0.92) 50%,
+    rgba(13, 27, 42, 0.95) 100%
+  );
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  
+  /* Borde con efecto glass */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 60px rgba(13, 27, 42, 0.5);
+  
   border-radius: var(--radius-xl);
   padding: var(--spacing-xl);
   margin: var(--spacing-xl) 0;
-  box-shadow: var(--shadow-lg);
-  /* make the form full‑width (especially on mobile) so no white edges */
+  
+  /* Full width en móvil - edge to edge */
   width: 100%;
   max-width: none;
-  /* remove auto centering, handled by parent padding */
   margin-left: 0;
   margin-right: 0;
+  
   position: relative;
   overflow: hidden;
   transition: all var(--transition-normal);
+  
+  /* Color de texto claro para contraste con fondo oscuro */
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .modern-form-container::before {
@@ -25,24 +43,28 @@
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, 
-    var(--user-primary) 0%, 
-    var(--primary-orange) 20%, 
-    var(--primary-orange-light) 50%, 
-    var(--primary-orange) 80%, 
-    var(--user-primary) 100%
+    #1e3a8a 0%, 
+    #3b82f6 20%, 
+    #60a5fa 50%, 
+    #3b82f6 80%, 
+    #1e3a8a 100%
   );
+  opacity: 0.8;
 }
 
 .modern-form-container:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--primary-orange-light);
+  box-shadow: 
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 80px rgba(59, 130, 246, 0.3);
+  border-color: rgba(96, 165, 250, 0.4);
 }
 
 .form-header {
   margin-bottom: var(--spacing-xl);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--light-gray);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .form-title-section {
@@ -53,15 +75,16 @@
 
 .form-icon {
   font-size: 28px;
-  color: var(--primary-orange);
-  background: var(--pale-orange);
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.15);
   width: 56px;
   height: 56px;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(96, 165, 250, 0.3);
 }
 
 .form-text {
@@ -71,14 +94,14 @@
 .form-title {
   font-size: var(--font-size-2xl);
   font-weight: 700;
-  color: var(--text-primary);
+  color: rgba(255, 255, 255, 0.95);
   margin: 0;
   line-height: 1.2;
 }
 
 .form-subtitle {
   font-size: var(--font-size-md);
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   margin: var(--spacing-xs) 0 0 0;
   line-height: 1.4;
 }
@@ -91,20 +114,22 @@
 
 /* Section styles */
 .form-section {
-  background: var(--off-white);
-  border: 1px solid var(--light-gray);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .form-section-title {
   font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--text-primary);
+  color: rgba(255, 255, 255, 0.95);
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid var(--primary-orange);
+  border-bottom: 2px solid #60a5fa;
   display: inline-block;
 }
 

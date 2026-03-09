@@ -947,16 +947,35 @@
 }
 
 
-/* ===== DASHBOARD TEMA DARK ===== */
+/* ===== DASHBOARD TEMA DARK - EDGE-TO-EDGE ===== */
 .dashboard {
+  /* Padding top para topbar fijo */
   padding-top: 70px;
+  
+  /* Full viewport - Edge-to-edge */
+  width: 100vw;
+  min-width: 100vw;
+  max-width: 100vw;
   min-height: 100vh;
-  width: 100%;
-  margin: 0 auto;
+  
+  /* Sin márgenes - Pegado a extremos */
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+  
+  /* Background y colores */
   background: var(--dark-bg);
   color: var(--text-primary);
+  
+  /* Scroll infinito */
   overflow-x: hidden;
+  overflow-y: auto;
+  
+  /* Posición relativa para elementos hijos */
   position: relative;
+  
+  /* Box sizing */
+  box-sizing: border-box;
 }
 
 .dashboard::before {
@@ -993,17 +1012,33 @@
 }
 
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
+/* ===== CONTENEDOR PRINCIPAL - EDGE-TO-EDGE ===== */
 .dashboard-content {
-  padding: 88px 16px 40px; /* Espacio para topbar (60px) + cinta (28px) = justo debajo */
-  width: 100%;
+  /* Padding top para topbar + cinta */
+  padding: 88px 0 40px 0; /* Sin padding horizontal - Edge-to-edge */
+  
+  /* Full width - Pegado a extremos */
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 100vw;
+  
+  /* Sin márgenes */
   margin: 0;
+  
+  /* Scroll infinito */
   overflow-x: hidden;
+  
+  /* Posición y z-index */
   position: relative;
   z-index: 1;
+  
+  /* Flexbox para contenido responsive */
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Alineación a la izquierda, no centrado */
+  align-items: stretch; /* Stretch para ocupar todo el ancho */
+  
+  /* Box sizing */
+  box-sizing: border-box;
 }
 
 /* ===== HEADER MINIMALISTA (OCULTO) ===== */
@@ -2480,12 +2515,26 @@ select option[value="otros"] {
    =================================== */
 
 .dashboard-main {
-  padding: 8px 0 24px;
-  animation: fadeIn 0.5s ease-out;
+  /* Padding vertical, sin horizontal - Edge-to-edge */
+  padding: 8px 0 24px 0;
+  
+  /* Full width - Pegado a extremos */
+  width: 100vw;
+  max-width: 100vw;
+  
+  /* Sin márgenes */
+  margin: 0;
+  
+  /* Flexbox responsive */
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
+  align-items: stretch; /* Stretch para ocupar todo el ancho */
+  
+  /* Animación */
+  animation: fadeIn 0.5s ease-out;
+  
+  /* Box sizing */
+  box-sizing: border-box;
 }
 
 /* ===== TOPBAR DE NOTIFICACIONES ===== */
@@ -2650,18 +2699,29 @@ select option[value="otros"] {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== GRID DE ACCIONES ===== */
+/* ===== GRID DE ACCIONES - EDGE-TO-EDGE ===== */
 .dashboard-icons-grid {
+  /* Grid responsive */
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
-  margin-bottom: 24px;
-  width: 100%;
+  
+  /* Full width - Edge-to-edge */
+  width: 100vw;
+  max-width: 100vw;
+  
+  /* Sin padding externo - Edge-to-edge */
   padding: 0;
+  margin: 0 0 24px 0;
+  
+  /* Background transparente */
   background: transparent;
   border: none;
   backdrop-filter: none;
   border-radius: 0;
+  
+  /* Box sizing */
+  box-sizing: border-box;
 }
 
 /* Responsive Grid */

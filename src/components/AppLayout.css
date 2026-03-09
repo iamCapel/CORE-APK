@@ -1,35 +1,52 @@
+/* ========================================
+   APP LAYOUT - EDGE-TO-EDGE & INFINITE SCROLL
+   Contenido pegado a extremos en todas las escalas
+   ======================================== */
+
 .app-layout {
-  /* Altura mínima que se adapta automáticamente al contenido */
+  /* Full viewport - Edge-to-edge horizontal */
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 100vw;
+  
+  /* Altura dinámica infinita - Se adapta al contenido */
   min-height: 100vh;
   height: auto;
   
-  /* Ancho completo sin scroll horizontal */
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
-  
-  /* Sin espacios en blanco - padding dinámico basado en contenido */
-  padding: 0;
+  /* Sin márgenes ni padding - Pegado a extremos */
   margin: 0;
+  padding: 0;
+  
+  /* Box sizing para cálculo correcto */
   box-sizing: border-box;
   
-  /* Flexbox para contenido infinito y responsive */
+  /* Flexbox para contenido responsive infinito */
   display: flex;
   flex-direction: column;
   
-  /* Scroll vertical cuando el contenido lo necesita */
+  /* Scroll vertical infinito cuando se necesita */
   overflow-y: auto;
+  overflow-x: hidden;
+  
+  /* Scroll suave en móviles */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Posición relativa para elementos hijos */
+  position: relative;
 }
 
-/* Contenido que se expande automáticamente */
+/* Contenido que se expande automáticamente - Responsive infinito */
 .app-layout > * {
-  flex: 1;
+  width: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  margin: 0;
+  padding: 0;
 }
 
-/* Para navegación inferior fija */
+/* Para navegación inferior fija - Espaciado dinámico */
 .app-layout > *:last-child {
   padding-bottom: 80px;
 }
