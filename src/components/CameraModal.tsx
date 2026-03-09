@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './CameraModal.css';
 
 interface CameraModalProps {
@@ -11,6 +11,7 @@ interface CameraModalProps {
     address: string;
   } | null;
   userName: string;
+  onSaveToGallery?: (photoData: { photo: string; location: any; timestamp: string }) => void;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({ 
@@ -18,8 +19,11 @@ const CameraModal: React.FC<CameraModalProps> = ({
   onClose, 
   photo, 
   location, 
-  userName 
+  userName,
+  onSaveToGallery
 }) => {
+  const [isSaving, setIsSaving] = useState(false);
+
   if (!isOpen) return null;
 
   const formatDate = () => {
@@ -38,6 +42,49 @@ const CameraModal: React.FC<CameraModalProps> = ({
       minute: '2-digit',
       second: '2-digit'
     });
+  };
+
+  const getTimestamp = () => {
+    const now = new Date();
+    return now.toISOString();
+  };
+
+  const handleSaveToGallery = async () => {
+    if (!photo || !location || !onSaveToGallery) return;
+    
+    setIsSaving(true);
+    try {
+      const photoData = {
+        photo,
+        location,
+        timestamp: getTimestamp()
+      };
+      
+      await onSaveToGallery(photoData);
+      
+      // Mostrar mensaje de éxito
+      alert('✅ Foto guardada exitosamente en la galería');
+      onClose();
+    } catch (error) {
+      console.error('Error guardando foto:', error);
+      alert('❌ Error al guardar la foto. Por favor intente nuevamente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRetakePhoto = () => {
+    if (onSaveToGallery) {
+      // Cerrar modal actual para permitir tomar nueva foto
+      onClose();
+    } else {
+      // Si no hay función de guardar, simplemente cerrar
+      onClose();
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
   };
 
   return (
@@ -112,11 +159,37 @@ const CameraModal: React.FC<CameraModalProps> = ({
         </div>
 
         <div className="camera-modal-footer">
-          <button className="camera-action-btn camera-btn-accept" onClick={onClose}>
-            ✅ Aceptar
+          <button 
+            className="camera-action-btn camera-btn-save" 
+            onClick={handleSaveToGallery}
+            disabled={!photo || !location || !onSaveToGallery || isSaving}
+          >
+            {isSaving ? (
+              <>
+                <span className="loading-spinner"></span>
+                Guardando...
+              </>
+            ) : (
+              <>
+                💾 Guardar en Galería
+              </>
+            )}
           </button>
-          <button className="camera-action-btn camera-btn-retake" onClick={onClose}>
-            🔄 Tomar otra foto
+          
+          <button 
+            className="camera-action-btn camera-btn-retake" 
+            onClick={handleRetakePhoto}
+            disabled={isSaving}
+          >
+            🔄 Tomar Otra Foto
+          </button>
+          
+          <button 
+            className="camera-action-btn camera-btn-cancel" 
+            onClick={handleCancel}
+            disabled={isSaving}
+          >
+            ❌ Cancelar
           </button>
         </div>
       </div>

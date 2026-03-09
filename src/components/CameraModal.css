@@ -238,18 +238,19 @@
   justify-content: center;
   gap: 8px;
   min-height: 48px;
+  position: relative;
 }
 
-.camera-btn-accept {
-  background: linear-gradient(135deg, #ff7a00 0%, #ff9500 100%);
+.camera-btn-save {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   color: #ffffff;
-  border: 1px solid #ff7a00;
+  border: 1px solid #28a745;
 }
 
-.camera-btn-accept:hover {
-  background: linear-gradient(135deg, #e06500 0%, #ff7a00 100%);
+.camera-btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838 0%, #28a745 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .camera-btn-retake {
@@ -258,12 +259,48 @@
   border: 1px solid #e0e0e0;
 }
 
-.camera-btn-retake:hover {
+.camera-btn-retake:hover:not(:disabled) {
   background: #f8f9fa;
   border-color: #ff7a00;
   color: #ff7a00;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.camera-btn-cancel {
+  background: #ffffff;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.camera-btn-cancel:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #c82333;
+  color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+}
+
+.camera-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top: 2px solid transparent;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive */

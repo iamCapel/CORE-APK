@@ -1392,6 +1392,7 @@ const Dashboard: React.FC = () => {
     setShowGoogleMapView(false);
   };
 
+  // Función para manejar la cámara
   const handleOpenCamera = async () => {
     if (!isProfileComplete) {
       setShowCompleteProfileModal(true);
@@ -1439,6 +1440,37 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error al tomar foto:', error);
       alert('Error al tomar foto. Por favor intente nuevamente.');
+    }
+  };
+
+  // Función para guardar foto en galería
+  const handleSavePhotoToGallery = async (photoData: { photo: string; location: any; timestamp: string }) => {
+    try {
+      // Crear un nombre de archivo único
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `MOPC_Photo_${timestamp}.jpg`;
+      
+      // Guardar en localStorage como galería simulada
+      const existingPhotos = JSON.parse(localStorage.getItem('mopc_photo_gallery') || '[]');
+      const newPhoto = {
+        id: Date.now().toString(),
+        fileName,
+        ...photoData,
+        userName: user?.name || 'Usuario',
+        savedAt: new Date().toISOString()
+      };
+      
+      existingPhotos.push(newPhoto);
+      localStorage.setItem('mopc_photo_gallery', JSON.stringify(existingPhotos));
+      
+      console.log('Foto guardada en galería:', newPhoto);
+      
+      // Aquí también se podría implementar el guardado real en el dispositivo
+      // usando el plugin de File System de Capacitor si se necesita
+      
+    } catch (error) {
+      console.error('Error guardando foto en galería:', error);
+      throw error;
     }
   };
 
@@ -1907,6 +1939,7 @@ const Dashboard: React.FC = () => {
         photo={capturedPhoto}
         location={cameraLocation}
         userName={user?.name || 'Usuario'}
+        onSaveToGallery={handleSavePhotoToGallery}
       />
 
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}
