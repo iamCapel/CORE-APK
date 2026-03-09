@@ -134,16 +134,23 @@ const WheelDatePicker = ({
     }
   }, [isOpen, selectedYear, selectedMonth, selectedDay]);
 
-  // Manejar scroll en ruletas
+  // Manejar scroll en ruletas con debouncing para evitar inestabilidad
   const handleWheelScroll = (wheelRef, items, setSelected) => {
     if (!wheelRef.current) return;
     
-    const itemHeight = 35; // Altura ultra-compacta
+    const itemHeight = 35;
     const scrollTop = wheelRef.current.scrollTop;
     const index = Math.round(scrollTop / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
     
-    setSelected(items[clampedIndex]);
+    // Debouncing: solo actualizar después de que el scroll se detenga
+    if (wheelRef.current.scrollTimeout) {
+      clearTimeout(wheelRef.current.scrollTimeout);
+    }
+    
+    wheelRef.current.scrollTimeout = setTimeout(() => {
+      setSelected(items[clampedIndex]);
+    }, 50); // Esperar 50ms después del scroll
   };
 
   // Auto-seleccionar fecha actual al abrir si no hay valor

@@ -585,8 +585,8 @@ body {
 
 .wheel {
   height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+  overflow-y: auto; /* Solo scroll vertical */
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   border-radius: var(--radius-md);
@@ -851,10 +851,11 @@ body {
 .wheel-minimal-wheels {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Alinear al inicio para que las ruletas sean verticales */
   gap: var(--spacing-md);
   width: 100%;
   position: relative;
+  height: auto; /* Altura automática */
 }
 
 .wheel-minimal-wheel {
@@ -863,13 +864,15 @@ body {
   align-items: center;
   flex: 1;
   max-width: 100px;
+  height: 150px; /* Altura fija para la ruleta */
 }
 
 .wheel.wheel-minimal {
-  height: 120px;
+  height: 150px;
   width: 100%;
-  overflow-y: auto;
+  max-width: 80px;
   overflow-x: hidden;
+  overflow-y: auto;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   border-radius: 15px;
@@ -878,14 +881,36 @@ body {
   backdrop-filter: blur(8px);
   border: 1px solid rgba(96, 165, 250, 0.2);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  /* Mejoras para scroll estable */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-stop: always;
+}
+
+.wheel.wheel-minimal::-webkit-scrollbar {
+  display: none;
+}
+
+.wheel.wheel-minimal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wheel.wheel-minimal::-webkit-scrollbar-thumb {
+  background: transparent;
 }
 
 .wheel-minimal-spacer {
-  height: 42.5px; /* Para centrar la selección */
+  height: 57.5px; /* Para centrar la selección (150/2 - 35/2) */
+  flex-shrink: 0; /* No encoger */
 }
 
 .wheel-item.wheel-minimal-item {
   height: 35px;
+  min-height: 35px;
+  width: 100%;
+  max-width: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -896,7 +921,18 @@ body {
   transition: all var(--transition-fast);
   scroll-snap-align: center;
   border-radius: var(--radius-sm);
-  margin: 0 2px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  /* Mejoras para táctil */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .wheel-item.wheel-minimal-item:hover {
@@ -917,10 +953,10 @@ body {
 .wheel.wheel-minimal::before {
   content: '';
   position: absolute;
-  top: 42.5px;
+  top: 57.5px; /* Para centrar la selección (150/2 - 35/2) */
   left: 0;
   right: 0;
-  height: 35px;
+  height: 35px; /* Altura del item */
   background: linear-gradient(
     to bottom,
     rgba(59, 130, 246, 0.1),

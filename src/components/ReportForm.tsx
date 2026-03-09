@@ -7,7 +7,7 @@ import PendingReportsModal from './PendingReportsModal';
 import { ModernSelect, ModernSelectOption } from './ModernSelect';
 import { ModernInput } from './ModernInput';
 import { ModernFormContainer } from './ModernFormContainer';
-import WheelDatePicker from './WheelDatePicker';
+import SimpleDateSelect from './SimpleDateSelect';
 import './ModernDashboard.css';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
@@ -1006,19 +1006,15 @@ const ReportForm: React.FC<ReportFormProps> = ({
               />
             )}
 
-            <WheelDatePicker
+            <SimpleDateSelect
               value={fechaInicio}
               onChange={setFechaInicio}
-              label="📅 Fecha de Inicio del Proyecto"
-              icon="📅"
               placeholder="Seleccionar fecha de inicio"
             />
 
-            <WheelDatePicker
+            <SimpleDateSelect
               value={fechaFinal}
               onChange={setFechaFinal}
-              label="📅 Fecha Final del Proyecto"
-              icon="📅"
               placeholder="Seleccionar fecha final"
               disabled={!fechaInicio}
             />

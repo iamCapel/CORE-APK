@@ -1885,8 +1885,8 @@ table tbody tr:nth-child(even) {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background: linear-gradient(135deg, var(--white) 0%, var(--cream) 100%);
-  color: var(--text-primary);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%); /* Fondo blanco forzado */
+  color: #212121 !important; /* Texto oscuro forzado */
   box-shadow: var(--shadow-sm);
 }
 

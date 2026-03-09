@@ -1,19 +1,19 @@
 {
-  "short_name": "MOPC",
-  "name": "Panel de Control MOPC - Ministerio de Obras Públicas",
+  "short_name": "CORE",
+  "name": "CORE APK - Sistema de Gestión",
   "icons": [
     {
-      "src": "mopc-icon.png",
+      "src": "core-icon.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/png"
     },
     {
-      "src": "mopc-icon.png",
+      "src": "core-icon.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "mopc-icon.png",
+      "src": "core-icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
