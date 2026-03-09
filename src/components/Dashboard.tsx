@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Camera, CameraSource, CameraResultType } from '@capacitor/camera';
+import { Geolocation, Position } from '@capacitor/geolocation';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -13,6 +15,7 @@ import MyReportsListModern from './MyReportsListModern';
 import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
+import CameraModal from './CameraModal';
 import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
@@ -78,6 +81,14 @@ const BarChartIcon = MdBarChart as IconComponent;
 const MapIcon = MdMap as IconComponent;
 const PeopleIcon = MdPeople as IconComponent;
 const FileUploadIcon = MdFileUpload as IconComponent;
+
+/* ── Icono de Cámara ── */
+const CameraIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+    <circle cx="12" cy="13" r="4"></circle>
+  </svg>
+);
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
 
@@ -627,6 +638,11 @@ const Dashboard: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMyReportsModal, setShowMyReportsModal] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  
+  // Estados para la cámara
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [cameraLocation, setCameraLocation] = useState<{ lat: number; lon: number; address: string } | null>(null);
   
   // Estados para el formulario de completar perfil
   const [profilePhoto, setProfilePhoto] = useState<string>('');
@@ -1376,6 +1392,56 @@ const Dashboard: React.FC = () => {
     setShowGoogleMapView(false);
   };
 
+  const handleOpenCamera = async () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
+
+    try {
+      // Obtener ubicación actual
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      });
+
+      // Abrir cámara
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera
+      });
+
+      // Obtener dirección usando geocoding inverso
+      let address = 'Ubicación desconocida';
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`);
+        const data = await response.json();
+        if (data && data.address) {
+          address = `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.city || ''}, ${data.address.state || ''}`;
+        }
+      } catch (error) {
+        console.error('Error obteniendo dirección:', error);
+      }
+
+      // Guardar datos de la foto y ubicación
+      setCapturedPhoto(image.webPath || null);
+      setCameraLocation({
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+        address: address
+      });
+
+      // Mostrar modal con vista previa
+      setShowCameraModal(true);
+    } catch (error) {
+      console.error('Error al tomar foto:', error);
+      alert('Error al tomar foto. Por favor intente nuevamente.');
+    }
+  };
+
   const handleBackToDashboard = () => {
     setShowReportsPage(false);
     setShowReportForm(false);
@@ -1672,6 +1738,13 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
+                <div className="dashboard-action-icon">
+                  <CameraIcon size={32} />
+                </div>
+                <div className="dashboard-action-label">Cámara</div>
+              </div>
+
               {!hideUnusedIcons && (
                 <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
                   <div className="dashboard-action-icon">
@@ -1825,6 +1898,15 @@ const Dashboard: React.FC = () => {
         reports={pendingReportsList}
         onContinueReport={handleContinuePendingReport}
         onCancelReport={handleCancelPendingReport}
+      />
+
+      {/* Modal de Cámara */}
+      <CameraModal
+        isOpen={showCameraModal}
+        onClose={() => { setShowCameraModal(false); }}
+        photo={capturedPhoto}
+        location={cameraLocation}
+        userName={user?.name || 'Usuario'}
       />
 
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}

@@ -12,8 +12,11 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true
     },
+    Camera: {
+      permissions: ["camera", "photos"]
+    },
     Geolocation: {
-      // Configuración para permisos de ubicación
+      permissions: ["location", "coarseLocation"]
     }
   }
 };
