@@ -43,10 +43,10 @@ export async function addWatermarkToPhoto(
         ctx.drawImage(img, 0, 0);
 
         // Configuración de la marca de agua - Barra completa abajo con fondo borroso
-        const padding = 20;
-        const lineHeight = 30;
-        const fontSize = 22;
-        const shadowBlur = 8;
+        const padding = 40;
+        const lineHeight = 180;
+        const fontSize = 150; // Tamaño GRANDE para legibilidad
+        const shadowBlur = 12;
         
         // Formatear la fecha
         const formattedDate = formatDateTime(data.timestamp);
