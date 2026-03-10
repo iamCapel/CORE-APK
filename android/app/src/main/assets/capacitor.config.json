@@ -10,6 +10,17 @@
 			"splashFullScreen": true,
 			"splashImmersive": true
 		},
-		"Geolocation": {}
+		"Camera": {
+			"permissions": [
+				"camera",
+				"photos"
+			]
+		},
+		"Geolocation": {
+			"permissions": [
+				"location",
+				"coarseLocation"
+			]
+		}
 	}
 }

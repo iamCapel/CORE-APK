@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Camera, CameraSource, CameraResultType } from '@capacitor/camera';
+import { Geolocation } from '@capacitor/geolocation';
+import { addWatermarkToPhoto, imageUriToBase64 } from '../services/photoWatermark';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -13,9 +16,9 @@ import MyReportsListModern from './MyReportsListModern';
 import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
+import CameraModal from './CameraModal';
 import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
-import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
 import { userStorage } from '../services/userStorage';
 import * as firebaseUserStorage from '../services/firebaseUserStorage';
 import firebaseReportStorage from '../services/firebaseReportStorage';
@@ -78,6 +81,14 @@ const BarChartIcon = MdBarChart as IconComponent;
 const MapIcon = MdMap as IconComponent;
 const PeopleIcon = MdPeople as IconComponent;
 const FileUploadIcon = MdFileUpload as IconComponent;
+
+/* ── Icono de Cámara ── */
+const CameraIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+    <circle cx="12" cy="13" r="4"></circle>
+  </svg>
+);
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
 
@@ -627,6 +638,11 @@ const Dashboard: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMyReportsModal, setShowMyReportsModal] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  
+  // Estados para la cámara
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [cameraLocation, setCameraLocation] = useState<{ lat: number; lon: number; address: string } | null>(null);
   
   // Estados para el formulario de completar perfil
   const [profilePhoto, setProfilePhoto] = useState<string>('');
@@ -1376,6 +1392,241 @@ const Dashboard: React.FC = () => {
     setShowGoogleMapView(false);
   };
 
+  // Función para manejar la cámara
+  const handleOpenCamera = async () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
+
+    try {
+      console.log('📷 Iniciando captura de foto con marca de agua...');
+      
+      // Mostrar mensaje de carga
+      const loadingMessage = document.createElement('div');
+      loadingMessage.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        z-index: 10000;
+        font-size: 16px;
+        text-align: center;
+      `;
+      loadingMessage.innerHTML = '📷 Procesando foto...<br/><small>Por favor espere</small>';
+      document.body.appendChild(loadingMessage);
+
+      // Obtener ubicación actual PRIMERO
+      console.log('📍 Obteniendo ubicación...');
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000
+      });
+
+      console.log('📍 Ubicación obtenida:', position.coords);
+
+      // Obtener dirección usando geocoding inverso
+      let address = 'Ubicación desconocida';
+      try {
+        console.log('🗺️ Obteniendo dirección...');
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'MOPC-App/1.0'
+            }
+          }
+        );
+        const data = await response.json();
+        if (data && data.display_name) {
+          address = data.display_name;
+        } else if (data && data.address) {
+          const addr = data.address;
+          const parts = [
+            addr.road,
+            addr.suburb || addr.neighbourhood,
+            addr.city || addr.town || addr.village,
+            addr.state,
+            addr.country
+          ].filter(Boolean);
+          address = parts.join(', ');
+        }
+        console.log('🗺️ Dirección obtenida:', address);
+      } catch (error) {
+        console.error('Error obteniendo dirección:', error);
+        address = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+      }
+
+      // Abrir cámara
+      console.log('📸 Abriendo cámara...');
+      const image = await Camera.getPhoto({
+        quality: 95,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        saveToGallery: false // No guardar aún, primero agregamos la marca de agua
+      });
+
+      if (!image.webPath) {
+        throw new Error('No se pudo obtener la imagen');
+      }
+
+      console.log('📸 Foto capturada, convirtiendo a base64...');
+      
+      // Convertir la imagen a base64
+      const base64Image = await imageUriToBase64(image.webPath);
+
+      console.log('🎨 Agregando marca de agua...');
+      
+      // Agregar marca de agua con información georeferenciada
+      const watermarkedImage = await addWatermarkToPhoto(base64Image, {
+        userName: user?.fullName || user?.name || 'Usuario MOPC',
+        address: address,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        timestamp: new Date()
+      });
+
+      console.log('💾 Guardando foto en la galería...');
+
+      // Guardar la foto con marca de agua en la galería
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Usar el plugin de Filesystem para dispositivos nativos
+          const { Filesystem, Directory } = await import('@capacitor/filesystem');
+          
+          // Generar nombre de archivo único
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const fileName = `MOPC_${timestamp}.jpg`;
+          
+          // Remover el prefijo base64
+          const base64Data = watermarkedImage.replace(/^data:image\/\w+;base64,/, '');
+          
+          // Guardar en el directorio de documentos
+          const savedFile = await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Documents
+          });
+          
+          console.log('✅ Foto guardada en:', savedFile.uri);
+          
+          // Remover mensaje de carga
+          document.body.removeChild(loadingMessage);
+          
+          // Mostrar mensaje de éxito
+          const successMessage = document.createElement('div');
+          successMessage.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(76, 175, 80, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            z-index: 10000;
+            font-size: 16px;
+            text-align: center;
+            animation: fadeOut 2s forwards;
+          `;
+          successMessage.innerHTML = '✅ Foto guardada con éxito<br/><small>Ubicación: ' + address.substring(0, 50) + '...</small>';
+          document.body.appendChild(successMessage);
+          
+          setTimeout(() => {
+            if (document.body.contains(successMessage)) {
+              document.body.removeChild(successMessage);
+            }
+          }, 3000);
+          
+        } catch (error) {
+          console.error('Error guardando foto en dispositivo:', error);
+          throw error;
+        }
+      } else {
+        // En web, descargar la imagen
+        const link = document.createElement('a');
+        link.href = watermarkedImage;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        link.download = `MOPC_${timestamp}.jpg`;
+        link.click();
+        
+        // Remover mensaje de carga
+        document.body.removeChild(loadingMessage);
+        
+        // Mostrar mensaje de éxito
+        alert('✅ Foto descargada con éxito');
+      }
+
+      // Guardar registro en localStorage
+      const photoRecord = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        userName: user?.fullName || user?.name || 'Usuario',
+        address: address,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      };
+      
+      const existingRecords = JSON.parse(localStorage.getItem('mopc_photo_records') || '[]');
+      existingRecords.push(photoRecord);
+      localStorage.setItem('mopc_photo_records', JSON.stringify(existingRecords));
+
+    } catch (error: any) {
+      console.error('❌ Error al tomar foto:', error);
+      
+      // Remover mensaje de carga si existe
+      const loadingElements = document.querySelectorAll('div');
+      loadingElements.forEach(el => {
+        if (el.textContent?.includes('Procesando foto')) {
+          el.remove();
+        }
+      });
+      
+      if (error.message === 'User cancelled photos app') {
+        console.log('Usuario canceló la captura de foto');
+      } else {
+        alert('Error al tomar foto: ' + (error.message || 'Por favor intente nuevamente.'));
+      }
+    }
+  };
+
+  // Función para guardar foto en galería
+  const handleSavePhotoToGallery = async (photoData: { photo: string; location: any; timestamp: string }) => {
+    try {
+      // Crear un nombre de archivo único
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `MOPC_Photo_${timestamp}.jpg`;
+      
+      // Guardar en localStorage como galería simulada
+      const existingPhotos = JSON.parse(localStorage.getItem('mopc_photo_gallery') || '[]');
+      const newPhoto = {
+        id: Date.now().toString(),
+        fileName,
+        ...photoData,
+        userName: user?.name || 'Usuario',
+        savedAt: new Date().toISOString()
+      };
+      
+      existingPhotos.push(newPhoto);
+      localStorage.setItem('mopc_photo_gallery', JSON.stringify(existingPhotos));
+      
+      console.log('Foto guardada en galería:', newPhoto);
+      
+      // Aquí también se podría implementar el guardado real en el dispositivo
+      // usando el plugin de File System de Capacitor si se necesita
+      
+    } catch (error) {
+      console.error('Error guardando foto en galería:', error);
+      throw error;
+    }
+  };
+
   const handleBackToDashboard = () => {
     setShowReportsPage(false);
     setShowReportForm(false);
@@ -1672,6 +1923,13 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
+                <div className="dashboard-action-icon">
+                  <CameraIcon size={32} />
+                </div>
+                <div className="dashboard-action-label">Cámara</div>
+              </div>
+
               {!hideUnusedIcons && (
                 <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowLeafletMap}>
                   <div className="dashboard-action-icon">
@@ -1742,6 +2000,18 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
               {/* fin condicional Buscar - no cerrar grid aquí */}
+
+              {/* Icono Cámara - Disponible para todos los usuarios */}
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
+                <div className="dashboard-icon">
+                  <CameraIcon size={40} />
+                </div>
+                <h3 className="dashboard-icon-title">Cámara</h3>
+                <p className="dashboard-icon-description">
+                  Tomar fotografías georeferenciadas con datos de ubicación
+                </p>
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
+              </div>
 
               {/* Icono Usuarios - Oculto para usuarios técnicos */}
               {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
@@ -1825,6 +2095,16 @@ const Dashboard: React.FC = () => {
         reports={pendingReportsList}
         onContinueReport={handleContinuePendingReport}
         onCancelReport={handleCancelPendingReport}
+      />
+
+      {/* Modal de Cámara */}
+      <CameraModal
+        isOpen={showCameraModal}
+        onClose={() => { setShowCameraModal(false); }}
+        photo={capturedPhoto}
+        location={cameraLocation}
+        userName={user?.name || 'Usuario'}
+        onSaveToGallery={handleSavePhotoToGallery}
       />
 
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}

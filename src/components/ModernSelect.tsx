@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import './ModernSelect.css';
 
 export interface ModernSelectOption {
@@ -32,11 +34,40 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const backButtonListenerRef = useRef<any>(null);
 
   const selectedOption = options.find(o => o.value === value);
   const filteredOptions = options.filter(option =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Manejar el botón de retroceso de Android
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      const handleBackButton = () => {
+        if (isOpen) {
+          console.log('🔙 Cerrando dropdown select con back button');
+          setIsOpen(false);
+          setSearchTerm('');
+          setHighlightedIndex(-1);
+          return true; // Prevenir que la app se cierre
+        }
+        return false; // Permitir comportamiento normal
+      };
+
+      // Agregar listener para el botón de retroceso
+      CapacitorApp.addListener('backButton', handleBackButton).then(listener => {
+        backButtonListenerRef.current = listener;
+      });
+
+      // Limpiar listener al desmontar
+      return () => {
+        if (backButtonListenerRef.current) {
+          backButtonListenerRef.current.remove();
+        }
+      };
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handler = (e: MouseEvent | TouchEvent) => {
@@ -158,6 +189,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
         </div>
       </div>
 
+      {/* Dropdown Original */}
       {isOpen && (
         <div className="modern-select-dropdown">
           <div className="modern-select-search">

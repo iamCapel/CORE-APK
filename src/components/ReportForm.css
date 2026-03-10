@@ -150,8 +150,8 @@
 	border: 1.5px solid var(--gray-mid);
 	border-radius: var(--radius-sm);
 	font-size: 15px;
-	color: var(--text-primary);
-	background: var(--white);
+	color: #1a1a1a !important; /* Forzar color de texto oscuro */
+	background: #ffffff !important; /* Forzar fondo blanco */
 	appearance: none;
 	-webkit-appearance: none;
 	outline: none;
