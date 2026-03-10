@@ -42,11 +42,11 @@ export async function addWatermarkToPhoto(
         // Dibujar la imagen original
         ctx.drawImage(img, 0, 0);
 
-        // Configuración de la marca de agua
-        const padding = 20;
-        const lineHeight = 28;
-        const fontSize = 22;
-        const shadowBlur = 15;
+        // Configuración de la marca de agua - Tamaño aumentado para mejor legibilidad
+        const padding = 28;
+        const lineHeight = 42;
+        const fontSize = 32;
+        const shadowBlur = 20;
         
         // Formatear la fecha
         const formattedDate = formatDateTime(data.timestamp);
@@ -67,13 +67,13 @@ export async function addWatermarkToPhoto(
         const boxHeight = (lines.length * lineHeight) + (padding * 2);
 
         // Posición en la esquina inferior izquierda
-        const boxX = 15;
-        const boxY = canvas.height - boxHeight - 15;
+        const boxX = 20;
+        const boxY = canvas.height - boxHeight - 20;
 
-        // Dibujar sombra ahumada oscura (fondo semi-transparente)
+        // Dibujar sombra ahumada oscura (fondo semi-transparente) con mayor opacidad
         const gradient = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxHeight);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.82)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.90)');
         
         ctx.fillStyle = gradient;
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
@@ -81,19 +81,19 @@ export async function addWatermarkToPhoto(
         ctx.shadowOffsetX = 3;
         ctx.shadowOffsetY = 3;
         
-        // Dibujar rectángulo con bordes redondeados
-        roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 8);
+        // Dibujar rectángulo con bordes redondeados más prominentes
+        roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 12);
         ctx.fill();
 
-        // Resetear sombra para el texto
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
+        // Resetear sombra para el texto - Mayor contraste
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
 
-        // Dibujar texto
+        // Dibujar texto con mayor grosor
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+        ctx.font = `900 ${fontSize}px Arial, sans-serif`;
         ctx.textBaseline = 'top';
 
         lines.forEach((line, index) => {
