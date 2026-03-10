@@ -46,7 +46,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
     if (Capacitor.isNativePlatform()) {
       const handleBackButton = () => {
         if (isOpen) {
-          console.log('🔙 Cerrando dropdown select con back button');
+          console.log('🔙 Cerrando modal select con back button');
           setIsOpen(false);
           setSearchTerm('');
           setHighlightedIndex(-1);
@@ -138,6 +138,12 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
     setSearchTerm('');
   };
 
+  const closeModal = () => {
+    setIsOpen(false);
+    setSearchTerm('');
+    setHighlightedIndex(-1);
+  };
+
   return (
     <div
       ref={wrapRef}
@@ -189,60 +195,95 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
         </div>
       </div>
 
-      {/* Dropdown Original */}
+      {/* Modal Fullscreen */}
       {isOpen && (
-        <div className="modern-select-dropdown">
-          <div className="modern-select-search">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className="search-icon">
-              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Buscar opción..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setHighlightedIndex(0);
-              }}
-              className="search-input"
-            />
-          </div>
+        <div className="modern-select-modal show">
+          <div className="modern-select-modal-content">
+            {/* Header */}
+            <div className="modern-select-modal-header">
+              <h3 className="modern-select-modal-title">
+                <span className="title-icon">{icon}</span>
+                {hint}
+              </h3>
+              <button 
+                type="button" 
+                className="modern-select-modal-close"
+                onClick={closeModal}
+              >
+                ×
+              </button>
+            </div>
 
-          <div className="modern-select-options" ref={optionsRef}>
-            {filteredOptions.length === 0 ? (
-              <div className="no-options">
-                <span>No se encontraron opciones</span>
-              </div>
-            ) : (
-              filteredOptions.map((option, index) => (
-                <div
-                  key={option.value}
-                  className={`modern-select-option ${
-                    value === option.value ? 'selected' : ''
-                  } ${option.special ? 'special' : ''} ${
-                    highlightedIndex === index ? 'highlighted' : ''
-                  }`}
-                  onClick={() => selectOption(option.value)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                >
-                  {option.icon && <span className="option-icon">{option.icon}</span>}
-                  <div className="option-content">
-                    <span className="option-text">{option.label}</span>
-                    {option.description && (
-                      <span className="option-description">{option.description}</span>
+            {/* Search */}
+            <div className="modern-select-modal-search">
+              <span className="search-icon">🔍</span>
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Buscar opción..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setHighlightedIndex(0);
+                }}
+                className="modern-select-search-input"
+              />
+            </div>
+
+            {/* Options */}
+            <div className="modern-select-options">
+              {filteredOptions.length === 0 ? (
+                <div className="no-options">
+                  <span>No se encontraron opciones</span>
+                </div>
+              ) : (
+                filteredOptions.map((option, index) => (
+                  <div
+                    key={option.value}
+                    className={`modern-select-option ${
+                      value === option.value ? 'selected' : ''
+                    } ${option.special ? 'special' : ''} ${
+                      highlightedIndex === index ? 'highlighted' : ''
+                    }`}
+                    onClick={() => selectOption(option.value)}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                  >
+                    {option.icon && <span className="option-icon">{option.icon}</span>}
+                    <div className="option-content">
+                      <span className="option-text">{option.label}</span>
+                      {option.description && (
+                        <span className="option-description">{option.description}</span>
+                      )}
+                    </div>
+                    {value === option.value && (
+                      <span className="option-check">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                      </span>
                     )}
                   </div>
-                  {value === option.value && (
-                    <span className="option-check">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                      </svg>
-                    </span>
-                  )}
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="modern-select-modal-footer">
+              <button 
+                type="button" 
+                className="modern-select-modal-button cancel"
+                onClick={closeModal}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                className="modern-select-modal-button confirm"
+                onClick={closeModal}
+              >
+                Aceptar
+              </button>
+            </div>
           </div>
         </div>
       )}
