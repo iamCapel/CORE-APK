@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Camera, CameraSource, CameraResultType } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
+import { addWatermarkToPhoto, imageUriToBase64 } from '../services/photoWatermark';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -1399,46 +1400,199 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      // Obtener ubicación actual
+      console.log('📷 Iniciando captura de foto con marca de agua...');
+      
+      // Mostrar mensaje de carga
+      const loadingMessage = document.createElement('div');
+      loadingMessage.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        z-index: 10000;
+        font-size: 16px;
+        text-align: center;
+      `;
+      loadingMessage.innerHTML = '📷 Procesando foto...<br/><small>Por favor espere</small>';
+      document.body.appendChild(loadingMessage);
+
+      // Obtener ubicación actual PRIMERO
+      console.log('📍 Obteniendo ubicación...');
       const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 60000
       });
 
-      // Abrir cámara
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: false,
-        resultType: CameraResultType.Uri,
-        source: CameraSource.Camera
-      });
+      console.log('📍 Ubicación obtenida:', position.coords);
 
       // Obtener dirección usando geocoding inverso
       let address = 'Ubicación desconocida';
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`);
+        console.log('🗺️ Obteniendo dirección...');
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'MOPC-App/1.0'
+            }
+          }
+        );
         const data = await response.json();
-        if (data && data.address) {
-          address = `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.city || ''}, ${data.address.state || ''}`;
+        if (data && data.display_name) {
+          address = data.display_name;
+        } else if (data && data.address) {
+          const addr = data.address;
+          const parts = [
+            addr.road,
+            addr.suburb || addr.neighbourhood,
+            addr.city || addr.town || addr.village,
+            addr.state,
+            addr.country
+          ].filter(Boolean);
+          address = parts.join(', ');
         }
+        console.log('🗺️ Dirección obtenida:', address);
       } catch (error) {
         console.error('Error obteniendo dirección:', error);
+        address = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
       }
 
-      // Guardar datos de la foto y ubicación
-      setCapturedPhoto(image.webPath || null);
-      setCameraLocation({
-        lat: position.coords.latitude,
-        lon: position.coords.longitude,
-        address: address
+      // Abrir cámara
+      console.log('📸 Abriendo cámara...');
+      const image = await Camera.getPhoto({
+        quality: 95,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        saveToGallery: false // No guardar aún, primero agregamos la marca de agua
       });
 
-      // Mostrar modal con vista previa
-      setShowCameraModal(true);
-    } catch (error) {
-      console.error('Error al tomar foto:', error);
-      alert('Error al tomar foto. Por favor intente nuevamente.');
+      if (!image.webPath) {
+        throw new Error('No se pudo obtener la imagen');
+      }
+
+      console.log('📸 Foto capturada, convirtiendo a base64...');
+      
+      // Convertir la imagen a base64
+      const base64Image = await imageUriToBase64(image.webPath);
+
+      console.log('🎨 Agregando marca de agua...');
+      
+      // Agregar marca de agua con información georeferenciada
+      const watermarkedImage = await addWatermarkToPhoto(base64Image, {
+        userName: user?.fullName || user?.name || 'Usuario MOPC',
+        address: address,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        timestamp: new Date()
+      });
+
+      console.log('💾 Guardando foto en la galería...');
+
+      // Guardar la foto con marca de agua en la galería
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Usar el plugin de Filesystem para dispositivos nativos
+          const { Filesystem, Directory } = await import('@capacitor/filesystem');
+          
+          // Generar nombre de archivo único
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const fileName = `MOPC_${timestamp}.jpg`;
+          
+          // Remover el prefijo base64
+          const base64Data = watermarkedImage.replace(/^data:image\/\w+;base64,/, '');
+          
+          // Guardar en el directorio de documentos
+          const savedFile = await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Documents
+          });
+          
+          console.log('✅ Foto guardada en:', savedFile.uri);
+          
+          // Remover mensaje de carga
+          document.body.removeChild(loadingMessage);
+          
+          // Mostrar mensaje de éxito
+          const successMessage = document.createElement('div');
+          successMessage.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(76, 175, 80, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            z-index: 10000;
+            font-size: 16px;
+            text-align: center;
+            animation: fadeOut 2s forwards;
+          `;
+          successMessage.innerHTML = '✅ Foto guardada con éxito<br/><small>Ubicación: ' + address.substring(0, 50) + '...</small>';
+          document.body.appendChild(successMessage);
+          
+          setTimeout(() => {
+            if (document.body.contains(successMessage)) {
+              document.body.removeChild(successMessage);
+            }
+          }, 3000);
+          
+        } catch (error) {
+          console.error('Error guardando foto en dispositivo:', error);
+          throw error;
+        }
+      } else {
+        // En web, descargar la imagen
+        const link = document.createElement('a');
+        link.href = watermarkedImage;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        link.download = `MOPC_${timestamp}.jpg`;
+        link.click();
+        
+        // Remover mensaje de carga
+        document.body.removeChild(loadingMessage);
+        
+        // Mostrar mensaje de éxito
+        alert('✅ Foto descargada con éxito');
+      }
+
+      // Guardar registro en localStorage
+      const photoRecord = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        userName: user?.fullName || user?.name || 'Usuario',
+        address: address,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      };
+      
+      const existingRecords = JSON.parse(localStorage.getItem('mopc_photo_records') || '[]');
+      existingRecords.push(photoRecord);
+      localStorage.setItem('mopc_photo_records', JSON.stringify(existingRecords));
+
+    } catch (error: any) {
+      console.error('❌ Error al tomar foto:', error);
+      
+      // Remover mensaje de carga si existe
+      const loadingElements = document.querySelectorAll('div');
+      loadingElements.forEach(el => {
+        if (el.textContent?.includes('Procesando foto')) {
+          el.remove();
+        }
+      });
+      
+      if (error.message === 'User cancelled photos app') {
+        console.log('Usuario canceló la captura de foto');
+      } else {
+        alert('Error al tomar foto: ' + (error.message || 'Por favor intente nuevamente.'));
+      }
     }
   };
 
