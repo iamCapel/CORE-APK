@@ -352,20 +352,23 @@ const MyReportsHierarchy: React.FC<MyReportsHierarchyProps> = ({
                                   {district.reports.map((report) => (
                                     <div 
                                       key={report.id}
-                                      className="report-item"
+                                      className={`report-item ${report.estado}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log('🔍 Click en reporte:', report.id, 'Estado:', report.estado);
+                                        if (report.estado === 'pendiente' && onContinuePendingReport) {
+                                          console.log('📋 Continuando reporte pendiente');
+                                          onContinuePendingReport(report.id);
+                                        } else if (onViewReport) {
+                                          console.log('👁️ Abriendo vista de reporte');
+                                          onViewReport(report.id);
+                                        } else {
+                                          console.log('⚠️ onViewReport no está disponible');
+                                        }
+                                      }}
+                                      style={{ cursor: 'pointer' }}
                                     >
-                                      <div
-                                        className="report-info"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (report.estado === 'pendiente' && onContinuePendingReport) {
-                                            onContinuePendingReport(report.id);
-                                          } else if (onViewReport) {
-                                            // Siempre pasar el ID real del reporte para buscar en Firebase
-                                            onViewReport(report.id);
-                                          }
-                                        }}
-                                      >
+                                      <div className="report-info">
                                         <span className="report-number">#{report.reportNumber}</span>
                                         <span className="report-creator">{report.createdBy}</span>
                                         <span className="report-date">{report.date}</span>

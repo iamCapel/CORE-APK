@@ -310,6 +310,19 @@
   box-shadow: 0 0 6px rgba(255, 107, 0, 0.4);
 }
 
+/* ===== CONTENEDOR DE HIJOS (DESPLEGABLE) ===== */
+.hierarchy-children {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 4px 4px 16px;
+  position: relative;
+  width: 100%;
+  /* Forzar expansión hacia abajo */
+  overflow: visible;
+  flex-wrap: nowrap;
+}
+
 /* ===== LISTA DE REPORTES ===== */
 .reports-list {
   display: flex;
@@ -319,6 +332,9 @@
   background: rgba(0, 0, 0, 0.2);
   border-radius: 0 0 10px 10px;
   border-top: 1px solid rgba(255, 107, 0, 0.2);
+  /* Forzar expansión vertical */
+  overflow: visible;
+  width: 100%;
 }
 
 /* ===== ITEM DE REPORTE ===== */
@@ -400,6 +416,27 @@
   flex-shrink: 0;
   font-family: 'Rajdhani', 'Inter', sans-serif;
   border: 1px solid rgba(255,107,0,0.2);
+}
+
+/* ===== INFO DEL REPORTE (CLICKEABLE) ===== */
+.report-info {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.report-info:hover {
+  background: rgba(255, 107, 0, 0.08);
+}
+
+.report-info:active {
+  transform: scale(0.98);
+  background: rgba(255, 107, 0, 0.12);
 }
 
 /* ===== CONTENIDO DEL REPORTE ===== */
