@@ -65,59 +65,113 @@ const addWatermarkToImage = async (
         }
         canvas.width = width; canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
-        const fontSize = Math.max(14, Math.floor(width / 48));
-        const padding = fontSize * 0.8;
-        const lineHeight = fontSize * 1.5;
-        // Orden: tipo de intervención, dirección, coordenadas, usuario, fecha/hora
-        let lines: string[] = [];
-        if (tipoIntervencion) lines.push(`🔨 ${tipoIntervencion}`);
-        if (address) {
-          // Dirección puede ser larga, dividir en varias líneas si es necesario
-          const maxW = width * 0.7;
-          const words = address.split(' ');
-          let line = '';
-          for (let i = 0; i < words.length; i++) {
-            const testLine = line + words[i] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxW && i > 0) {
-              lines.push(`🏠 ${line.trim()}`);
-              line = words[i] + ' ';
-            } else {
-              line = testLine;
-            }
-          }
-          if (line) lines.push(`🏠 ${line.trim()}`);
-        }
-        if (gpsData) lines.push(`📍 ${gpsData.lat.toFixed(6)}, ${gpsData.lon.toFixed(6)}`);
-        if (userName) lines.push(`👤 ${userName}`);
+        
+        // Configuración del watermark estilo MOPC
+        const baseFontSize = Math.max(16, Math.floor(width / 50));
+        const padding = 30;
+        const lineHeight = baseFontSize * 1.4;
+        
+        // Información organizada como en la imagen de referencia
         const now = new Date();
         const dateStr = now.toLocaleDateString('es-DO', { year: 'numeric', month: '2-digit', day: '2-digit' });
-        const timeStr = now.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        lines.push(`📅 ${dateStr} | ⏰ ${timeStr}`);
-        // Calcular altura del fondo
-        const bgHeight = lineHeight * lines.length + padding * 2;
-        // Fondo oscuro y transparente en la parte inferior izquierda
+        const timeStr = now.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+        
+        // Líneas de información estilo oficial
+        let lines: string[] = [];
+        
+        // Línea 1: Ministerio y ubicación
+        if (address) {
+          lines.push(`Ministerio de Obras Públicas y Comunicaciones, ${address}`);
+        } else {
+          lines.push(`Ministerio de Obras Públicas y Comunicaciones, República Dominicana`);
+        }
+        
+        // Línea 2: Coordenadas con icono de ubicación
+        if (gpsData) {
+          lines.push(`📍 ${gpsData.lat.toFixed(6)}, ${gpsData.lon.toFixed(6)}`);
+        }
+        
+        // Línea 3: Información adicional
+        let additionalInfo = [];
+        if (tipoIntervencion) additionalInfo.push(tipoIntervencion);
+        if (userName) additionalInfo.push(`Usuario: ${userName}`);
+        additionalInfo.push(`${dateStr} ${timeStr}`);
+        
+        if (additionalInfo.length > 0) {
+          lines.push(additionalInfo.join(' | '));
+        }
+        
+        // Calcular altura del fondo basado en las líneas
+        const bgHeight = (lines.length * lineHeight) + (padding * 1.5);
+        
+        // Fondo oscuro completo en toda la base (estilo profesional)
         ctx.save();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, height - bgHeight, width, bgHeight);
+        
+        // Línea sutil superior para delinear el área
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, height - bgHeight);
-        ctx.lineTo(width * 0.75, height - bgHeight);
-        ctx.lineTo(width * 0.75, height);
-        ctx.lineTo(0, height);
-        ctx.closePath();
-        ctx.fill();
+        ctx.lineTo(width, height - bgHeight);
+        ctx.stroke();
         ctx.restore();
-        // Texto blanco
-        ctx.fillStyle = 'white';
-        ctx.font = `bold ${fontSize}px Arial`;
+        
+        // Configuración de texto estilo profesional
+        ctx.fillStyle = '#FFFFFF';
         ctx.textBaseline = 'top';
+        
+        // Tamaño de fuente adaptativo
+        let fontSize = baseFontSize;
+        ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
+        
+        // Verificar si el texto más largo cabe y ajustar si es necesario
+        let maxTextWidth = 0;
+        for (const line of lines) {
+          const textWidth = ctx.measureText(line).width;
+          if (textWidth > maxTextWidth) {
+            maxTextWidth = textWidth;
+          }
+        }
+        
+        // Ajustar tamaño si es necesario
+        const availableWidth = width - (padding * 2);
+        if (maxTextWidth > availableWidth) {
+          const scaleFactor = availableWidth / maxTextWidth;
+          fontSize = Math.floor(fontSize * scaleFactor);
+          ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
+        }
+        
+        // Dibujar el texto línea por línea
         let yPos = height - bgHeight + padding;
-        for (const text of lines) {
+        for (let i = 0; i < lines.length; i++) {
+          const text = lines[i];
+          
+          // Primera línea más prominente (título)
+          if (i === 0) {
+            ctx.font = `bold ${fontSize + 2}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
+            ctx.fillStyle = '#FFFFFF';
+          } else {
+            ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          }
+          
           ctx.fillText(text, padding, yPos);
           yPos += lineHeight;
         }
-        const finalImage = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Pequeño logo o identificador en la esquina inferior derecha (opcional)
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.font = `${fontSize - 4}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('MOPC © 2026', width - padding, height - 10);
+        ctx.restore();
+        
+        const finalImage = canvas.toDataURL('image/jpeg', 0.85);
         resolve(finalImage);
       } catch (error) {
         console.error('Error aplicando watermark:', error);
