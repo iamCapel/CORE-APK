@@ -44,8 +44,8 @@ export async function addWatermarkToPhoto(
 
         // Configuración de la marca de agua - Barra completa abajo con fondo borroso
         const padding = 20;
-        const lineHeight = 50;
-        const fontSize = 42; // Tamaño 14pt aproximadamente
+        const lineHeight = 30;
+        const fontSize = 22;
         const shadowBlur = 8;
         
         // Formatear la fecha
