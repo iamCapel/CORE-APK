@@ -44,8 +44,6 @@ export async function addWatermarkToPhoto(
 
         // Configuración de la marca de agua - Barra completa abajo con fondo borroso
         const padding = 40;
-        const lineHeight = 180;
-        const fontSize = 150; // Tamaño GRANDE para legibilidad
         const shadowBlur = 12;
         
         // Formatear la fecha
@@ -59,6 +57,30 @@ export async function addWatermarkToPhoto(
           formattedCoords,
           formattedDate
         ];
+
+        // Calcular tamaño de fuente automático basado en el ancho del canvas
+        const availableWidth = canvas.width - (padding * 2);
+        let fontSize = Math.min(canvas.width * 0.08, 150); // Máximo 150px o 8% del ancho
+        let lineHeight = fontSize * 1.2;
+        
+        // Ajustar fontSize para que la línea más larga quepa
+        ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+        
+        // Encontrar la línea más larga
+        let maxTextWidth = 0;
+        for (const line of lines) {
+          const textWidth = ctx.measureText(line).width;
+          if (textWidth > maxTextWidth) {
+            maxTextWidth = textWidth;
+          }
+        }
+        
+        // Si el texto más largo no cabe, reducir el fontSize
+        if (maxTextWidth > availableWidth) {
+          fontSize = (fontSize * availableWidth) / maxTextWidth;
+          lineHeight = fontSize * 1.2;
+          ctx.font = `900 ${fontSize}px Arial, sans-serif`;
+        }
 
         // Dimensiones - Ancho completo
         const boxWidth = canvas.width; // De lado a lado
