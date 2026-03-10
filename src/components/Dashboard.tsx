@@ -1848,6 +1848,18 @@ const Dashboard: React.FC = () => {
               )}
               {/* fin condicional Buscar - no cerrar grid aquí */}
 
+              {/* Icono Cámara - Disponible para todos los usuarios */}
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
+                <div className="dashboard-icon">
+                  <CameraIcon size={40} />
+                </div>
+                <h3 className="dashboard-icon-title">Cámara</h3>
+                <p className="dashboard-icon-description">
+                  Tomar fotografías georeferenciadas con datos de ubicación
+                </p>
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
+              </div>
+
               {/* Icono Usuarios - Oculto para usuarios técnicos */}
               {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
                 <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
