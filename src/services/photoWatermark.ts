@@ -42,11 +42,11 @@ export async function addWatermarkToPhoto(
         // Dibujar la imagen original
         ctx.drawImage(img, 0, 0);
 
-        // Configuración de la marca de agua - Tamaño aumentado para mejor legibilidad
-        const padding = 28;
-        const lineHeight = 42;
-        const fontSize = 32;
-        const shadowBlur = 20;
+        // Configuración de la marca de agua - Barra completa abajo con fondo borroso
+        const padding = 20;
+        const lineHeight = 50;
+        const fontSize = 42; // Tamaño 14pt aproximadamente
+        const shadowBlur = 8;
         
         // Formatear la fecha
         const formattedDate = formatDateTime(data.timestamp);
@@ -60,36 +60,45 @@ export async function addWatermarkToPhoto(
           formattedDate
         ];
 
-        // Calcular dimensiones del cuadro de texto
-        ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-        const maxWidth = Math.max(...lines.map(line => ctx.measureText(line).width));
-        const boxWidth = maxWidth + (padding * 2);
+        // Dimensiones - Ancho completo
+        const boxWidth = canvas.width; // De lado a lado
         const boxHeight = (lines.length * lineHeight) + (padding * 2);
+        const boxX = 0; // Desde el borde izquierdo
+        const boxY = canvas.height - boxHeight; // Parte inferior
 
-        // Posición en la esquina inferior izquierda
-        const boxX = 20;
-        const boxY = canvas.height - boxHeight - 20;
+        // Crear zona borrosa aplicando blur a la región de la imagen de fondo
+        // Primero extraer la región que va a estar debajo
+        const imageData = ctx.getImageData(boxX, boxY, boxWidth, boxHeight);
+        
+        // Aplicar blur manual simple (efecto de desenfoque)
+        const blurRadius = 15;
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = boxWidth;
+        tempCanvas.height = boxHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx) {
+          tempCtx.putImageData(imageData, 0, 0);
+          // Aplicar filtro de blur nativo si está disponible
+          tempCtx.filter = `blur(${blurRadius}px)`;
+          tempCtx.drawImage(tempCanvas, 0, 0);
+          
+          // Dibujar la imagen borrosa de vuelta
+          ctx.drawImage(tempCanvas, boxX, boxY);
+        }
 
-        // Dibujar sombra ahumada oscura (fondo semi-transparente) con mayor opacidad
+        // Dibujar capa semi-transparente encima del fondo borroso
         const gradient = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxHeight);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.82)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.90)');
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.45)'); // Más transparente
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.60)'); // Semi-transparente
         
         ctx.fillStyle = gradient;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-        ctx.shadowBlur = shadowBlur;
-        ctx.shadowOffsetX = 3;
-        ctx.shadowOffsetY = 3;
-        
-        // Dibujar rectángulo con bordes redondeados más prominentes
-        roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 12);
-        ctx.fill();
+        ctx.fillRect(boxX, boxY, boxWidth, boxHeight); // Rectángulo sin bordes redondeados
 
-        // Resetear sombra para el texto - Mayor contraste
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-        ctx.shadowBlur = 5;
-        ctx.shadowOffsetX = 3;
-        ctx.shadowOffsetY = 3;
+        // Resetear sombra para el texto
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = shadowBlur;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
 
         // Dibujar texto con mayor grosor
         ctx.fillStyle = '#FFFFFF';
@@ -97,7 +106,7 @@ export async function addWatermarkToPhoto(
         ctx.textBaseline = 'top';
 
         lines.forEach((line, index) => {
-          const textX = boxX + padding;
+          const textX = padding;
           const textY = boxY + padding + (index * lineHeight);
           ctx.fillText(line, textX, textY);
         });
