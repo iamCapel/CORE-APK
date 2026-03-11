@@ -66,10 +66,10 @@ const addWatermarkToImage = async (
         canvas.width = width; canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Configuración del watermark estilo MOPC
-        const baseFontSize = Math.max(16, Math.floor(width / 50));
-        const padding = 30;
-        const lineHeight = baseFontSize * 1.4;
+        // Configuración del watermark estilo MOPC - Mayor y más legible
+        const baseFontSize = Math.max(28, Math.floor(width / 25)); // Aumentado significativamente
+        const padding = 25;
+        const lineHeight = baseFontSize * 1.3; // Reducido para mejor densidad
         
         // Información organizada como en la imagen de referencia
         const now = new Date();
@@ -136,11 +136,14 @@ const addWatermarkToImage = async (
           }
         }
         
-        // Ajustar tamaño si es necesario
+        // Ajustar tamaño si es necesario - Limitar la reducción para mantener legibilidad
         const availableWidth = width - (padding * 2);
         if (maxTextWidth > availableWidth) {
           const scaleFactor = availableWidth / maxTextWidth;
-          fontSize = Math.floor(fontSize * scaleFactor);
+          // Limitar la reducción mínima para mantener legibilidad (no reducir menos del 75%)
+          const minScaleFactor = 0.75;
+          const adjustedScaleFactor = Math.max(scaleFactor, minScaleFactor);
+          fontSize = Math.floor(fontSize * adjustedScaleFactor);
           ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
         }
         
