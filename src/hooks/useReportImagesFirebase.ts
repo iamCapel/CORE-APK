@@ -47,6 +47,7 @@ const addWatermarkToImage = async (
   gpsData?: { lat: number; lon: number },
   address?: string,
   userName?: string,
+  userFullName?: string,
   tipoIntervencion?: string
 ): Promise<string> => {
   return new Promise((resolve) => {
@@ -91,10 +92,12 @@ const addWatermarkToImage = async (
           lines.push(`📍 ${gpsData.lat.toFixed(6)}, ${gpsData.lon.toFixed(6)}`);
         }
         
-        // Línea 3: Información adicional
+        // Línea 3: Información adicional - Nombre completo del usuario
         let additionalInfo = [];
         if (tipoIntervencion) additionalInfo.push(tipoIntervencion);
-        if (userName) additionalInfo.push(`Usuario: ${userName}`);
+        // Priorizar nombre completo sobre nombre de usuario
+        if (userFullName) additionalInfo.push(`Usuario: ${userFullName}`);
+        else if (userName) additionalInfo.push(`Usuario: ${userName}`);
         additionalInfo.push(`${dateStr} ${timeStr}`);
         
         if (additionalInfo.length > 0) {
@@ -165,13 +168,25 @@ const addWatermarkToImage = async (
           yPos += lineHeight;
         }
         
-        // Pequeño logo o identificador en la esquina inferior derecha (opcional)
+        // Marca MOPC prominente en la esquina inferior derecha
         ctx.save();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.font = `${fontSize - 4}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = `bold ${fontSize - 2}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('MOPC © 2026', width - padding, height - 10);
+        
+        // Dibujar rectángulo de fondo para la marca MOPC
+        const mopcText = 'MOPC';
+        const mopcWidth = ctx.measureText(mopcText).width;
+        const mopcHeight = fontSize - 2;
+        const mopcX = width - padding - mopcWidth - 10;
+        const mopcY = height - padding - mopcHeight - 10;
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(mopcX - 5, mopcY - 5, mopcWidth + 10, mopcHeight + 10);
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(mopcText, width - padding - 10, height - padding - 10);
         ctx.restore();
         
         const finalImage = canvas.toDataURL('image/jpeg', 0.85);
@@ -203,8 +218,8 @@ interface UseReportImagesFirebaseReturn {
   imageCount: number;
   uploadProgress: number;
   currentDay: string;
-  addImage: (uri: string, gpsData?: { lat: number; lon: number }, extraInfo?: { userName?: string; tipoIntervencion?: string }) => Promise<void>;
-  addImageFromGallery: (extraInfo?: { userName?: string; tipoIntervencion?: string }) => Promise<void>;
+  addImage: (uri: string, gpsData?: { lat: number; lon: number }, extraInfo?: { userName?: string; userFullName?: string; tipoIntervencion?: string }) => Promise<void>;
+  addImageFromGallery: (extraInfo?: { userName?: string; userFullName?: string; tipoIntervencion?: string }) => Promise<void>;
   removeImage: (imageId: string) => Promise<void>;
   loadImages: (imagesToLoad?: Record<string, any>) => Promise<void>;
   clearAllImages: () => Promise<void>;
@@ -309,13 +324,13 @@ export const useReportImagesFirebase = (
     finally { setIsLoading(false); }
   }, [storageKey, loadFromFirebase, imagesByDay, saveToStorage]);
 
-  const addImage = useCallback(async (uri: string, gpsData?: { lat: number; lon: number }, extraInfo?: { userName?: string; tipoIntervencion?: string }) => {
+  const addImage = useCallback(async (uri: string, gpsData?: { lat: number; lon: number }, extraInfo?: { userName?: string; userFullName?: string; tipoIntervencion?: string }) => {
     if (!canAddMore) { alert(`Máximo ${maxImagesPerDay} imágenes por día`); return; }
     try {
       setIsLoading(true); setUploadProgress(10);
       let address: string | undefined;
       if (gpsData) { address = await getAddressFromCoordinates(gpsData.lat, gpsData.lon); setUploadProgress(20); }
-      const watermarkedUri = await addWatermarkToImage(uri, gpsData, address, extraInfo?.userName, extraInfo?.tipoIntervencion);
+      const watermarkedUri = await addWatermarkToImage(uri, gpsData, address, extraInfo?.userName, extraInfo?.userFullName, extraInfo?.tipoIntervencion);
       setUploadProgress(40);
       const dayIndex = getDayIndex(currentDay);
       let firebaseResult: ImageUploadResult | null = null;
@@ -348,7 +363,7 @@ export const useReportImagesFirebase = (
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportId, currentDayKey, imagesByDay, currentDayImages, canAddMore, maxImagesPerDay, saveToStorage]);
 
-  const addImageFromGallery = useCallback(async (extraInfo?: { userName?: string; tipoIntervencion?: string }) => {
+  const addImageFromGallery = useCallback(async (extraInfo?: { userName?: string; userFullName?: string; tipoIntervencion?: string }) => {
     return new Promise<void>((resolve) => {
       const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.multiple = false;
       input.onchange = async (e: Event) => {

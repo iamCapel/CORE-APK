@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="192dp"
+    android:height="192dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    
+    <!-- Fondo circular azul más brillante -->
+    <path
+        android:fillColor="#5BA0F2"
+        android:pathData="M96,96 m-92,0 a92,92 0,1,1,184,0 a92,92 0,1,1,-184,0" />
+    
+    <!-- Borde sutil -->
+    <path
+        android:fillColor="#4A90E2"
+        android:pathData="M96,96 m-88,0 a88,88 0,1,1,176,0 a88,88 0,1,1,-176,0" />
+    
+    <!-- Sombra interior para profundidad -->
+    <path
+        android:fillColor="#3D7FD8"
+        android:pathData="M96,96 m-84,0 a84,84 0,1,1,168,0 a84,84 0,1,1,-168,0" />
+    
+    <!-- Texto MOPC con estilo profesional -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,118 L32,72 L50,72 L50,90 L72,90 L72,72 L90,72 L90,118 L72,118 L72,102 L50,102 L50,118 Z" />
+    
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M92,118 L92,72 L110,72 L110,94 L134,94 L134,72 L152,72 L152,118 L134,118 L134,104 L110,104 L110,118 Z" />
+    
+    <!-- Línea decorativa elegante -->
+    <path
+        android:fillColor="#E8F4FD"
+        android:pathData="M40,132 L140,132 L140,140 L40,140 Z" />
+    
+    <!-- Pequeños detalles decorativos -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,150 L70,148 L110,148 L110,150 Z" />
+</vector>

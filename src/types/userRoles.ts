@@ -53,7 +53,20 @@ export interface RoleConfig {
   description: string;
 }
 
-// Configuración para Usuario Técnico (Verde)
+// Tema unificado para todos los roles (Mismo color para todos)
+const unifiedTheme: UserTheme = {
+  name: 'MOPC Unificado',
+  primaryColor: '#1f2937', // Gray-800
+  primaryColorDark: '#111827', // Gray-900
+  secondaryColor: '#374151', // Gray-700
+  tertiaryColor: '#f3f4f6', // Gray-100
+  accentColor: '#6b7280', // Gray-500
+  shadowColor: 'rgba(31, 41, 55, 0.4)',
+  gradientStart: '#1f2937',
+  gradientEnd: '#111827'
+};
+
+// Configuración para Usuario Técnico (Tema unificado)
 const tecnicoConfig: RoleConfig = {
   role: UserRole.TECNICO,
   displayName: 'Técnico',
@@ -84,20 +97,10 @@ const tecnicoConfig: RoleConfig = {
     maxInterventionsPerReport: 50,
     requiresApproval: true // Sus reportes requieren aprobación
   },
-  theme: {
-    name: 'Técnico Verde',
-    primaryColor: '#10b981', // Green-500
-    primaryColorDark: '#059669', // Green-600
-    secondaryColor: '#34d399', // Green-400
-    tertiaryColor: '#d1fae5', // Green-100
-    accentColor: '#6ee7b7', // Green-300
-    shadowColor: 'rgba(16, 185, 129, 0.3)',
-    gradientStart: '#10b981',
-    gradientEnd: '#059669'
-  }
+  theme: unifiedTheme // Usar tema unificado
 };
 
-// Configuración para Usuario Supervisor (Azul)
+// Configuración para Usuario Supervisor (Tema unificado)
 const supervisorConfig: RoleConfig = {
   role: UserRole.SUPERVISOR,
   displayName: 'Supervisor',
@@ -128,20 +131,10 @@ const supervisorConfig: RoleConfig = {
     maxInterventionsPerReport: 100,
     requiresApproval: false // No requiere aprobación
   },
-  theme: {
-    name: 'Supervisor Azul',
-    primaryColor: '#3b82f6', // Blue-500
-    primaryColorDark: '#2563eb', // Blue-600
-    secondaryColor: '#60a5fa', // Blue-400
-    tertiaryColor: '#dbeafe', // Blue-100
-    accentColor: '#93c5fd', // Blue-300
-    shadowColor: 'rgba(59, 130, 246, 0.3)',
-    gradientStart: '#3b82f6',
-    gradientEnd: '#2563eb'
-  }
+  theme: unifiedTheme // Usar tema unificado
 };
 
-// Configuración para Usuario Admin (Negro/Oscuro)
+// Configuración para Usuario Admin (Tema unificado)
 const adminConfig: RoleConfig = {
   role: UserRole.ADMIN,
   displayName: 'Administrador',
@@ -172,17 +165,7 @@ const adminConfig: RoleConfig = {
     maxInterventionsPerReport: -1, // Ilimitado
     requiresApproval: false
   },
-  theme: {
-    name: 'Admin Oscuro',
-    primaryColor: '#1f2937', // Gray-800
-    primaryColorDark: '#111827', // Gray-900
-    secondaryColor: '#374151', // Gray-700
-    tertiaryColor: '#f3f4f6', // Gray-100
-    accentColor: '#6b7280', // Gray-500
-    shadowColor: 'rgba(31, 41, 55, 0.4)',
-    gradientStart: '#1f2937',
-    gradientEnd: '#111827'
-  }
+  theme: unifiedTheme // Usar tema unificado
 };
 
 // Mapa de configuraciones por rol
