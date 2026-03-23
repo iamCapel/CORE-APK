@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Geolocation } from '@capacitor/geolocation';
+import { Camera, CameraResultType } from '@capacitor/camera';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -1410,7 +1411,7 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      console.log('📷 Iniciando captura de foto con marca de agua...');
+      console.log('📷 Iniciando captura de foto con Capacitor Camera...');
       
       // Mostrar mensaje de carga
       const loadingMessage = document.createElement('div');
@@ -1472,6 +1473,39 @@ const Dashboard: React.FC = () => {
         address = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
       }
 
+      // Usar el plugin Camera de Capacitor
+      console.log('📷 Abriendo cámara con Capacitor...');
+      const result = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        saveToGallery: false
+      });
+
+      if (result.dataUrl) {
+        // Remover mensaje de carga
+        const loadingElements = document.querySelectorAll('div');
+        loadingElements.forEach(el => {
+          if (el.textContent?.includes('Procesando foto')) {
+            el.remove();
+          }
+        });
+
+        // Establecer la foto y ubicación en el estado
+        setCapturedPhoto(result.dataUrl);
+        setCameraLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+          address: address
+        });
+
+        // Abrir el modal de cámara
+        setShowCameraModal(true);
+        
+        console.log('✅ Foto capturada exitosamente');
+      } else {
+        throw new Error('No se pudo capturar la foto');
+      }
       
     } catch (error: any) {
       console.error('❌ Error al tomar foto:', error);
