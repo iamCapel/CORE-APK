@@ -1,13 +1,13 @@
 /* ===== TEMA DARK/GLASS MOPC ===== */
 :root {
-  --orange: #FF6B00;
-  --orange-light: #FF8C33;
-  --orange-glow: rgba(255, 107, 0, 0.35);
+  --accent-blue: #4a90e2;
+  --accent-blue-light: #6ba3f5;
+  --accent-blue-glow: rgba(74, 144, 226, 0.35);
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 107, 0, 0.4);
-  --dark-bg: #0a0a0c;
-  --dark-surface: #111114;
+  --glass-border-hover: rgba(74, 144, 226, 0.4);
+  --dark-bg: #0f0f1e;
+  --dark-surface: #1a1a2e;
   --text-primary: rgba(255,255,255,0.92);
   --text-muted: rgba(255,255,255,0.38);
   --text-sub: rgba(255,255,255,0.55);
@@ -803,7 +803,7 @@
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 3px;
-  color: var(--orange);
+  color: var(--accent-blue);
   text-shadow: 0 0 20px rgba(255,107,0,0.5);
   position: absolute;
   left: 50%;
@@ -853,7 +853,7 @@
 
 .topbar-action-button:hover {
   border-color: var(--glass-border-hover);
-  color: var(--orange);
+  color: var(--accent-blue);
   background: rgba(255,107,0,0.06);
 }
 
@@ -868,7 +868,7 @@
   right: 4px;
   min-width: 16px;
   height: 16px;
-  background: var(--orange);
+  background: var(--accent-blue);
   color: #fff;
   border-radius: 8px;
   font-size: 10px;
@@ -894,7 +894,7 @@
   width: 34px;
   height: 34px;
   border-radius: 0;
-  background: linear-gradient(135deg, var(--orange), #ff3a00);
+  background: linear-gradient(135deg, var(--accent-blue), #ff3a00);
   color: #fff;
   display: flex;
   align-items: center;
@@ -1170,7 +1170,7 @@
 
 .user-dropdown-item:hover {
   background: rgba(255,107,0,0.07);
-  color: var(--orange-light);
+  color: var(--accent-blue-light);
 }
 
 .user-dropdown-item span:first-child {
@@ -2570,7 +2570,7 @@ select option[value="otros"] {
   font-family: 'Rajdhani', 'Inter', sans-serif;
   font-size: 18px;
   font-weight: 700;
-  color: var(--orange);
+  color: var(--accent-blue);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -2592,7 +2592,7 @@ select option[value="otros"] {
 }
 
 .notification-bell-button:hover {
-  color: var(--orange);
+  color: var(--accent-blue);
   background: rgba(255, 107, 0, 0.1);
   transform: scale(1.05);
 }
@@ -2609,7 +2609,7 @@ select option[value="otros"] {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: var(--orange);
+  background: var(--accent-blue);
   color: white;
   border-radius: 50%;
   width: 18px;
@@ -2658,7 +2658,7 @@ select option[value="otros"] {
   font-size: 14px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--accent-blue);
   font-weight: 700;
   white-space: nowrap;
   display: inline-block;
@@ -2686,7 +2686,7 @@ select option[value="otros"] {
 }
 
 .dashboard-greeting-title span {
-  color: var(--orange);
+  color: var(--accent-blue);
 }
 
 @keyframes fadeIn {
@@ -2992,7 +2992,7 @@ select option[value="otros"] {
   height: 52px;
   background: rgba(255,107,0,0.10);
   border: 1px solid rgba(255,107,0,0.2);
-  color: var(--orange);
+  color: var(--accent-blue);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -3809,7 +3809,7 @@ select option[value="otros"] {
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   border: 1px solid rgba(255,107,0,0.35);
-  border-left: 4px solid var(--orange);
+  border-left: 4px solid var(--accent-blue);
   backdrop-filter: blur(16px);
 }
 

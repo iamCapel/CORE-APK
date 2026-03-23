@@ -1,36 +1,55 @@
 /* ========================================
    MOPC DASHBOARD - SISTEMA DE DISEÑO
-   Paleta: Naranja & Blanco
+   Paleta: Tema Oscuro
    ======================================== */
 
 :root {
-  /* Colores Principales - Naranja */
-  --primary-orange: #FF7A00;
-  --primary-orange-dark: #E66900;
-  --primary-orange-light: #FF9933;
-  --secondary-orange: #FFB366;
-  --tertiary-orange: #FFE5CC;
-  --pale-orange: #FFF5EB;
+  /* Colores Principales - Tema Oscuro */
+  --primary-dark: #1a1a2e;
+  --primary-dark-light: #2d2d44;
+  --primary-dark-accent: #3d3d5c;
+  --secondary-dark: #4a4a6a;
+  --tertiary-dark: #5a5a7a;
+  --pale-dark: #6a6a8a;
   
-  /* Colores Base */
+  /* Colores Base - Oscuros */
   --white: #FFFFFF;
-  --off-white: #FAFAFA;
-  --cream: #FFF9F5;
-  --light-gray: #F5F5F5;
-  --gray: #E0E0E0;
-  --dark-gray: #757575;
-  --text-primary: #212121;
-  --text-secondary: #666666;
+  --off-white: #f8f9fa;
+  --cream: #e9ecef;
+  --light-gray: #dee2e6;
+  --gray: #ced4da;
+  --dark-gray: #6c757d;
+  --text-primary: #ffffff;
+  --text-secondary: #b8bcc8;
+  --text-muted: #6c7293;
   
-  /* Sombras con tono naranja - Reducidas para móvil */
-  --shadow-sm: 0 1px 2px rgba(255, 122, 0, 0.08);
-  --shadow-md: 0 2px 4px rgba(255, 122, 0, 0.12);
-  --shadow-lg: 0 4px 8px rgba(255, 122, 0, 0.15);
-  --shadow-xl: 0 6px 12px rgba(255, 122, 0, 0.18);
+  /* Fondo Oscuro Principal */
+  --bg-primary: #0f0f1e;
+  --bg-secondary: #1a1a2e;
+  --bg-tertiary: #2d2d44;
+  --surface-dark: #252538;
+  --surface-light: #2f2f47;
+  
+  /* Sombras con tono oscuro */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.6);
+  
+  /* Sombras con acento azul */
+  --shadow-accent-sm: 0 1px 2px rgba(74, 144, 226, 0.2);
+  --shadow-accent-md: 0 2px 4px rgba(74, 144, 226, 0.3);
+  --shadow-accent-lg: 0 4px 8px rgba(74, 144, 226, 0.4);
   
   /* Sombras neutras */
-  --shadow-neutral-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-neutral-md: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-neutral-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-neutral-md: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
+  /* Colores de Acento - Azul */
+  --accent-blue: #4a90e2;
+  --accent-blue-light: #6ba3f5;
+  --accent-blue-dark: #3670d2;
+  --accent-blue-glow: rgba(74, 144, 226, 0.3);
   
   /* Bordes redondeados - Ajustados para móvil */
   --radius-sm: 6px;
@@ -101,16 +120,16 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* fondo naranja ahumado - casi completo de color glass */
+  /* fondo oscuro con gradiente */
   background: linear-gradient(135deg,
-      rgba(255,122,0,0.85) 0%,
-      rgba(255,122,0,0.65) 100%);
+      var(--bg-primary) 0%,
+      var(--bg-secondary) 50%,
+      var(--bg-tertiary) 100%);
   color: var(--text-primary);
   font-size: var(--font-size-md);
   line-height: 1.5;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  position: relative;
 }
 
 #root {
@@ -121,8 +140,7 @@ body {
   overflow-x: hidden;
 }
 
-/* overlays radiales al estilo glassmorphism del dashboard de ejemplo */
-/* overlays radiales al estilo glassmorphism del dashboard de ejemplo */
+/* overlays radiales al estilo glassmorphism - tema oscuro */
 body::before {
   content: '';
   position: fixed;
@@ -131,7 +149,7 @@ body::before {
   width: 420px;
   height: 420px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,200,80,0.45) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(74, 144, 226, 0.15) 0%, transparent 70%);
   pointer-events: none;
   /* mantener detrás del contenido para no oscurecerlo */
   z-index: -1;
@@ -145,10 +163,9 @@ body::after {
   width: 380px;
   height: 380px;
   border-radius: 50%;
-  /* tono más ahumado oscuro para contraste con el naranja */
-  background: radial-gradient(circle, rgba(120,30,0,0.65) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(74, 144, 226, 0.1) 0%, transparent 70%);
   pointer-events: none;
-  /* ponerlo detrás para que el fondo parezca sólido */
+  /* mantener detrás del contenido para no oscurecerlo */
   z-index: -1;
 }
 
@@ -162,25 +179,66 @@ code {
     monospace;
 }
 
-/* Scrollbar personalizado - Más delgado para móvil */
+/* Scrollbar personalizado para tema oscuro */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--light-gray);
-  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--secondary-orange);
-  border-radius: var(--radius-sm);
-  transition: var(--transition-normal);
+  background: var(--accent-blue);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-orange);
+  background: var(--accent-blue-dark);
+}
+
+/* ========================================
+   CLASES UTILITARIAS GLOBALES
+   ======================================== */
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-surface {
+  background-color: var(--surface-dark);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  body {
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: var(--font-size-xs);
+  }
 }
 
 /* Utilidades globales */
