@@ -14,6 +14,7 @@ import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
 import CameraModal from './CameraModal';
+import HeavyVehiclesPage from './HeavyVehiclesPage';
 import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { userStorage } from '../services/userStorage';
@@ -77,6 +78,13 @@ const AddIcon = MdAdd as IconComponent;
 const BarChartIcon = MdBarChart as IconComponent;
 const MapIcon = MdMap as IconComponent;
 const PeopleIcon = MdPeople as IconComponent;
+const TruckIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 3h15v18H1V3zm16 0l-4 4v10l4 4V3zm-2 2v12h2V5h-2z"/>
+    <rect x="9" y="7" width="6" height="6" rx="1"/>
+    <path d="M9 13h6"/>
+  </svg>
+);
 const FileUploadIcon = MdFileUpload as IconComponent;
 
 /* ── Icono de Cámara ── */
@@ -615,6 +623,7 @@ const Dashboard: React.FC = () => {
   const [showLeafletMapView, setShowLeafletMapView] = useState(false);
   const [showHierarchy, setShowHierarchy] = useState(false);
   const [showSettingsPage, setShowSettingsPage] = useState(false);
+  const [showHeavyVehiclesPage, setShowHeavyVehiclesPage] = useState(false);
   const [interventionToEdit, setInterventionToEdit] = useState<any>(null);
 
   // ReportView states
@@ -1391,6 +1400,20 @@ const Dashboard: React.FC = () => {
     setShowLeafletMapView(false);
   };
 
+  const handleShowHeavyVehicles = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
+    setShowHeavyVehiclesPage(true);
+    setShowReportsPage(false);
+    setShowReportForm(false);
+    setShowExportPage(false);
+    setShowUsersPage(false);
+    setShowGoogleMapView(false);
+    setShowLeafletMapView(false);
+  };
+
   const handleShowLeafletMap = () => {
     if (!isProfileComplete) {
       setShowCompleteProfileModal(true);
@@ -1662,6 +1685,11 @@ const Dashboard: React.FC = () => {
     return <UsersPage user={user} onBack={handleBackToDashboard} />;
   }
 
+  // Si se debe mostrar la página de vehículos pesados
+  if (showHeavyVehiclesPage && user) {
+    return <HeavyVehiclesPage onClose={handleBackToDashboard} />;
+  }
+
   // Si se debe mostrar el formulario de reportes
   if (showReportForm && user) {
     return (
@@ -1875,6 +1903,15 @@ const Dashboard: React.FC = () => {
                     <PeopleIcon size={32} />
                   </div>
                   <div className="dashboard-action-label">Usuarios</div>
+                </div>
+              )}
+
+              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
+                <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowHeavyVehicles}>
+                  <div className="dashboard-action-icon">
+                    <TruckIcon size={32} />
+                  </div>
+                  <div className="dashboard-action-label">Vehículos Pesados</div>
                 </div>
               )}
 
