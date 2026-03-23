@@ -1292,7 +1292,7 @@ const Dashboard: React.FC = () => {
   // algunos iconos no estarán activos aún (Buscar, Usuarios, Exportar).
   // en lugar de eliminarlos definitivamente los oculta permitiendo
   // reactivar en el futuro simplemente cambiando esta constante.
-  const hideUnusedIcons = true;
+  const hideUnusedIcons = false;
 
   const handleShowReports = () => {
     if (!isProfileComplete) {
