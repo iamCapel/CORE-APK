@@ -8,6 +8,7 @@ import { ModernSelect, ModernSelectOption } from './ModernSelect';
 import { ModernInput } from './ModernInput';
 import { ModernFormContainer } from './ModernFormContainer';
 import SimpleDateSelect from './SimpleDateSelect';
+import FichaInput from './FichaInput';
 import './ModernDashboard.css';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
@@ -1220,10 +1221,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
                             icon="🏷️"
                           />
 
-                          <ModernInput
+                          <FichaInput
                             id={`fichaVehiculo-${index}`}
-                            type="text"
-                            label="Ficha del Vehículo (MOPC)"
                             placeholder="Número de ficha"
                             value={vehiculo.ficha}
                             onChange={(val) => {
@@ -1231,7 +1230,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
                               nuevosVehiculos[index].ficha = String(val);
                               setVehiculos(nuevosVehiculos);
                             }}
-                            icon="📋"
                           />
                         </div>
                       </div>
