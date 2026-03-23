@@ -102,10 +102,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   // Estados para vehículos (ahora es un array)
   const [vehiculos, setVehiculos] = useState<Array<{tipo: string, modelo: string, ficha: string}>>([]);
-
-  // Estados para imágenes por día
-  const [imagesPerDay, setImagesPerDay] = useState<Record<string, string[]>>({});
-  const [selectedDayForImages, setSelectedDayForImages] = useState<string>('');
   const [showImageModal, setShowImageModal] = useState(false);
 
   const [plantillaFields, setPlantillaFields] = useState<Field[]>(plantillaDefault);
@@ -382,7 +378,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
           metricData: plantillaValues,
           gpsData: autoGpsFields,
           vehiculos: vehiculos,
-          imagesPerDay: Object.keys(imagesPerDay).length > 0 ? imagesPerDay : undefined,
           estado: 'pendiente' as const,  // 🟠 PENDIENTE
           // Guardar datos multi-día si existen
           diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
@@ -423,66 +418,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
       }
       limpiarFormulario();
     }
-  };
-
-  const handleCameraCapture = async (day: string) => {
-    try {
-      // Solicitar permiso de cámara
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      
-      // Crear elemento video para captura
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.play();
-      
-      // Esperar a que el video esté listo
-      await new Promise(resolve => {
-        video.onloadedmetadata = resolve;
-      });
-      
-      // Capturar imagen
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(video, 0, 0);
-      
-      // Obtener imagen con coordenadas GPS si está disponible
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const imageUrl = URL.createObjectURL(blob);
-          setImagesPerDay(prev => ({
-            ...prev,
-            [day]: [...(prev[day] || []), imageUrl]
-          }));
-        }
-      });
-      
-      // Detener stream
-      stream.getTracks().forEach(track => track.stop());
-      
-    } catch (error) {
-      console.error('Error accediendo a la cámara:', error);
-      alert('No se pudo acceder a la cámara. Verifique los permisos.');
-    }
-  };
-
-  const removeImage = (day: string, index: number) => {
-    setImagesPerDay(prev => {
-      const dayImages = [...(prev[day] || [])];
-      dayImages.splice(index, 1);
-      return {
-        ...prev,
-        [day]: dayImages
-      };
-    });
-  };
-
-  const openImageModal = (day: string) => {
-    setSelectedDayForImages(day);
-    setShowImageModal(true);
   };
 
   // Funciones para sistema multi-día
@@ -550,8 +485,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setSubTipoCanal('');
     setObservaciones('');
     setVehiculos([]);
-    setImagesPerDay({});
-    setSelectedDayForImages('');
     setShowImageModal(false);
     setPlantillaValues({});
   };
@@ -662,7 +595,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
           metricData: plantillaValues,
           gpsData: autoGpsFields,
           vehiculos: vehiculos,
-          imagesPerDay: Object.keys(imagesPerDay).length > 0 ? imagesPerDay : undefined,
           estado: 'completado' as const,
           diasTrabajo: diasTrabajo.length > 0 ? diasTrabajo : undefined,
           reportesPorDia: diasTrabajo.length > 0 ? reportesPorDia : undefined,
@@ -1224,186 +1156,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            </ModernFormContainer>
-          )}
-
-          {/* Sección de imágenes */}
-          {tipoIntervencion && (
-            <ModernFormContainer
-              title="📸 Registro Fotográfico"
-              subtitle="Documente la intervención con fotografías georeferenciadas"
-              icon="📷"
-            >
-              <div className="form-grid">
-                {/* Para reportes de un solo día */}
-                {diasTrabajo.length === 0 ? (
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <div style={{ marginBottom: '20px' }}>
-                      <h4 style={{ color: 'var(--primary-orange)', marginBottom: '15px', fontSize: '16px' }}>
-                        📷 Fotografías del Reporte
-                      </h4>
-                      
-                      {/* Botón para tomar fotos */}
-                      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleCameraCapture('single-day')}
-                          style={{
-                            padding: '12px 20px',
-                            backgroundColor: '#27AE60',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          📷 Tomar Foto con Cámara
-                        </button>
-                      </div>
-                      
-                      {/* Vista previa de imágenes */}
-                      {imagesPerDay['single-day'] && imagesPerDay['single-day'].length > 0 && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '15px' }}>
-                          {imagesPerDay['single-day'].map((image, index) => (
-                            <div key={index} style={{ position: 'relative' }}>
-                              <img
-                                src={image}
-                                alt={`Foto ${index + 1}`}
-                                style={{
-                                  width: '100%',
-                                  height: '120px',
-                                  objectFit: 'cover',
-                                  borderRadius: '8px',
-                                  border: '2px solid var(--gray)'
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImage('single-day', index)}
-                                style={{
-                                  position: 'absolute',
-                                  top: '5px',
-                                  right: '5px',
-                                  padding: '5px 8px',
-                                  backgroundColor: '#E74C3C',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontSize: '11px'
-                                }}
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  /* Para reportes multi-día */
-                  diasTrabajo.map((day, dayIndex) => (
-                    <div key={day} style={{ gridColumn: '1 / -1', marginBottom: '25px' }}>
-                      <div style={{ 
-                        padding: '20px',
-                        backgroundColor: 'var(--off-white)',
-                        borderRadius: '12px',
-                        border: '2px solid var(--gray)'
-                      }}>
-                        <div style={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center',
-                          marginBottom: '15px'
-                        }}>
-                          <h5 style={{ margin: 0, color: 'var(--primary-orange)', fontSize: '16px', fontWeight: '600' }}>
-                            📷 Fotografías - {new Date(day + 'T12:00:00').toLocaleDateString('es-ES', { 
-                              weekday: 'long', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}
-                          </h5>
-                          <span style={{ 
-                            padding: '4px 12px',
-                            backgroundColor: 'var(--primary-orange)',
-                            color: 'white',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: '600'
-                          }}>
-                            {imagesPerDay[day]?.length || 0} fotos
-                          </span>
-                        </div>
-                        
-                        {/* Botones para este día */}
-                        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleCameraCapture(day)}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#27AE60',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              fontWeight: '600'
-                            }}
-                          >
-                            📷 Cámara
-                          </button>
-                        </div>
-                        
-                        {/* Vista previa de imágenes del día */}
-                        {imagesPerDay[day] && imagesPerDay[day].length > 0 && (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '10px' }}>
-                            {imagesPerDay[day].map((image, index) => (
-                              <div key={index} style={{ position: 'relative' }}>
-                                <img
-                                  src={image}
-                                  alt={`Foto ${index + 1}`}
-                                  style={{
-                                    width: '100%',
-                                    height: '80px',
-                                    objectFit: 'cover',
-                                    borderRadius: '6px',
-                                    border: '1px solid var(--gray)'
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeImage(day, index)}
-                                  style={{
-                                    position: 'absolute',
-                                    top: '2px',
-                                    right: '2px',
-                                    padding: '2px 6px',
-                                    backgroundColor: '#E74C3C',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '3px',
-                                    cursor: 'pointer',
-                                    fontSize: '10px'
-                                  }}
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
                 )}
               </div>
             </ModernFormContainer>
