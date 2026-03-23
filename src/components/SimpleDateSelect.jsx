@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './AlternativeDateSelects.css';
 
 const SimpleDateSelect = ({ value, onChange, placeholder = "Seleccionar fecha", disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);

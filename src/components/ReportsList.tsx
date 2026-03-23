@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import { firebasePendingReportStorage } from '../services/firebasePendingReportStorage';
-import './ReportsList.css';
 
 interface Report {
   id: string;
