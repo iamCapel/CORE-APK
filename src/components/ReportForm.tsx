@@ -350,17 +350,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setPlantillaValues(prev => ({...prev, [key]: value}));
   };
 
-  // Funciones para manejo de imágenes
-  const handleImageUpload = (day: string, files: FileList | null) => {
-    if (!files) return;
-    
-    const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-    setImagesPerDay(prev => ({
-      ...prev,
-      [day]: [...(prev[day] || []), ...newImages]
-    }));
-  };
-
   // marcar como pendiente (misma validación que guardar pero sin subir)
   const handleMarkPending = async () => {
     const sectorFinal = sector === 'otros' ? sectorPersonalizado : sector;
@@ -1256,28 +1245,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
                         📷 Fotografías del Reporte
                       </h4>
                       
-                      {/* Botones para agregar imágenes */}
+                      {/* Botón para tomar fotos */}
                       <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
-                        <button
-                          type="button"
-                          onClick={() => document.getElementById('image-upload')?.click()}
-                          style={{
-                            padding: '12px 20px',
-                            backgroundColor: 'var(--primary-orange)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          🖼️ Galería de Imágenes
-                        </button>
-                        
                         <button
                           type="button"
                           onClick={() => handleCameraCapture('single-day')}
@@ -1298,15 +1267,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
                           📷 Tomar Foto con Cámara
                         </button>
                       </div>
-                      
-                      <input
-                        id="image-upload"
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={(e) => handleImageUpload('single-day', e.target.files)}
-                      />
                       
                       {/* Vista previa de imágenes */}
                       {imagesPerDay['single-day'] && imagesPerDay['single-day'].length > 0 && (
@@ -1387,26 +1347,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
                         <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
                           <button
                             type="button"
-                            onClick={() => {
-                              const input = document.getElementById(`image-upload-${day}`);
-                              if (input) input.click();
-                            }}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: 'var(--primary-orange)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              fontWeight: '600'
-                            }}
-                          >
-                            🖼️ Galería
-                          </button>
-                          
-                          <button
-                            type="button"
                             onClick={() => handleCameraCapture(day)}
                             style={{
                               padding: '8px 16px',
@@ -1422,15 +1362,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
                             📷 Cámara
                           </button>
                         </div>
-                        
-                        <input
-                          id={`image-upload-${day}`}
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          onChange={(e) => handleImageUpload(day, e.target.files)}
-                        />
                         
                         {/* Vista previa de imágenes del día */}
                         {imagesPerDay[day] && imagesPerDay[day].length > 0 && (
