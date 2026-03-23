@@ -5,37 +5,61 @@
     android:viewportWidth="192"
     android:viewportHeight="192">
     
-    <!-- Fondo circular azul más brillante -->
+    <!-- Fondo circular naranja MOPC -->
     <path
-        android:fillColor="#5BA0F2"
+        android:fillColor="#FF7A00"
         android:pathData="M96,96 m-92,0 a92,92 0,1,1,184,0 a92,92 0,1,1,-184,0" />
     
-    <!-- Borde sutil -->
+    <!-- Borde más oscuro -->
     <path
-        android:fillColor="#4A90E2"
+        android:fillColor="#E56700"
         android:pathData="M96,96 m-88,0 a88,88 0,1,1,176,0 a88,88 0,1,1,-176,0" />
     
-    <!-- Sombra interior para profundidad -->
-    <path
-        android:fillColor="#3D7FD8"
-        android:pathData="M96,96 m-84,0 a84,84 0,1,1,168,0 a84,84 0,1,1,-168,0" />
-    
-    <!-- Texto MOPC con estilo profesional -->
+    <!-- Escudo blanco -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M32,118 L32,72 L50,72 L50,90 L72,90 L72,72 L90,72 L90,118 L72,118 L72,102 L50,102 L50,118 Z" />
+        android:pathData="M96,35 L130,55 L130,100 Q130,120 96,140 Q62,120 62,100 L62,55 Z" />
+    
+    <!-- Borde del escudo -->
+    <path
+        android:fillColor="#FF7A00"
+        android:pathData="M96,38 L127,56 L127,98 Q127,116 96,134 Q65,116 65,98 L65,56 Z" />
+    
+    <!-- Escudo blanco interior -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M96,42 L123,58 L123,96 Q123,112 96,128 Q69,112 69,96 L69,58 Z" />
+    
+    <!-- Línea horizontal del escudo -->
+    <path
+        android:fillColor="#FF7A00"
+        android:pathData="M70,80 L122,80 L122,82 L70,82 Z" />
+    
+    <!-- Elementos de construcción - grúa -->
+    <path
+        android:fillColor="#FF7A00"
+        android:pathData="M85,60 L85,75 L87,75 L87,62 L105,62 L105,75 L107,75 L107,60 Q107,58 105,58 L87,58 Q85,58 85,60 Z" />
+    
+    <!-- Elementos de construcción - edificio -->
+    <path
+        android:fillColor="#FF7A00"
+        android:pathData="M75,90 L75,110 L85,110 L85,90 Z M90,90 L90,110 L100,110 L100,90 Z M105,90 L105,110 L115,110 L115,90 Z" />
+    
+    <!-- Texto MOPC abajo -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,155 L65,145 L70,145 L70,150 L75,150 L75,145 L80,145 L80,155 L75,155 L75,152 L70,152 L70,155 Z" />
     
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M92,118 L92,72 L110,72 L110,94 L134,94 L134,72 L152,72 L152,118 L134,118 L134,104 L110,104 L110,118 Z" />
+        android:pathData="M85,155 L85,145 L90,145 L90,152 L95,152 L95,145 L100,145 L100,155 L95,155 L95,152 L90,152 L90,155 Z" />
     
-    <!-- Línea decorativa elegante -->
-    <path
-        android:fillColor="#E8F4FD"
-        android:pathData="M40,132 L140,132 L140,140 L40,140 Z" />
-    
-    <!-- Pequeños detalles decorativos -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M70,150 L70,148 L110,148 L110,150 Z" />
+        android:pathData="M105,155 L105,145 L110,145 L110,150 L115,150 L115,145 L120,145 L120,155 L115,155 L115,152 L110,152 L110,155 Z" />
+    
+    <!-- Línea decorativa -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,165 L130,165 L130,168 L60,168 Z" />
 </vector>
