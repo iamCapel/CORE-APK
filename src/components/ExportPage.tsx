@@ -1118,20 +1118,25 @@ const ExportPage: React.FC<ExportPageProps> = ({ user, onBack }) => {
 
   return (
     <div className="export-page">
-      {/* Topbar estilo Dashboard */}
-      <div className="topbar">
-        {/* Botón de retroceso */}
-        <button className="topbar-back-button" onClick={onBack}>
-          ←
+      {/* Topbar moderno (igual que HeavyVehiclesPage / GoogleMapView / LeafletMapView) */}
+      <div className="topbar-modern">
+        <button
+          title="Volver"
+          className="topbar-back-button-modern"
+          onClick={onBack}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
         </button>
 
-        {/* Título centrado */}
-        <h1 className="topbar-title">Exportar Reportes</h1>
+        <div className="topbar-actions-modern">
+          <h1 className="topbar-title">Exportar Reportes</h1>
+        </div>
 
-        {/* Notificaciones */}
         <div className="topbar-avatar" onClick={() => setShowPendingModal(true)} style={{ position: 'relative', cursor: 'pointer' }}>
           {pendingCount > 0 && (
-            <span 
+            <span
               className="notification-badge"
               style={{
                 position: 'absolute',

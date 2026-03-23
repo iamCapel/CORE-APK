@@ -2204,6 +2204,121 @@ input[type="radio"]:disabled {
   animation: modalSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* Estilo tipo iOS para modal de estabilidad */
+.stability-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 50, 60, 0.65);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9997;
+}
+
+.stability-modal {
+  width: min(92vw, 360px);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(249, 249, 249, 0.96), rgba(237, 241, 248, 0.92));
+  border: 1px solid rgba(98, 103, 115, 0.18);
+  box-shadow: 0 14px 31px rgba(0, 0, 0, 0.18);
+  padding: 18px;
+  animation: modalSlideIn 0.28s ease-out;
+}
+
+.stability-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.stability-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1f;
+}
+
+.stability-close {
+  border: none;
+  background: #e0e5ee;
+  color: #1f2b3a;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stability-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  color: #1f2b3a;
+}
+
+.stability-gauge-wrapper {
+  width: 160px;
+  height: 160px;
+  position: relative;
+}
+
+.stability-gauge {
+  width: 100%;
+  height: 100%;
+}
+
+.stability-gauge circle {
+  fill: none;
+  stroke-width: 10;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.gauge-bg {
+  stroke: rgba(24, 28, 36, 0.12);
+}
+
+.gauge-fill {
+  stroke: #007aff;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s ease-out;
+}
+
+.gauge-value {
+  fill: #111;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.gauge-label {
+  fill: #4a4e58;
+  font-size: 0.85rem;
+}
+
+.stability-status {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0a74ff;
+}
+
+.stability-data {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #435066;
+}
+
+.stability-note {
+  font-size: 0.77rem;
+  color: #6e7a8a;
+  text-align: center;
+  margin: 0;
+}
+
 @keyframes modalSlideIn {
   from {
     transform: translateY(-50px) scale(0.9);

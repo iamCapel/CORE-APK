@@ -135,6 +135,37 @@ class FirebaseReportStorage {
   }
 
   /**
+   * Buscar reportes que coincidan en región/provincia/municipio/distrito y fecha_inicio
+   */
+  async findReportByLocationAndDate( 
+    region: string, 
+    provincia: string, 
+    municipio: string, 
+    distrito: string,
+    fechaInicio: string
+  ): Promise<ReportData | null> {
+    // Firestore puede requerir índices compuestos para consultas complejas,
+    // así que hacemos una búsqueda general en el cliente para evitar dependencias de índice.
+    const allReports = await this.getAllReports();
+
+    const normalizedDate = (fechaInicio || '').slice(0, 10);
+
+    const found = allReports.find(r => {
+      const reportDate = (r.fechaInicio || r.fechaCreacion || '').slice(0, 10);
+      return (
+        r.region === region &&
+        r.provincia === provincia &&
+        r.municipio === municipio &&
+        r.distrito === distrito &&
+        reportDate === normalizedDate &&
+        r.estado === 'completado'
+      );
+    });
+
+    return found || null;
+  }
+
+  /**
    * Eliminar un reporte
    */
   async deleteReport(id: string): Promise<void> {

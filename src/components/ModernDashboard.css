@@ -6,7 +6,7 @@
 
 /* Modern Topbar */
 .topbar-modern {
-  background: linear-gradient(135deg, var(--user-primary) 0%, var(--user-primary-dark) 100%);
+  background: linear-gradient(135deg, rgba(20, 20, 28, 0.72) 0%, rgba(28, 28, 38, 0.9) 100%);
   border-bottom: 3px solid var(--primary-orange);
   padding: var(--spacing-md) var(--spacing-xl);
   display: flex;

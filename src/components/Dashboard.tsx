@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import ReportsPage from './ReportsPage';
@@ -649,6 +651,14 @@ const Dashboard: React.FC = () => {
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [cameraLocation, setCameraLocation] = useState<{ lat: number; lon: number; address: string } | null>(null);
+
+  // Estados del nuevo “Nivel de Estabilidad” con giroscopio
+  const [showStabilityModal, setShowStabilityModal] = useState(false);
+  const [stabilityScore, setStabilityScore] = useState(100);
+  const [stabilityText, setStabilityText] = useState('Listo para medir');
+  const [gyroData, setGyroData] = useState({ alpha: 0, beta: 0, gamma: 0 });
+  const lastGyroRef = useRef<{ alpha: number; beta: number; gamma: number } | null>(null);
+  const [gyroPermissionPrompted, setGyroPermissionPrompted] = useState(false);
   
   // Estados para el formulario de completar perfil
   const [profilePhoto, setProfilePhoto] = useState<string>('');
@@ -1035,79 +1045,191 @@ const Dashboard: React.FC = () => {
     requestGpsPermission();
   }, []);
 
+  const handleBackToDashboard = () => {
+    setShowReportsPage(false);
+    setShowReportForm(false);
+    setShowExportPage(false);
+    setShowUsersPage(false);
+    setShowHeavyVehiclesPage(false);
+    setShowGoogleMapView(false);
+    setShowLeafletMapView(false);
+    setShowHierarchy(false);
+    setShowSettingsPage(false);
+    setInterventionToEdit(null);
+    setActiveNav('dashboard');
+  };
+
   // Manejar botón de retroceso de Android
   useEffect(() => {
     let backButtonListener: any = null;
 
     const handleBackButton = () => {
       console.log('🔙 Botón de retroceso presionado');
-      
-      // Lógica de navegación hacia atrás
+
       if (showReportView) {
         console.log('🔙 Cerrando ReportViewModern');
         handleCloseReportView();
-      } else if (showMyReportsModal) {
+        return;
+      }
+
+      if (showMyReportsModal) {
         console.log('🔙 Cerrando Mis Reportes');
         setShowMyReportsModal(false);
         setActiveNav('dashboard');
-      } else if (showPendingModal) {
+        return;
+      }
+
+      if (showPendingModal) {
         console.log('🔙 Cerrando Reportes Pendientes');
         setShowPendingModal(false);
         setActiveNav('dashboard');
-      } else if (showReportForm) {
+        return;
+      }
+
+      if (showCompleteProfileModal) {
+        console.log('🔙 Cerrando modal completo de perfil');
+        setShowCompleteProfileModal(false);
+        return;
+      }
+
+      if (showReportForm) {
         console.log('🔙 Saliendo del formulario de reporte');
         if (window.confirm('¿Está seguro que desea salir del formulario? Los datos no guardados se perderán.')) {
           setShowReportForm(false);
-          console.log('🔙 Cerrando ReportViewModern');
+          setInterventionToEdit(null);
           handleCloseReportView();
-        } else if (showMyReportsModal) {
-          console.log('🔙 Cerrando Mis Reportes');
-          setShowMyReportsModal(false);
-          setActiveNav('dashboard');
-        } else if (showPendingModal) {
-          console.log('🔙 Cerrando Reportes Pendientes');
-          setShowPendingModal(false);
-          setActiveNav('dashboard');
-        } else if (showReportForm) {
-          console.log('🔙 Saliendo del formulario de reporte');
-          if (window.confirm('¿Está seguro que desea salir del formulario? Los datos no guardados se perderán.')) {
-            setShowReportForm(false);
-            setActiveNav('dashboard');
-            setInterventionToEdit(null);
-          }
-        } else if (showReportsPage || showExportPage || showUsersPage || showGoogleMapView || showLeafletMapView) {
-          console.log('🔙 Volviendo al dashboard');
-          handleBackToDashboard();
-        } else if (showHierarchy) {
-          console.log('🔙 Cerrando vista jerárquica');
-          setShowHierarchy(false);
-          setActiveNav('dashboard');
-        } else if (showSettingsPage) {
-          console.log('🔙 Cerrando configuración');
-          setShowSettingsPage(false);
-          setActiveNav('dashboard');
-        } else {
-          console.log('🔙 Ya está en el dashboard - salir de la app');
-          // CapacitorApp.exitApp();
+          return;
         }
-      };
+      }
 
-      // Agregar listener para el botón de retroceso usando el API oficial
-      // CapacitorApp.addListener('backButton', ({ canGoBack }) => {
-      //   handleBackButton();
-      // }).then(listener => {
-      //   backButtonListener = listener;
-      // });
+      if (showStabilityModal) {
+        console.log('🔙 Cerrando modal de estabilidad');
+        setShowStabilityModal(false);
+        return;
+      }
+
+      if (showHeavyVehiclesPage) {
+        console.log('🔙 Cerrando vista de Vehículos Pesados');
+        handleBackToDashboard();
+        return;
+      }
+
+      if (showReportsPage || showExportPage || showUsersPage || showGoogleMapView || showLeafletMapView || showHierarchy || showSettingsPage) {
+        console.log('🔙 Volviendo al dashboard');
+        handleBackToDashboard();
+        return;
+      }
+
+      console.log('🔙 Ya está en el dashboard - salir de la app');
+      CapacitorApp.exitApp();
+    };
+
+    if (Capacitor.isNativePlatform()) {
+      CapacitorApp.addListener('backButton', handleBackButton).then(listener => {
+        backButtonListener = listener;
+      });
     }
-    
-    // Limpiar listener al desmontar
+
     return () => {
       if (backButtonListener) {
-        // backButtonListener.remove();
         backButtonListener.remove();
       }
     };
-  }, [showReportView, showMyReportsModal, showPendingModal, showReportForm, showReportsPage, showExportPage, showUsersPage, showGoogleMapView, showLeafletMapView, showHierarchy, showSettingsPage]);
+  }, [showReportView, showMyReportsModal, showPendingModal, showCompleteProfileModal, showReportForm, showReportsPage, showExportPage, showUsersPage, showGoogleMapView, showLeafletMapView, showHeavyVehiclesPage, showHierarchy, showSettingsPage, showStabilityModal, handleBackToDashboard, handleCloseReportView, setInterventionToEdit]);
+
+  // Giroscopio + Acelerómetro (modo iOS Level)
+  useEffect(() => {
+    let orientationListener: ((event: DeviceOrientationEvent) => void) | null = null;
+    let motionListener: ((event: DeviceMotionEvent) => void) | null = null;
+
+    const requestPermissionAndStart = async () => {
+      if (typeof (DeviceOrientationEvent as any)?.requestPermission === 'function') {
+        try {
+          const permission = await (DeviceOrientationEvent as any).requestPermission();
+          if (permission !== 'granted') {
+            setStabilityText('Permiso de giroscopio denegado.');
+            return;
+          }
+        } catch (error) {
+          console.error('Error solicitando permiso de giroscopio:', error);
+          setStabilityText('No se pudo solicitar permiso de giroscopio.');
+          return;
+        }
+      }
+
+      if (typeof (DeviceMotionEvent as any)?.requestPermission === 'function') {
+        try {
+          const permission = await (DeviceMotionEvent as any).requestPermission();
+          if (permission !== 'granted') {
+            setStabilityText('Permiso de acelerómetro denegado.');
+            return;
+          }
+        } catch (error) {
+          console.error('Error solicitando permiso de acelerómetro:', error);
+          setStabilityText('No se pudo solicitar permiso de acelerómetro.');
+          return;
+        }
+      }
+
+      if (!window.DeviceOrientationEvent && !window.DeviceMotionEvent) {
+        setStabilityText('Sensores no disponibles en este dispositivo.');
+        return;
+      }
+
+      orientationListener = (event: DeviceOrientationEvent) => {
+        const alpha = event.alpha ?? 0;
+        const beta = event.beta ?? 0;
+        const gamma = event.gamma ?? 0;
+
+        setGyroData({ alpha, beta, gamma });
+      };
+
+      motionListener = (event: DeviceMotionEvent) => {
+        const acc = event.accelerationIncludingGravity;
+        if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
+
+        // Calculamos inclinación () basado en vector gravedad.
+        const x = acc.x;
+        const y = acc.y;
+        const z = acc.z;
+        const g = Math.sqrt(x * x + y * y + z * z) || 1;
+
+        const pitch = Math.atan2(-x, Math.sqrt(y * y + z * z)) * (180 / Math.PI);
+        const roll = Math.atan2(y, z) * (180 / Math.PI);
+
+        const absRoll = Math.abs(roll);
+        const absPitch = Math.abs(pitch);
+
+        const levelDeviation = Math.sqrt(absRoll * absRoll + absPitch * absPitch);
+        const levelScore = Math.max(0, Math.min(100, 100 - levelDeviation * 2));
+
+        setStabilityScore(Math.round(levelScore));
+
+        if (levelDeviation <= 2) setStabilityText('Nivel perfecto');
+        else if (levelDeviation <= 4) setStabilityText('Casi nivel');
+        else if (levelDeviation <= 8) setStabilityText('Levemente inclinado');
+        else setStabilityText('Muy inclinado');
+
+        setGyroData({ alpha: gyroData.alpha ?? 0, beta: pitch, gamma: roll });
+      };
+
+      window.addEventListener('deviceorientation', orientationListener);
+      window.addEventListener('devicemotion', motionListener);
+      setGyroPermissionPrompted(true);
+    };
+
+    if (showStabilityModal) {
+      requestPermissionAndStart();
+    } else {
+      setStabilityText('Listo para medir');
+      setStabilityScore(100);
+    }
+
+    return () => {
+      if (orientationListener) window.removeEventListener('deviceorientation', orientationListener);
+      if (motionListener) window.removeEventListener('devicemotion', motionListener);
+    };
+  }, [showStabilityModal, gyroData.alpha]);
 
   // Navigation functions
   const submitLogin = async (e: React.FormEvent) => {
@@ -1414,6 +1536,22 @@ const Dashboard: React.FC = () => {
     setShowLeafletMapView(false);
   };
 
+  const handleOpenStabilityModal = () => {
+    if (!isProfileComplete) {
+      setShowCompleteProfileModal(true);
+      return;
+    }
+    lastGyroRef.current = null;
+    setStabilityScore(0);
+    setStabilityText('Esperando datos de giroscopio...');
+    setGyroPermissionPrompted(false);
+    setShowStabilityModal(true);
+  };
+
+  const handleCloseStabilityModal = () => {
+    setShowStabilityModal(false);
+  };
+
   const handleShowLeafletMap = () => {
     if (!isProfileComplete) {
       setShowCompleteProfileModal(true);
@@ -1578,19 +1716,6 @@ const Dashboard: React.FC = () => {
       console.error('Error guardando foto en galería:', error);
       throw error;
     }
-  };
-
-  const handleBackToDashboard = () => {
-    setShowReportsPage(false);
-    setShowReportForm(false);
-    setShowExportPage(false);
-    setShowUsersPage(false);
-    setShowGoogleMapView(false);
-    setShowLeafletMapView(false);
-    setShowHierarchy(false);
-    setShowSettingsPage(false);
-    setInterventionToEdit(null);
-    setActiveNav('dashboard'); // Volver al botón home en navegación inferior
   };
 
   // Si se debe mostrar la página de Mis Reportes
@@ -1881,11 +2006,18 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={() => setShowCompleteProfileModal(!isProfileComplete)}>
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
                 <div className="dashboard-action-icon">
                   <CameraIcon size={32} />
                 </div>
                 <div className="dashboard-action-label">Cámara</div>
+              </div>
+
+              <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenStabilityModal}>
+                <div className="dashboard-action-icon" style={{ fontSize: '26px' }}>
+                  📏
+                </div>
+                <div className="dashboard-action-label">Nivel de Estabilidad</div>
               </div>
 
               {!hideUnusedIcons && (
@@ -1897,7 +2029,8 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
+              {/* Usuarios: oculto temporalmente en main, se puede volver a habilitar cambiando esta condición */}
+              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && false && (
                 <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
                   <div className="dashboard-action-icon">
                     <PeopleIcon size={32} />
@@ -1969,7 +2102,7 @@ const Dashboard: React.FC = () => {
               {/* fin condicional Buscar - no cerrar grid aquí */}
 
               {/* Icono Cámara - Disponible para todos los usuarios */}
-              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={() => setShowCompleteProfileModal(!isProfileComplete)}>
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
                 <div className="dashboard-icon">
                   <CameraIcon size={40} />
                 </div>
@@ -1980,8 +2113,20 @@ const Dashboard: React.FC = () => {
                 {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
 
-              {/* Icono Usuarios - Oculto para usuarios técnicos */}
-              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && (
+              {/* Icono Nivel de Estabilidad con Giroscopio */}
+              <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenStabilityModal}>
+                <div className="dashboard-icon">
+                  <span style={{ fontSize: '1.5rem' }}>📏</span>
+                </div>
+                <h3 className="dashboard-icon-title">Nivel de Estabilidad</h3>
+                <p className="dashboard-icon-description">
+                  Monitorea la estabilidad con el giroscopio y muestra un valor en tiempo real
+                </p>
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
+              </div>
+
+              {/* Icono Usuarios - Oculto temporalmente en main */}
+              {user?.role !== UserRole.TECNICO && !hideUnusedIcons && false && (
                 <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
                   <div className="dashboard-icon">
                     <PeopleIcon size={40} />
@@ -2073,6 +2218,38 @@ const Dashboard: React.FC = () => {
         userName={user?.name || 'Usuario'}
         onSaveToGallery={handleSavePhotoToGallery}
       />
+
+      {/* Modal Nivel de Estabilidad */}
+      {showStabilityModal && (
+        <div className="stability-overlay" onClick={handleCloseStabilityModal}>
+          <div className="stability-modal" onClick={e => e.stopPropagation()}>
+            <div className="stability-header">
+              <h3>Nivel de Estabilidad</h3>
+              <button className="stability-close" onClick={handleCloseStabilityModal}>Cerrar</button>
+            </div>
+            <div className="stability-body">
+              <div className="stability-gauge-wrapper">
+                <svg viewBox="0 0 100 100" className="stability-gauge">
+                  <circle cx="50" cy="50" r="42" className="gauge-bg" />
+                  <circle cx="50" cy="50" r="42" className="gauge-fill"
+                    strokeDasharray="263"
+                    strokeDashoffset={263 - (263 * stabilityScore) / 100}
+                  />
+                  <text x="50" y="58" textAnchor="middle" className="gauge-value">{stabilityScore}</text>
+                  <text x="50" y="72" textAnchor="middle" className="gauge-label">/ 100</text>
+                </svg>
+              </div>
+              <p className="stability-status">{stabilityText}</p>
+              <div className="stability-data">
+                <div>Roll (izq/der): {gyroData.gamma.toFixed(1)}°</div>
+                <div>Pitch (del/atrás): {gyroData.beta.toFixed(1)}°</div>
+                <div>Yaw: {gyroData.alpha.toFixed(1)}°</div>
+              </div>
+              {!gyroPermissionPrompted && <p className="stability-note">Activa el giroscopio cuando se te solicite para medir correctamente.</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}
       {showReportView && selectedReportId && (
