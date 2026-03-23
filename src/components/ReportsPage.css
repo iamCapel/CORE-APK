@@ -2,7 +2,7 @@
 
 .reports-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--pale-orange) 0%, var(--tertiary-orange) 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   font-family: var(--font-family);
   padding: 20px;
 }
