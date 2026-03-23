@@ -1,30 +1,26 @@
 {
   "files": {
     "main.css": "/static/css/main.8f6b20ab.css",
-    "main.js": "/static/js/main.9e5180b2.js",
-    "static/js/427.10413e3b.chunk.js": "/static/js/427.10413e3b.chunk.js",
-    "static/js/551.05bbdd8d.chunk.js": "/static/js/551.05bbdd8d.chunk.js",
+    "main.js": "/static/js/main.5aca225e.js",
     "static/js/312.a2829fd0.chunk.js": "/static/js/312.a2829fd0.chunk.js",
     "static/js/239.8a67c7c7.chunk.js": "/static/js/239.8a67c7c7.chunk.js",
     "static/js/977.fca93f89.chunk.js": "/static/js/977.fca93f89.chunk.js",
     "static/js/455.328142e5.chunk.js": "/static/js/455.328142e5.chunk.js",
+    "static/js/551.05bbdd8d.chunk.js": "/static/js/551.05bbdd8d.chunk.js",
     "static/js/453.bfd68fff.chunk.js": "/static/js/453.bfd68fff.chunk.js",
-    "static/js/457.8785de08.chunk.js": "/static/js/457.8785de08.chunk.js",
     "static/media/background-logo.png": "/static/media/background-logo.c7668a46900a21e5ca10.png",
     "index.html": "/index.html",
     "main.8f6b20ab.css.map": "/static/css/main.8f6b20ab.css.map",
-    "main.9e5180b2.js.map": "/static/js/main.9e5180b2.js.map",
-    "427.10413e3b.chunk.js.map": "/static/js/427.10413e3b.chunk.js.map",
-    "551.05bbdd8d.chunk.js.map": "/static/js/551.05bbdd8d.chunk.js.map",
+    "main.5aca225e.js.map": "/static/js/main.5aca225e.js.map",
     "312.a2829fd0.chunk.js.map": "/static/js/312.a2829fd0.chunk.js.map",
     "239.8a67c7c7.chunk.js.map": "/static/js/239.8a67c7c7.chunk.js.map",
     "977.fca93f89.chunk.js.map": "/static/js/977.fca93f89.chunk.js.map",
     "455.328142e5.chunk.js.map": "/static/js/455.328142e5.chunk.js.map",
-    "453.bfd68fff.chunk.js.map": "/static/js/453.bfd68fff.chunk.js.map",
-    "457.8785de08.chunk.js.map": "/static/js/457.8785de08.chunk.js.map"
+    "551.05bbdd8d.chunk.js.map": "/static/js/551.05bbdd8d.chunk.js.map",
+    "453.bfd68fff.chunk.js.map": "/static/js/453.bfd68fff.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.8f6b20ab.css",
-    "static/js/main.9e5180b2.js"
+    "static/js/main.5aca225e.js"
   ]
 }
