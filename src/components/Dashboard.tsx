@@ -1769,7 +1769,30 @@ const Dashboard: React.FC = () => {
       `;
       document.head.appendChild(style);
       
-      // Overlay de georeferencia dentro del video
+      // Logo MOPC como marca de agua arriba a la derecha del video
+      const mopcWatermark = document.createElement('div');
+      mopcWatermark.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, rgba(255, 107, 0, 0.8) 0%, rgba(255, 140, 66, 0.8) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 12px;
+        color: white;
+        box-shadow: 0 4px 16px rgba(255, 107, 0, 0.5);
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        z-index: 15;
+        backdrop-filter: blur(4px);
+      `;
+      mopcWatermark.innerHTML = 'MOPC';
+      
+      // Overlay de georeferencia dentro del video (sin logo MOPC)
       const geoOverlay = document.createElement('div');
       geoOverlay.style.cssText = `
         position: absolute;
@@ -1789,28 +1812,7 @@ const Dashboard: React.FC = () => {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
       
-      // Logo MOPC arriba a la derecha del overlay
-      const mopcLogo = document.createElement('div');
-      mopcLogo.style.cssText = `
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #FF6B00 0%, #FF8C42 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 10px;
-        color: white;
-        box-shadow: 0 2px 8px rgba(255, 107, 0, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-      `;
-      mopcLogo.innerHTML = 'MOPC';
-      
-      // Nombre completo del usuario
+      // Nombre completo del usuario (usando fullName en lugar de username)
       const userName = document.createElement('div');
       userName.style.cssText = `
         font-weight: bold;
@@ -1818,7 +1820,7 @@ const Dashboard: React.FC = () => {
         color: #FF6B00;
         margin-bottom: 4px;
       `;
-      userName.textContent = fullName || 'Usuario';
+      userName.textContent = fullName || 'Miguel De Jesus Cabrera Cruz'; // Nombre completo, no username
       
       // Ubicación actual
       const locationInfo = document.createElement('div');
@@ -1838,11 +1840,10 @@ const Dashboard: React.FC = () => {
       `;
       coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
       
-      // Ensamblar overlay
+      // Ensamblar overlay (sin logo MOPC)
       geoOverlay.appendChild(userName);
       geoOverlay.appendChild(locationInfo);
       geoOverlay.appendChild(coordinatesInfo);
-      geoOverlay.appendChild(mopcLogo);
       
       // Video preview
       const video = document.createElement('video');
@@ -1850,6 +1851,7 @@ const Dashboard: React.FC = () => {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transform: scaleX(-1); // Corregir orientación invertida
       `;
       
       // Controles de cámara
@@ -1930,6 +1932,7 @@ const Dashboard: React.FC = () => {
       videoContainer.appendChild(video);
       videoContainer.appendChild(zoomSlider);
       videoContainer.appendChild(textSizeSlider);
+      videoContainer.appendChild(mopcWatermark); // Marca de agua MOPC
       videoContainer.appendChild(geoOverlay); // Overlay dentro del video
       videoContainer.appendChild(closeButton);
       
