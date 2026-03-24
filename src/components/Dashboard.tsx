@@ -1559,7 +1559,7 @@ const Dashboard: React.FC = () => {
     setShowUsersPage(false);
   };
 
-  // Función para manejar la cámara
+  // Función para manejar la cámara con geolocalización en vivo, flash y giro
   const handleOpenCamera = async () => {
     if (!isProfileComplete) {
       setShowCompleteProfileModal(true);
@@ -1567,117 +1567,416 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      console.log('📷 Iniciando captura de foto con marca de agua...');
+      console.log('📷 Iniciando cámara con geolocalización en vivo...');
       
-      // Mostrar mensaje de carga
-      const loadingMessage = document.createElement('div');
-      loadingMessage.style.cssText = `
+      // Mostrar interfaz de cámara con controles
+      const cameraInterface = document.createElement('div');
+      cameraInterface.style.cssText = `
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+      `;
+      
+      // Header con geolocalización en vivo
+      const header = document.createElement('div');
+      header.style.cssText = `
         background: rgba(0, 0, 0, 0.8);
         color: white;
-        padding: 20px 30px;
-        border-radius: 10px;
-        z-index: 10000;
-        font-size: 16px;
+        padding: 15px;
         text-align: center;
+        font-size: 14px;
       `;
-      loadingMessage.innerHTML = '📷 Procesando foto...<br/><small>Por favor espere</small>';
-      document.body.appendChild(loadingMessage);
-
-      // Obtener ubicación actual PRIMERO
-      console.log('📍 Obteniendo ubicación...');
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 60000
-      });
-
-      console.log('📍 Ubicación obtenida:', position.coords);
+      header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
       
-      // Obtener dirección usando geocoding inverso
-      let address = 'Ubicación desconocida';
-      try {
-        console.log('🗺️ Obteniendo dirección...');
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
-          {
-            headers: {
-              'User-Agent': 'MOPC-App/1.0'
-            }
-          }
-        );
-        const data = await response.json();
-        if (data && data.display_name) {
-          address = data.display_name;
-        } else if (data && data.address) {
-          const addr = data.address;
-          const parts = [
-            addr.road,
-            addr.suburb || addr.neighbourhood,
-            addr.city || addr.town || addr.village,
-            addr.state,
-            addr.country
-          ].filter(Boolean);
-          address = parts.join(', ');
-        }
-        console.log('🗺️ Dirección obtenida:', address);
-      } catch (error) {
-        console.error('Error obteniendo dirección:', error);
-        address = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
-      }
-
-      // Usar el plugin Camera de Capacitor
-      console.log('📷 Abriendo cámara con Capacitor...');
-      const result = await Camera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        saveToGallery: false
-      });
-
-      if (result.dataUrl) {
-        // Actualizar mensaje de carga
-        loadingMessage.innerHTML = '📷 Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
-
-        // Agregar marca de agua con tamaño de letra automático adaptativo
-        const watermarkedImage = await addWatermarkToPhoto(result.dataUrl, {
-          userName: user?.name || 'Usuario',
-          address: address,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          timestamp: new Date()
-        });
-
-        // Remover mensaje de carga
-        loadingMessage.remove();
-
-        // Guardar foto directamente en galería sin mostrar modal
-        await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
+      // Contenedor de video
+      const videoContainer = document.createElement('div');
+      videoContainer.style.cssText = `
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: black;
+      `;
+      
+      // Video preview
+      const video = document.createElement('video');
+      video.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      `;
+      
+      // Controles de cámara
+      const controls = document.createElement('div');
+      controls.style.cssText = `
+        background: rgba(0, 0, 0, 0.9);
+        padding: 20px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      `;
+      
+      // Botón de flash
+      const flashButton = document.createElement('button');
+      flashButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 15px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+      `;
+      flashButton.innerHTML = '⚡';
+      
+      // Botón de captura
+      const captureButton = document.createElement('button');
+      captureButton.style.cssText = `
+        background: white;
+        border: 3px solid white;
+        color: black;
+        padding: 20px;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        font-weight: bold;
+      `;
+      captureButton.innerHTML = '📷';
+      
+      // Botón de giro de cámara
+      const flipButton = document.createElement('button');
+      flipButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 15px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+      `;
+      flipButton.innerHTML = '🔄';
+      
+      // Botón de cerrar
+      const closeButton = document.createElement('button');
+      closeButton.style.cssText = `
+        background: rgba(255, 0, 0, 0.8);
+        border: 2px solid red;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+      `;
+      closeButton.innerHTML = '✕';
+      
+      // Ensamblar interfaz
+      controls.appendChild(flashButton);
+      controls.appendChild(captureButton);
+      controls.appendChild(flipButton);
+      videoContainer.appendChild(video);
+      videoContainer.appendChild(closeButton);
+      cameraInterface.appendChild(header);
+      cameraInterface.appendChild(videoContainer);
+      cameraInterface.appendChild(controls);
+      document.body.appendChild(cameraInterface);
+      
+      // Estados
+      let currentPosition: any = null;
+      let currentAddress = 'Ubicación desconocida';
+      let flashMode = 'off'; // off, on, auto
+      let cameraDirection = 'back'; // back, front
+      
+      // Iniciar geolocalización en vivo
+      const watchPositionId = await Geolocation.watchPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000
+      }, async (position) => {
+        currentPosition = position;
         
-        console.log('✅ Foto capturada y guardada directamente con marca de agua automática');
-      } else {
-        throw new Error('No se pudo capturar la foto');
+        // Actualizar header con ubicación en vivo
+        try {
+          if (!position || !position.coords) {
+            header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
+            return;
+          }
+          
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'MOPC-App/1.0'
+              }
+            }
+          );
+          const data = await response.json();
+          if (data && data.display_name) {
+            currentAddress = data.display_name;
+          } else if (data && data.address) {
+            const addr = data.address;
+            const parts = [
+              addr.road,
+              addr.suburb || addr.neighbourhood,
+              addr.city || addr.town || addr.village,
+              addr.state,
+              addr.country
+            ].filter(Boolean);
+            currentAddress = parts.join(', ');
+          }
+          
+          header.innerHTML = `📍 ${currentAddress}<br/><small>Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}</small>`;
+        } catch (error) {
+          if (position && position.coords) {
+            header.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}<br/><small>Error obteniendo dirección</small>`;
+          } else {
+            header.innerHTML = '📍 Error obteniendo ubicación<br/><small>Por favor espere</small>';
+          }
+        }
+      });
+      
+      // Iniciar stream de video
+      try {
+        const constraints: any = {
+          video: {
+            facingMode: cameraDirection
+          },
+          audio: false
+        };
+        
+        // Agregar torch solo si está soportado
+        if (flashMode === 'on') {
+          constraints.video.torch = true;
+        }
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        video.srcObject = stream;
+        video.play();
+        
+        // Función para capturar foto
+        const capturePhoto = async () => {
+          try {
+            // Crear canvas para capturar frame del video
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            if (ctx) {
+              // Dibujar frame actual del video
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              
+              // Convertir a data URL
+              const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+              
+              // Detener stream
+              stream.getTracks().forEach(track => track.stop());
+              
+              // Detener geolocalización
+              Geolocation.clearWatch({ id: watchPositionId });
+              
+              // Remover interfaz
+              cameraInterface.remove();
+              
+              // Mostrar mensaje de procesamiento
+              const processingMessage = document.createElement('div');
+              processingMessage.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 10px;
+                z-index: 10000;
+                font-size: 16px;
+                text-align: center;
+              `;
+              processingMessage.innerHTML = '📷 Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
+              document.body.appendChild(processingMessage);
+              
+              // Aplicar marca de agua
+              const watermarkedImage = await addWatermarkToPhoto(photoDataUrl, {
+                userName: user?.name || 'Usuario',
+                address: currentAddress,
+                latitude: currentPosition.coords.latitude,
+                longitude: currentPosition.coords.longitude,
+                timestamp: new Date()
+              });
+              
+              // Guardar directamente en galería
+              await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
+              
+              // Remover mensaje
+              processingMessage.remove();
+              
+              console.log('✅ Foto capturada y guardada con geolocalización en vivo');
+            }
+          } catch (error: any) {
+            console.error('Error capturando foto:', error);
+            alert('Error al capturar foto: ' + (error.message || 'Error desconocido'));
+          }
+        };
+        
+        // Función para toggle flash
+        const toggleFlash = async () => {
+          try {
+            if (flashMode === 'off') {
+              flashMode = 'on';
+              flashButton.style.background = 'yellow';
+              flashButton.style.color = 'black';
+            } else if (flashMode === 'on') {
+              flashMode = 'auto';
+              flashButton.style.background = 'orange';
+              flashButton.style.color = 'white';
+            } else {
+              flashMode = 'off';
+              flashButton.style.background = 'rgba(255, 255, 255, 0.2)';
+              flashButton.style.color = 'white';
+            }
+            
+            // Reiniciar stream con nuevo flash
+            stream.getTracks().forEach(track => track.stop());
+            const newConstraints: any = {
+              video: {
+                facingMode: cameraDirection
+              },
+              audio: false
+            };
+            
+            if (flashMode === 'on') {
+              newConstraints.video.torch = true;
+            }
+            
+            const newStream = await navigator.mediaDevices.getUserMedia(newConstraints);
+            video.srcObject = newStream;
+            video.play();
+          } catch (error) {
+            console.error('Error cambiando flash:', error);
+          }
+        };
+        
+        // Función para girar cámara
+        const flipCamera = async () => {
+          try {
+            cameraDirection = cameraDirection === 'back' ? 'front' : 'back';
+            
+            // Reiniciar stream con nueva dirección
+            stream.getTracks().forEach(track => track.stop());
+            const flipConstraints: any = {
+              video: {
+                facingMode: cameraDirection
+              },
+              audio: false
+            };
+            
+            if (flashMode === 'on') {
+              flipConstraints.video.torch = true;
+            }
+            
+            const newStream = await navigator.mediaDevices.getUserMedia(flipConstraints);
+            video.srcObject = newStream;
+            video.play();
+          } catch (error) {
+            console.error('Error girando cámara:', error);
+          }
+        };
+        
+        // Event listeners
+        captureButton.addEventListener('click', capturePhoto);
+        flashButton.addEventListener('click', toggleFlash);
+        flipButton.addEventListener('click', flipCamera);
+        closeButton.addEventListener('click', () => {
+          stream.getTracks().forEach(track => track.stop());
+          Geolocation.clearWatch({ id: watchPositionId });
+          cameraInterface.remove();
+        });
+        
+      } catch (error) {
+        console.error('Error accediendo a la cámara:', error);
+        
+        // Fallback a cámara Capacitor si WebRTC no funciona
+        Geolocation.clearWatch({ id: watchPositionId });
+        cameraInterface.remove();
+        
+        // Usar método original con Capacitor
+        console.log('📷 Usando cámara Capacitor como fallback...');
+        
+        // Obtener ubicación actual
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60000
+        });
+        
+        // Obtener dirección
+        let address = 'Ubicación desconocida';
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'MOPC-App/1.0'
+              }
+            }
+          );
+          const data = await response.json();
+          if (data && data.display_name) {
+            address = data.display_name;
+          } else if (data && data.address) {
+            const addr = data.address;
+            const parts = [
+              addr.road,
+              addr.suburb || addr.neighbourhood,
+              addr.city || addr.town || addr.village,
+              addr.state,
+              addr.country
+            ].filter(Boolean);
+            address = parts.join(', ');
+          }
+        } catch (error) {
+          address = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+        }
+        
+        // Usar cámara Capacitor
+        const result = await Camera.getPhoto({
+          quality: 80,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          saveToGallery: false
+        });
+        
+        if (result.dataUrl) {
+          // Aplicar marca de agua
+          const watermarkedImage = await addWatermarkToPhoto(result.dataUrl, {
+            userName: user?.name || 'Usuario',
+            address: address,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            timestamp: new Date()
+          });
+          
+          // Guardar directamente en galería
+          await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
+          
+          console.log('✅ Foto capturada y guardada con método Capacitor');
+        }
       }
       
     } catch (error: any) {
       console.error('❌ Error al tomar foto:', error);
-      
-      // Remover mensaje de carga si existe
-      const loadingElements = document.querySelectorAll('div');
-      loadingElements.forEach(el => {
-        if (el.textContent?.includes('Procesando foto') || el.textContent?.includes('Agregando marca de agua')) {
-          el.remove();
-        }
-      });
-      
-      if (error.message === 'User cancelled photos app') {
-        console.log('📷 Usuario canceló la cámara');
-      } else {
-        alert('Error al tomar foto: ' + (error.message || error.toString()));
-      }
+      alert('Error al tomar foto: ' + (error.message || error.toString()));
     }
   };
 
