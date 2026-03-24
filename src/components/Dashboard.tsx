@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType } from '@capacitor/camera';
+import { addWatermarkToPhoto } from '../services/photoWatermark';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -1572,7 +1573,7 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      console.log('📷 Iniciando captura de foto con Capacitor Camera...');
+      console.log('📷 Iniciando captura de foto con marca de agua...');
       
       // Mostrar mensaje de carga
       const loadingMessage = document.createElement('div');
@@ -1601,7 +1602,7 @@ const Dashboard: React.FC = () => {
       });
 
       console.log('📍 Ubicación obtenida:', position.coords);
-
+      
       // Obtener dirección usando geocoding inverso
       let address = 'Ubicación desconocida';
       try {
@@ -1644,16 +1645,23 @@ const Dashboard: React.FC = () => {
       });
 
       if (result.dataUrl) {
-        // Remover mensaje de carga
-        const loadingElements = document.querySelectorAll('div');
-        loadingElements.forEach(el => {
-          if (el.textContent?.includes('Procesando foto')) {
-            el.remove();
-          }
+        // Actualizar mensaje de carga
+        loadingMessage.innerHTML = '📷 Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
+
+        // Agregar marca de agua con tamaño de letra automático adaptativo
+        const watermarkedImage = await addWatermarkToPhoto(result.dataUrl, {
+          userName: user?.name || 'Usuario',
+          address: address,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          timestamp: new Date()
         });
 
-        // Establecer la foto y ubicación en el estado
-        setCapturedPhoto(result.dataUrl);
+        // Remover mensaje de carga
+        loadingMessage.remove();
+
+        // Establecer la foto con marca de agua y ubicación en el estado
+        setCapturedPhoto(watermarkedImage);
         setCameraLocation({
           lat: position.coords.latitude,
           lon: position.coords.longitude,
@@ -1663,7 +1671,7 @@ const Dashboard: React.FC = () => {
         // Abrir el modal de cámara
         setShowCameraModal(true);
         
-        console.log('✅ Foto capturada exitosamente');
+        console.log('✅ Foto capturada y georeferenciada con marca de agua automática');
       } else {
         throw new Error('No se pudo capturar la foto');
       }
@@ -1674,15 +1682,15 @@ const Dashboard: React.FC = () => {
       // Remover mensaje de carga si existe
       const loadingElements = document.querySelectorAll('div');
       loadingElements.forEach(el => {
-        if (el.textContent?.includes('Procesando foto')) {
+        if (el.textContent?.includes('Procesando foto') || el.textContent?.includes('Agregando marca de agua')) {
           el.remove();
         }
       });
       
       if (error.message === 'User cancelled photos app') {
-        console.log('Usuario canceló la captura de foto');
+        console.log('📷 Usuario canceló la cámara');
       } else {
-        alert('Error al tomar foto: ' + (error.message || 'Por favor intente nuevamente.'));
+        alert('Error al tomar foto: ' + (error.message || error.toString()));
       }
     }
   };
