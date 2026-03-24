@@ -1608,14 +1608,14 @@ const Dashboard: React.FC = () => {
     try {
       console.log('📷 Iniciando cámara con geolocalización en vivo...');
       
-      // Mostrar interfaz de cámara con controles
+      // Mostrar interfaz de cámara a pantalla completa
       const cameraInterface = document.createElement('div');
       cameraInterface.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         background: black;
         z-index: 10000;
         display: flex;
@@ -1627,151 +1627,100 @@ const Dashboard: React.FC = () => {
       header.style.cssText = `
         background: rgba(0, 0, 0, 0.8);
         color: white;
-        padding: 15px;
-        text-align: center;
-        font-size: 14px;
-      `;
-      header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
-      
-      // Estados
-      let currentPosition: any = null;
-      let currentAddress = 'Ubicación desconocida';
-      let flashMode = 'off'; // off, on, auto
-      let cameraDirection = 'environment'; // environment (trasera) / user (frontal)
-      let zoomLevel = 1; // 1x a 4x zoom
-      let textSizeLevel = 1; // 1x a 3x tamaño de letra
-      
-      // Contenedor de video
-      const videoContainer = document.createElement('div');
-      videoContainer.style.cssText = `
-        flex: 1;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      padding: 15px;
+      text-align: center;
+      font-size: 14px;
+    `;
+    header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
+    
+    // Estados
+    let currentPosition: any = null;
+    let currentAddress = 'Ubicación desconocida';
+    let flashMode = 'off'; // off, on, auto
+    let cameraDirection = 'environment'; // environment (trasera) / user (frontal)
+    let zoomLevel = 1; // 1x a 4x zoom
+    let textSizeLevel = 1; // 1x a 3x tamaño de letra
+    
+    // Contenedor de video a pantalla completa
+    const videoContainer = document.createElement('div');
+    videoContainer.style.cssText = `
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: black;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    `;
+    
+    // Slider de zoom vertical a la izquierda (solo uno para cámara)
+    const zoomSlider = document.createElement('input');
+    zoomSlider.type = 'range';
+    zoomSlider.min = '1';
+    zoomSlider.max = '4';
+    zoomSlider.step = '0.5';
+    zoomSlider.value = zoomLevel.toString();
+    zoomSlider.style.cssText = `
+      position: absolute;
+      left: 5px;
+      top: 50%;
+      transform: translateY(-50%) rotate(-90deg);
+      width: 120px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+      border-radius: 2px;
+      z-index: 10;
+      -webkit-appearance: none;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    `;
+    
+    // Slider para tamaño de texto (georeferencia) - lado derecho vertical
+    const textSizeSlider = document.createElement('input');
+    textSizeSlider.type = 'range';
+    textSizeSlider.min = '1';
+    textSizeSlider.max = '3';
+    textSizeSlider.step = '0.5';
+    textSizeSlider.value = textSizeLevel.toString();
+    textSizeSlider.style.cssText = `
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      width: 100px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+      border-radius: 2px;
+      z-index: 10;
+      -webkit-appearance: none;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    `;
+    
+    // Estilos más sutiles para los thumbs de los sliders
+    const style = document.createElement('style');
+    style.textContent = `
+      input[type="range"]::-webkit-slider-thumb {
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
         background: black;
-        overflow: hidden;
-        max-height: 70vh;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
       `;
-      
-      // Slider de zoom vertical a la izquierda (solo uno para cámara)
-      const zoomSlider = document.createElement('input');
-      zoomSlider.type = 'range';
-      zoomSlider.min = '1';
-      zoomSlider.max = '4';
-      zoomSlider.step = '0.5';
-      zoomSlider.value = zoomLevel.toString();
-      zoomSlider.style.cssText = `
-        position: absolute;
-        left: 5px;
-        top: 50%;
-        transform: translateY(-50%) rotate(-90deg);
-        width: 120px;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        outline: none;
-        border-radius: 2px;
-        z-index: 10;
-        -webkit-appearance: none;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
-      `;
-      
-      // Slider para tamaño de texto (georeferencia) - lado derecho vertical
-      const textSizeSlider = document.createElement('input');
-      textSizeSlider.type = 'range';
-      textSizeSlider.min = '1';
-      textSizeSlider.max = '3';
-      textSizeSlider.step = '0.5';
-      textSizeSlider.value = textSizeLevel.toString();
-      textSizeSlider.style.cssText = `
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%) rotate(90deg);
-        width: 100px;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        outline: none;
-        border-radius: 2px;
-        z-index: 10;
-        -webkit-appearance: none;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.3s ease;
-      `;
-      
-      // Estilos más sutiles para los thumbs de los sliders
-      const style = document.createElement('style');
-      style.textContent = `
-        input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 12px;
-          height: 12px;
-          background: rgba(255, 107, 0, 0.7);
-          cursor: pointer;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 5px rgba(255, 107, 0, 0.3);
-          transition: all 0.3s ease;
-        }
-        
-        input[type="range"]::-moz-range-thumb {
-          width: 12px;
-          height: 12px;
-          background: rgba(255, 107, 0, 0.7);
-          cursor: pointer;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 5px rgba(255, 107, 0, 0.3);
-          transition: all 0.3s ease;
-        }
-        
-        input[type="range"]:hover::-webkit-slider-thumb {
-          background: rgba(255, 107, 0, 0.9);
-          box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
-        }
-        
-        input[type="range"]:hover::-moz-range-thumb {
-          background: rgba(255, 107, 0, 0.9);
-          box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
-        }
-        
-        input[type="range"]:hover {
-          opacity: 1;
-        }
-        
-        input[type="range"]::-webkit-slider-runnable-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        
-        input[type="range"]::-moz-range-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        
-        #textSizeIndicator {
-          position: absolute;
-          right: 5px;
-          top: 20px;
-          background: rgba(0, 0, 0, 0.6);
-          color: rgba(255, 255, 255, 0.8);
-          padding: 4px 8px;
-          border-radius: 10px;
-          font-size: 10px;
-          font-weight: bold;
-          z-index: 10;
-          opacity: 0.8;
-        }
-      `;
-      document.head.appendChild(style);
-      
-      // Logo MOPC como marca de agua arriba a la derecha del video
-      const mopcWatermark = document.createElement('div');
-      mopcWatermark.style.cssText = `
+    document.head.appendChild(style);
+    
+    // Logo MOPC como marca de agua arriba a la derecha del video
+    const mopcWatermark = document.createElement('div');
+    mopcWatermark.style.cssText = `
         position: absolute;
         top: 20px;
         right: 20px;
@@ -1904,22 +1853,6 @@ const Dashboard: React.FC = () => {
       `;
       flipButton.innerHTML = '🔄';
       
-      // Botón de cerrar
-      const closeButton = document.createElement('button');
-      closeButton.style.cssText = `
-        background: rgba(255, 0, 0, 0.8);
-        border: 2px solid red;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-size: 14px;
-        cursor: pointer;
-        position: absolute;
-        top: 15px;
-        right: 15px;
-      `;
-      closeButton.innerHTML = '✕';
-      
       // Contenedor de controles adicionales (eliminado - ahora sliders laterales)
       // Los controles de tamaño de texto ahora están como slider lateral
       
@@ -1934,7 +1867,6 @@ const Dashboard: React.FC = () => {
       videoContainer.appendChild(textSizeSlider);
       videoContainer.appendChild(mopcWatermark); // Marca de agua MOPC
       videoContainer.appendChild(geoOverlay); // Overlay dentro del video
-      videoContainer.appendChild(closeButton);
       
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
@@ -2222,12 +2154,6 @@ const Dashboard: React.FC = () => {
           adjustTextSize(value);
         });
         
-        closeButton.addEventListener('click', () => {
-          stream.getTracks().forEach(track => track.stop());
-          Geolocation.clearWatch({ id: watchPositionId });
-          cameraInterface.remove();
-        });
-        
       } catch (error) {
         console.error('Error accediendo a la cámara:', error);
         
@@ -2300,8 +2226,8 @@ const Dashboard: React.FC = () => {
       }
       
     } catch (error: any) {
-      console.error('❌ Error al tomar foto:', error);
-      alert('Error al tomar foto: ' + (error.message || error.toString()));
+      console.error('❌ Error general en la cámara:', error);
+      alert('Error al abrir la cámara: ' + (error.message || 'Error desconocido'));
     }
   };
 
