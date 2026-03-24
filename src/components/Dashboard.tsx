@@ -1633,6 +1633,14 @@ const Dashboard: React.FC = () => {
       `;
       header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
       
+      // Estados
+      let currentPosition: any = null;
+      let currentAddress = 'Ubicación desconocida';
+      let flashMode = 'off'; // off, on, auto
+      let cameraDirection = 'environment'; // environment (trasera) / user (frontal)
+      let zoomLevel = 1; // 1x a 4x zoom
+      let textSizeLevel = 1; // 1x a 3x tamaño de letra
+      
       // Contenedor de video
       const videoContainer = document.createElement('div');
       videoContainer.style.cssText = `
@@ -1645,6 +1653,66 @@ const Dashboard: React.FC = () => {
         overflow: hidden;
         max-height: 70vh;
       `;
+      
+      // Botones de zoom a los lados
+      const zoomLeftButton = document.createElement('button');
+      zoomLeftButton.style.cssText = `
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      `;
+      zoomLeftButton.innerHTML = '−';
+      
+      const zoomRightButton = document.createElement('button');
+      zoomRightButton.style.cssText = `
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      `;
+      zoomRightButton.innerHTML = '+';
+      
+      // Indicador de zoom centrado arriba
+      const zoomIndicator = document.createElement('div');
+      zoomIndicator.style.cssText = `
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 10;
+      `;
+      zoomIndicator.textContent = `${zoomLevel}x`;
       
       // Video preview
       const video = document.createElement('video');
@@ -1720,74 +1788,16 @@ const Dashboard: React.FC = () => {
       `;
       closeButton.innerHTML = '✕';
       
-      // Estados
-      let currentPosition: any = null;
-      let currentAddress = 'Ubicación desconocida';
-      let flashMode = 'off'; // off, on, auto
-      let cameraDirection = 'environment'; // environment (trasera) / user (frontal)
-      let zoomLevel = 1; // 1x a 4x zoom
-      let textSizeLevel = 1; // 1x a 3x tamaño de letra
-      
-      // Contenedor de controles adicionales
+      // Contenedor de controles adicionales (solo tamaño de texto)
       const additionalControls = document.createElement('div');
       additionalControls.style.cssText = `
         background: rgba(0, 0, 0, 0.9);
         padding: 15px;
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
         align-items: center;
         border-top: 1px solid rgba(255, 255, 255, 0.2);
       `;
-      
-      // Control de zoom
-      const zoomControl = document.createElement('div');
-      zoomControl.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: white;
-        font-size: 12px;
-      `;
-      
-      const zoomMinusButton = document.createElement('button');
-      zoomMinusButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid white;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        font-size: 16px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
-      zoomMinusButton.innerHTML = '−';
-      
-      const zoomLabel = document.createElement('span');
-      zoomLabel.style.cssText = `
-        min-width: 40px;
-        text-align: center;
-        font-weight: bold;
-      `;
-      zoomLabel.textContent = `${zoomLevel}x`;
-      
-      const zoomPlusButton = document.createElement('button');
-      zoomPlusButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid white;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        font-size: 16px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
-      zoomPlusButton.innerHTML = '+';
       
       // Control de tamaño de texto
       const textSizeControl = document.createElement('div');
@@ -1839,24 +1849,25 @@ const Dashboard: React.FC = () => {
       `;
       textSizePlusButton.innerHTML = 'A+';
       
-      // Ensamblar controles adicionales
-      zoomControl.appendChild(zoomMinusButton);
-      zoomControl.appendChild(zoomLabel);
-      zoomControl.appendChild(zoomPlusButton);
-      
+      // Ensamblar control de texto
       textSizeControl.appendChild(textSizeMinusButton);
       textSizeControl.appendChild(textSizeLabel);
       textSizeControl.appendChild(textSizePlusButton);
       
-      additionalControls.appendChild(zoomControl);
       additionalControls.appendChild(textSizeControl);
 
       // Ensamblar interfaz completa
       controls.appendChild(flashButton);
       controls.appendChild(captureButton);
       controls.appendChild(flipButton);
+      
+      // Agregar botones de zoom al contenedor de video
       videoContainer.appendChild(video);
+      videoContainer.appendChild(zoomLeftButton);
+      videoContainer.appendChild(zoomRightButton);
+      videoContainer.appendChild(zoomIndicator);
       videoContainer.appendChild(closeButton);
+      
       cameraInterface.appendChild(header);
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
@@ -2106,7 +2117,9 @@ const Dashboard: React.FC = () => {
           } else if (direction === 'out' && zoomLevel > 1) {
             zoomLevel -= 0.5;
           }
-          zoomLabel.textContent = `${zoomLevel}x`;
+          
+          // Actualizar indicador
+          zoomIndicator.textContent = `${zoomLevel}x`;
           
           // Aplicar zoom usando CSS transform al video (método compatible)
           video.style.transform = `scale(${zoomLevel})`;
@@ -2134,9 +2147,9 @@ const Dashboard: React.FC = () => {
         flashButton.addEventListener('click', toggleFlash);
         flipButton.addEventListener('click', flipCamera);
         
-        // Event listeners de zoom
-        zoomMinusButton.addEventListener('click', () => adjustZoom('out'));
-        zoomPlusButton.addEventListener('click', () => adjustZoom('in'));
+        // Event listeners de zoom laterales
+        zoomLeftButton.addEventListener('click', () => adjustZoom('out'));
+        zoomRightButton.addEventListener('click', () => adjustZoom('in'));
         
         // Event listeners de tamaño de texto
         textSizeMinusButton.addEventListener('click', () => adjustTextSize('out'));
