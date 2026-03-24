@@ -1654,14 +1654,14 @@ const Dashboard: React.FC = () => {
         max-height: 70vh;
       `;
       
-      // Sliders de zoom verticales a los extremos laterales
-      const zoomSliderLeft = document.createElement('input');
-      zoomSliderLeft.type = 'range';
-      zoomSliderLeft.min = '1';
-      zoomSliderLeft.max = '4';
-      zoomSliderLeft.step = '0.5';
-      zoomSliderLeft.value = zoomLevel.toString();
-      zoomSliderLeft.style.cssText = `
+      // Slider de zoom vertical a la izquierda (solo uno para cámara)
+      const zoomSlider = document.createElement('input');
+      zoomSlider.type = 'range';
+      zoomSlider.min = '1';
+      zoomSlider.max = '4';
+      zoomSlider.step = '0.5';
+      zoomSlider.value = zoomLevel.toString();
+      zoomSlider.style.cssText = `
         position: absolute;
         left: 5px;
         top: 50%;
@@ -1678,30 +1678,7 @@ const Dashboard: React.FC = () => {
         transition: opacity 0.3s ease;
       `;
       
-      const zoomSliderRight = document.createElement('input');
-      zoomSliderRight.type = 'range';
-      zoomSliderRight.min = '1';
-      zoomSliderRight.max = '4';
-      zoomSliderRight.step = '0.5';
-      zoomSliderRight.value = zoomLevel.toString();
-      zoomSliderRight.style.cssText = `
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%) rotate(90deg);
-        width: 120px;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        outline: none;
-        border-radius: 2px;
-        z-index: 10;
-        -webkit-appearance: none;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
-      `;
-      
-      // Slider para tamaño de texto (georeferencia) - lado izquierdo inferior
+      // Slider para tamaño de texto (georeferencia) - lado derecho
       const textSizeSlider = document.createElement('input');
       textSizeSlider.type = 'range';
       textSizeSlider.min = '1';
@@ -1710,7 +1687,7 @@ const Dashboard: React.FC = () => {
       textSizeSlider.value = textSizeLevel.toString();
       textSizeSlider.style.cssText = `
         position: absolute;
-        left: 5px;
+        right: 5px;
         bottom: 80px;
         width: 100px;
         height: 3px;
@@ -1777,7 +1754,7 @@ const Dashboard: React.FC = () => {
         
         #textSizeIndicator {
           position: absolute;
-          left: 5px;
+          right: 5px;
           bottom: 60px;
           background: rgba(0, 0, 0, 0.6);
           color: rgba(255, 255, 255, 0.8);
@@ -1898,8 +1875,7 @@ const Dashboard: React.FC = () => {
       
       // Agregar sliders al contenedor de video
       videoContainer.appendChild(video);
-      videoContainer.appendChild(zoomSliderLeft);
-      videoContainer.appendChild(zoomSliderRight);
+      videoContainer.appendChild(zoomSlider);
       videoContainer.appendChild(textSizeSlider);
       videoContainer.appendChild(zoomIndicator);
       videoContainer.appendChild(textSizeIndicator);
@@ -2146,16 +2122,15 @@ const Dashboard: React.FC = () => {
           }
         };
         
-        // Función para controlar zoom con sliders
+        // Función para controlar zoom con un solo slider
         const adjustZoom = (value: number) => {
           zoomLevel = value;
           
           // Actualizar indicador
           zoomIndicator.textContent = `${zoomLevel}x`;
           
-          // Actualizar ambos sliders
-          zoomSliderLeft.value = zoomLevel.toString();
-          zoomSliderRight.value = zoomLevel.toString();
+          // Actualizar slider único
+          zoomSlider.value = zoomLevel.toString();
           
           // Aplicar zoom usando CSS transform al video (método compatible)
           video.style.transform = `scale(${zoomLevel})`;
@@ -2184,13 +2159,8 @@ const Dashboard: React.FC = () => {
         flashButton.addEventListener('click', toggleFlash);
         flipButton.addEventListener('click', flipCamera);
         
-        // Event listeners de sliders verticales
-        zoomSliderLeft.addEventListener('input', (e) => {
-          const value = parseFloat((e.target as HTMLInputElement).value);
-          adjustZoom(value);
-        });
-        
-        zoomSliderRight.addEventListener('input', (e) => {
+        // Event listener de slider de zoom (solo uno)
+        zoomSlider.addEventListener('input', (e) => {
           const value = parseFloat((e.target as HTMLInputElement).value);
           adjustZoom(value);
         });
