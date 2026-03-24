@@ -1566,6 +1566,45 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    // Detectar modelo de dispositivo para configuración específica
+    const getDeviceModel = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const screenWidth = window.screen.width;
+      const screenHeight = window.screen.height;
+      
+      // Samsung Galaxy A04s: 720x1600
+      if (userAgent.includes('a04') || (screenWidth === 720 && screenHeight === 1600)) {
+        return 'samsung-a04s';
+      }
+      // Xiaomi Redmi Note 12: 1080x2400
+      else if (userAgent.includes('redmi note 12') || (screenWidth === 1080 && screenHeight === 2400)) {
+        return 'xiaomi-redmi-note12';
+      }
+      // Xiaomi Redmi Note 12 Pro: 1080x2400
+      else if (userAgent.includes('redmi note 12 pro') || (screenWidth === 1080 && screenHeight === 2400)) {
+        return 'xiaomi-redmi-note12-pro';
+      }
+      // Samsung Galaxy A03s: 720x1600
+      else if (userAgent.includes('a03') || (screenWidth === 720 && screenHeight === 1600)) {
+        return 'samsung-a03s';
+      }
+      // Samsung Galaxy A05s: 720x1600
+      else if (userAgent.includes('a05') || (screenWidth === 720 && screenHeight === 1600)) {
+        return 'samsung-a05s';
+      }
+      // Xiaomi Redmi Note 11: 1080x2400
+      else if (userAgent.includes('redmi note 11') || (screenWidth === 1080 && screenHeight === 2400)) {
+        return 'xiaomi-redmi-note11';
+      }
+      // Default genérico
+      else {
+        return 'generic';
+      }
+    };
+
+    const deviceModel = getDeviceModel();
+    console.log('📱 Modelo detectado:', deviceModel);
+
     try {
       console.log('📷 Iniciando cámara con geolocalización en vivo...');
       
@@ -1596,14 +1635,49 @@ const Dashboard: React.FC = () => {
       
       // Contenedor de video
       const videoContainer = document.createElement('div');
-      videoContainer.style.cssText = `
+      
+      // Configuración específica según modelo
+      let videoContainerStyles = `
         flex: 1;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         background: black;
+        overflow: hidden;
       `;
+      
+      switch (deviceModel) {
+        case 'samsung-a04s':
+        case 'samsung-a03s':
+        case 'samsung-a05s':
+          // Configuración para Samsung 720x1600
+          videoContainerStyles += `
+            max-height: 70vh;
+            width: 100%;
+            object-fit: contain;
+          `;
+          break;
+        case 'xiaomi-redmi-note12':
+        case 'xiaomi-redmi-note12-pro':
+        case 'xiaomi-redmi-note11':
+          // Configuración para Xiaomi 1080x2400
+          videoContainerStyles += `
+            max-height: 75vh;
+            width: 100%;
+            object-fit: contain;
+          `;
+          break;
+        default:
+          // Configuración genérica
+          videoContainerStyles += `
+            max-height: 72vh;
+            width: 100%;
+            object-fit: contain;
+          `;
+      }
+      
+      videoContainer.style.cssText = videoContainerStyles;
       
       // Video preview
       const video = document.createElement('video');
@@ -1683,7 +1757,7 @@ const Dashboard: React.FC = () => {
       let currentPosition: any = null;
       let currentAddress = 'Ubicación desconocida';
       let flashMode = 'off'; // off, on, auto
-      let cameraDirection = 'back'; // back, front
+      let cameraDirection = 'environment'; // environment (trasera) / user (frontal)
       let zoomLevel = 1; // 1x a 4x zoom
       let textSizeLevel = 1; // 1x a 3x tamaño de letra
       
@@ -1874,16 +1948,35 @@ const Dashboard: React.FC = () => {
       try {
         const constraints: any = {
           video: {
-            facingMode: cameraDirection
+            facingMode: 'environment', // Forzar cámara trasera
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
           },
           audio: false
         };
+        
+        // Configuración específica según modelo
+        switch (deviceModel) {
+          case 'samsung-a04s':
+          case 'samsung-a03s':
+          case 'samsung-a05s':
+            constraints.video.width = { ideal: 1280 };
+            constraints.video.height = { ideal: 720 };
+            break;
+          case 'xiaomi-redmi-note12':
+          case 'xiaomi-redmi-note12-pro':
+          case 'xiaomi-redmi-note11':
+            constraints.video.width = { ideal: 1920 };
+            constraints.video.height = { ideal: 1080 };
+            break;
+        }
         
         // Agregar torch solo si está soportado
         if (flashMode === 'on') {
           constraints.video.torch = true;
         }
         
+        console.log('🎥 Iniciando stream con constraints:', constraints);
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         video.srcObject = stream;
@@ -1996,21 +2089,41 @@ const Dashboard: React.FC = () => {
         // Función para girar cámara
         const flipCamera = async () => {
           try {
-            cameraDirection = cameraDirection === 'back' ? 'front' : 'back';
+            cameraDirection = cameraDirection === 'environment' ? 'user' : 'environment';
             
             // Reiniciar stream con nueva dirección
             stream.getTracks().forEach(track => track.stop());
+            
             const flipConstraints: any = {
               video: {
-                facingMode: cameraDirection
+                facingMode: cameraDirection,
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
               },
               audio: false
             };
             
-            if (flashMode === 'on') {
+            // Configuración específica según modelo
+            switch (deviceModel) {
+              case 'samsung-a04s':
+              case 'samsung-a03s':
+              case 'samsung-a05s':
+                flipConstraints.video.width = { ideal: 1280 };
+                flipConstraints.video.height = { ideal: 720 };
+                break;
+              case 'xiaomi-redmi-note12':
+              case 'xiaomi-redmi-note12-pro':
+              case 'xiaomi-redmi-note11':
+                flipConstraints.video.width = { ideal: 1920 };
+                flipConstraints.video.height = { ideal: 1080 };
+                break;
+            }
+            
+            if (flashMode === 'on' && cameraDirection === 'environment') {
               flipConstraints.video.torch = true;
             }
             
+            console.log('🔄 Cambiando a cámara:', cameraDirection, flipConstraints);
             const newStream = await navigator.mediaDevices.getUserMedia(flipConstraints);
             video.srcObject = newStream;
             video.play();
@@ -2020,7 +2133,7 @@ const Dashboard: React.FC = () => {
         };
         
         // Función para controlar zoom
-        const adjustZoom = (direction: 'in' | 'out') => {
+        const adjustZoom = async (direction: 'in' | 'out') => {
           if (direction === 'in' && zoomLevel < 4) {
             zoomLevel += 0.5;
           } else if (direction === 'out' && zoomLevel > 1) {
@@ -2028,9 +2141,51 @@ const Dashboard: React.FC = () => {
           }
           zoomLabel.textContent = `${zoomLevel}x`;
           
-          // Aplicar zoom al video
-          video.style.transform = `scale(${zoomLevel})`;
-          video.style.transformOrigin = 'center center';
+          // Reiniciar stream con nuevo zoom
+          try {
+            stream.getTracks().forEach(track => track.stop());
+            
+            const zoomConstraints: any = {
+              video: {
+                facingMode: cameraDirection,
+                zoom: zoomLevel,
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+              },
+              audio: false
+            };
+            
+            // Configuración específica según modelo
+            switch (deviceModel) {
+              case 'samsung-a04s':
+              case 'samsung-a03s':
+              case 'samsung-a05s':
+                zoomConstraints.video.width = { ideal: 1280 };
+                zoomConstraints.video.height = { ideal: 720 };
+                break;
+              case 'xiaomi-redmi-note12':
+              case 'xiaomi-redmi-note12-pro':
+              case 'xiaomi-redmi-note11':
+                zoomConstraints.video.width = { ideal: 1920 };
+                zoomConstraints.video.height = { ideal: 1080 };
+                break;
+            }
+            
+            // Agregar torch solo en cámara trasera
+            if (flashMode === 'on' && cameraDirection === 'environment') {
+              zoomConstraints.video.torch = true;
+            }
+            
+            console.log('🔍 Aplicando zoom:', zoomLevel, zoomConstraints);
+            const newStream = await navigator.mediaDevices.getUserMedia(zoomConstraints);
+            video.srcObject = newStream;
+            video.play();
+          } catch (error) {
+            console.error('Error aplicando zoom:', error);
+            // Fallback: aplicar zoom CSS solo al video (no al contenedor)
+            video.style.transform = `scale(${zoomLevel})`;
+            video.style.transformOrigin = 'center center';
+          }
         };
         
         // Función para controlar tamaño de texto
