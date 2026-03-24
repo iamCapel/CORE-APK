@@ -1654,7 +1654,7 @@ const Dashboard: React.FC = () => {
         max-height: 70vh;
       `;
       
-      // Sliders de zoom verticales a los lados
+      // Sliders de zoom verticales a los extremos laterales
       const zoomSliderLeft = document.createElement('input');
       zoomSliderLeft.type = 'range';
       zoomSliderLeft.min = '1';
@@ -1663,17 +1663,19 @@ const Dashboard: React.FC = () => {
       zoomSliderLeft.value = zoomLevel.toString();
       zoomSliderLeft.style.cssText = `
         position: absolute;
-        left: 20px;
+        left: 5px;
         top: 50%;
         transform: translateY(-50%) rotate(-90deg);
-        width: 150px;
-        height: 6px;
-        background: rgba(255, 255, 255, 0.3);
+        width: 120px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.15);
         outline: none;
-        border-radius: 3px;
+        border-radius: 2px;
         z-index: 10;
         -webkit-appearance: none;
         cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
       `;
       
       const zoomSliderRight = document.createElement('input');
@@ -1684,52 +1686,107 @@ const Dashboard: React.FC = () => {
       zoomSliderRight.value = zoomLevel.toString();
       zoomSliderRight.style.cssText = `
         position: absolute;
-        right: 20px;
+        right: 5px;
         top: 50%;
         transform: translateY(-50%) rotate(90deg);
-        width: 150px;
-        height: 6px;
-        background: rgba(255, 255, 255, 0.3);
+        width: 120px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.15);
         outline: none;
-        border-radius: 3px;
+        border-radius: 2px;
         z-index: 10;
         -webkit-appearance: none;
         cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
       `;
       
-      // Estilos para los thumbs de los sliders
+      // Slider para tamaño de texto (georeferencia) - lado izquierdo inferior
+      const textSizeSlider = document.createElement('input');
+      textSizeSlider.type = 'range';
+      textSizeSlider.min = '1';
+      textSizeSlider.max = '3';
+      textSizeSlider.step = '0.5';
+      textSizeSlider.value = textSizeLevel.toString();
+      textSizeSlider.style.cssText = `
+        position: absolute;
+        left: 5px;
+        bottom: 80px;
+        width: 100px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.15);
+        outline: none;
+        border-radius: 2px;
+        z-index: 10;
+        -webkit-appearance: none;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+      `;
+      
+      // Estilos más sutiles para los thumbs de los sliders
       const style = document.createElement('style');
       style.textContent = `
         input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 20px;
-          height: 20px;
-          background: #FF6B00;
+          width: 12px;
+          height: 12px;
+          background: rgba(255, 107, 0, 0.7);
           cursor: pointer;
           border-radius: 50%;
-          border: 2px solid white;
-          box-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 0 5px rgba(255, 107, 0, 0.3);
+          transition: all 0.3s ease;
         }
         
         input[type="range"]::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          background: #FF6B00;
+          width: 12px;
+          height: 12px;
+          background: rgba(255, 107, 0, 0.7);
           cursor: pointer;
           border-radius: 50%;
-          border: 2px solid white;
-          box-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 0 5px rgba(255, 107, 0, 0.3);
+          transition: all 0.3s ease;
+        }
+        
+        input[type="range"]:hover::-webkit-slider-thumb {
+          background: rgba(255, 107, 0, 0.9);
+          box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
+        }
+        
+        input[type="range"]:hover::-moz-range-thumb {
+          background: rgba(255, 107, 0, 0.9);
+          box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
+        }
+        
+        input[type="range"]:hover {
+          opacity: 1;
         }
         
         input[type="range"]::-webkit-slider-runnable-track {
-          background: linear-gradient(to right, rgba(255, 107, 0, 0.3) 0%, #FF6B00 100%);
-          border-radius: 3px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 2px;
         }
         
         input[type="range"]::-moz-range-track {
-          background: linear-gradient(to right, rgba(255, 107, 0, 0.3) 0%, #FF6B00 100%);
-          border-radius: 3px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 2px;
+        }
+        
+        #textSizeIndicator {
+          position: absolute;
+          left: 5px;
+          bottom: 60px;
+          background: rgba(0, 0, 0, 0.6);
+          color: rgba(255, 255, 255, 0.8);
+          padding: 4px 8px;
+          border-radius: 10px;
+          font-size: 10px;
+          font-weight: bold;
+          z-index: 10;
+          opacity: 0.8;
         }
       `;
       document.head.appendChild(style);
@@ -1741,15 +1798,21 @@ const Dashboard: React.FC = () => {
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
+        background: rgba(0, 0, 0, 0.6);
+        color: rgba(255, 255, 255, 0.9);
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 12px;
         font-weight: bold;
         z-index: 10;
+        opacity: 0.9;
       `;
       zoomIndicator.textContent = `${zoomLevel}x`;
+      
+      // Indicador de tamaño de texto
+      const textSizeIndicator = document.createElement('div');
+      textSizeIndicator.id = 'textSizeIndicator';
+      textSizeIndicator.textContent = `A${textSizeLevel}x`;
       
       // Video preview
       const video = document.createElement('video');
@@ -1825,90 +1888,26 @@ const Dashboard: React.FC = () => {
       `;
       closeButton.innerHTML = '✕';
       
-      // Contenedor de controles adicionales (solo tamaño de texto)
-      const additionalControls = document.createElement('div');
-      additionalControls.style.cssText = `
-        background: rgba(0, 0, 0, 0.9);
-        padding: 15px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-      `;
+      // Contenedor de controles adicionales (eliminado - ahora sliders laterales)
+      // Los controles de tamaño de texto ahora están como slider lateral
       
-      // Control de tamaño de texto
-      const textSizeControl = document.createElement('div');
-      textSizeControl.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: white;
-        font-size: 12px;
-      `;
-      
-      const textSizeMinusButton = document.createElement('button');
-      textSizeMinusButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid white;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        font-size: 16px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
-      textSizeMinusButton.innerHTML = 'A−';
-      
-      const textSizeLabel = document.createElement('span');
-      textSizeLabel.style.cssText = `
-        min-width: 40px;
-        text-align: center;
-        font-weight: bold;
-      `;
-      textSizeLabel.textContent = `${textSizeLevel}x`;
-      
-      const textSizePlusButton = document.createElement('button');
-      textSizePlusButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid white;
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        font-size: 16px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
-      textSizePlusButton.innerHTML = 'A+';
-      
-      // Ensamblar control de texto
-      textSizeControl.appendChild(textSizeMinusButton);
-      textSizeControl.appendChild(textSizeLabel);
-      textSizeControl.appendChild(textSizePlusButton);
-      
-      additionalControls.appendChild(textSizeControl);
-
       // Ensamblar interfaz completa
       controls.appendChild(flashButton);
       controls.appendChild(captureButton);
       controls.appendChild(flipButton);
       
-      // Agregar sliders de zoom al contenedor de video
+      // Agregar sliders al contenedor de video
       videoContainer.appendChild(video);
       videoContainer.appendChild(zoomSliderLeft);
       videoContainer.appendChild(zoomSliderRight);
+      videoContainer.appendChild(textSizeSlider);
       videoContainer.appendChild(zoomIndicator);
+      videoContainer.appendChild(textSizeIndicator);
       videoContainer.appendChild(closeButton);
       
       cameraInterface.appendChild(header);
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
-      cameraInterface.appendChild(additionalControls);
       document.body.appendChild(cameraInterface);
 
       // Iniciar geolocalización en vivo
@@ -2166,14 +2165,15 @@ const Dashboard: React.FC = () => {
           console.log('🔍 Zoom aplicado:', zoomLevel);
         };
         
-        // Función para controlar tamaño de texto
-        const adjustTextSize = (direction: 'in' | 'out') => {
-          if (direction === 'in' && textSizeLevel < 3) {
-            textSizeLevel += 0.5;
-          } else if (direction === 'out' && textSizeLevel > 1) {
-            textSizeLevel -= 0.5;
-          }
-          textSizeLabel.textContent = `${textSizeLevel}x`;
+        // Función para controlar tamaño de texto con slider
+        const adjustTextSize = (value: number) => {
+          textSizeLevel = value;
+          
+          // Actualizar indicador
+          textSizeIndicator.textContent = `A${textSizeLevel}x`;
+          
+          // Actualizar slider
+          textSizeSlider.value = textSizeLevel.toString();
           
           // Ajustar tamaño de texto del header
           header.style.fontSize = `${14 * textSizeLevel}px`;
@@ -2195,9 +2195,11 @@ const Dashboard: React.FC = () => {
           adjustZoom(value);
         });
         
-        // Event listeners de tamaño de texto
-        textSizeMinusButton.addEventListener('click', () => adjustTextSize('out'));
-        textSizePlusButton.addEventListener('click', () => adjustTextSize('in'));
+        // Event listener de slider de tamaño de texto
+        textSizeSlider.addEventListener('input', (e) => {
+          const value = parseFloat((e.target as HTMLInputElement).value);
+          adjustTextSize(value);
+        });
         
         closeButton.addEventListener('click', () => {
           stream.getTracks().forEach(track => track.stop());
