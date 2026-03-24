@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType } from '@capacitor/camera';
-import { addWatermarkToPhoto } from '../services/photoWatermark';
+import { addWatermarkToPhoto, savePhotoToGallery } from '../services/photoWatermark';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -16,7 +16,6 @@ import MyReportsListModern from './MyReportsListModern';
 import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
-import CameraModal from './CameraModal';
 import HeavyVehiclesPage from './HeavyVehiclesPage';
 import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
@@ -647,11 +646,6 @@ const Dashboard: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMyReportsModal, setShowMyReportsModal] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
-  
-  // Estados para la cámara
-  const [showCameraModal, setShowCameraModal] = useState(false);
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
-  const [cameraLocation, setCameraLocation] = useState<{ lat: number; lon: number; address: string } | null>(null);
 
   // Estados del nuevo “Nivel de Estabilidad” con giroscopio
   const [showStabilityModal, setShowStabilityModal] = useState(false);
@@ -1660,18 +1654,10 @@ const Dashboard: React.FC = () => {
         // Remover mensaje de carga
         loadingMessage.remove();
 
-        // Establecer la foto con marca de agua y ubicación en el estado
-        setCapturedPhoto(watermarkedImage);
-        setCameraLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-          address: address
-        });
-
-        // Abrir el modal de cámara
-        setShowCameraModal(true);
+        // Guardar foto directamente en galería sin mostrar modal
+        await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
         
-        console.log('✅ Foto capturada y georeferenciada con marca de agua automática');
+        console.log('✅ Foto capturada y guardada directamente con marca de agua automática');
       } else {
         throw new Error('No se pudo capturar la foto');
       }
@@ -2215,16 +2201,6 @@ const Dashboard: React.FC = () => {
         reports={pendingReportsList}
         onContinueReport={handleContinuePendingReport}
         onCancelReport={handleCancelPendingReport}
-      />
-
-      {/* Modal de Cámara */}
-      <CameraModal
-        isOpen={showCameraModal}
-        onClose={() => { setShowCameraModal(false); }}
-        photo={capturedPhoto}
-        location={cameraLocation}
-        userName={user?.name || 'Usuario'}
-        onSaveToGallery={handleSavePhotoToGallery}
       />
 
       {/* Modal Nivel de Estabilidad */}
