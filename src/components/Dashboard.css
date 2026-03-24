@@ -2822,11 +2822,11 @@ select option[value="otros"] {
   gap: 14px;
   
   /* Full width - Edge-to-edge */
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  max-width: 100vw;
   
-  /* Padding centrado para mejor visualización */
-  padding: 0 16px;
+  /* Sin padding externo - Edge-to-edge */
+  padding: 0;
   margin: 0 0 24px 0;
   
   /* Background transparente */
@@ -2837,10 +2837,6 @@ select option[value="otros"] {
   
   /* Box sizing */
   box-sizing: border-box;
-  
-  /* Centrar contenido del grid */
-  justify-items: center;
-  align-items: center;
 }
 
 /* Responsive Grid */
@@ -2848,35 +2844,25 @@ select option[value="otros"] {
   .dashboard-icons-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px 16px;
-    padding: 0 16px;
+    padding: 0;
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    justify-items: center;
-    align-items: center;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .dashboard-icons-grid {
     grid-template-columns: repeat(4, 1fr);
-    padding: 0 24px;
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    justify-items: center;
-    align-items: center;
   }
 }
 
 @media (min-width: 1025px) {
   .dashboard-icons-grid {
     grid-template-columns: repeat(4, 1fr);
-    padding: 0 32px;
-    max-width: 1200px;
-    margin: 0 auto 24px auto;
     backdrop-filter: blur(12px);
     border-radius: 16px;
-    justify-items: center;
-    align-items: center;
   }
 }
 
@@ -3078,8 +3064,7 @@ select option[value="otros"] {
 .dashboard-action {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
   gap: 14px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);

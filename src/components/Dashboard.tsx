@@ -1635,9 +1635,7 @@ const Dashboard: React.FC = () => {
       
       // Contenedor de video
       const videoContainer = document.createElement('div');
-      
-      // Configuración específica según modelo
-      let videoContainerStyles = `
+      videoContainer.style.cssText = `
         flex: 1;
         position: relative;
         display: flex;
@@ -1645,39 +1643,8 @@ const Dashboard: React.FC = () => {
         justify-content: center;
         background: black;
         overflow: hidden;
+        max-height: 70vh;
       `;
-      
-      switch (deviceModel) {
-        case 'samsung-a04s':
-        case 'samsung-a03s':
-        case 'samsung-a05s':
-          // Configuración para Samsung 720x1600
-          videoContainerStyles += `
-            max-height: 70vh;
-            width: 100%;
-            object-fit: contain;
-          `;
-          break;
-        case 'xiaomi-redmi-note12':
-        case 'xiaomi-redmi-note12-pro':
-        case 'xiaomi-redmi-note11':
-          // Configuración para Xiaomi 1080x2400
-          videoContainerStyles += `
-            max-height: 75vh;
-            width: 100%;
-            object-fit: contain;
-          `;
-          break;
-        default:
-          // Configuración genérica
-          videoContainerStyles += `
-            max-height: 72vh;
-            width: 100%;
-            object-fit: contain;
-          `;
-      }
-      
-      videoContainer.style.cssText = videoContainerStyles;
       
       // Video preview
       const video = document.createElement('video');
@@ -2141,51 +2108,12 @@ const Dashboard: React.FC = () => {
           }
           zoomLabel.textContent = `${zoomLevel}x`;
           
-          // Reiniciar stream con nuevo zoom
-          try {
-            stream.getTracks().forEach(track => track.stop());
-            
-            const zoomConstraints: any = {
-              video: {
-                facingMode: cameraDirection,
-                zoom: zoomLevel,
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
-              },
-              audio: false
-            };
-            
-            // Configuración específica según modelo
-            switch (deviceModel) {
-              case 'samsung-a04s':
-              case 'samsung-a03s':
-              case 'samsung-a05s':
-                zoomConstraints.video.width = { ideal: 1280 };
-                zoomConstraints.video.height = { ideal: 720 };
-                break;
-              case 'xiaomi-redmi-note12':
-              case 'xiaomi-redmi-note12-pro':
-              case 'xiaomi-redmi-note11':
-                zoomConstraints.video.width = { ideal: 1920 };
-                zoomConstraints.video.height = { ideal: 1080 };
-                break;
-            }
-            
-            // Agregar torch solo en cámara trasera
-            if (flashMode === 'on' && cameraDirection === 'environment') {
-              zoomConstraints.video.torch = true;
-            }
-            
-            console.log('🔍 Aplicando zoom:', zoomLevel, zoomConstraints);
-            const newStream = await navigator.mediaDevices.getUserMedia(zoomConstraints);
-            video.srcObject = newStream;
-            video.play();
-          } catch (error) {
-            console.error('Error aplicando zoom:', error);
-            // Fallback: aplicar zoom CSS solo al video (no al contenedor)
-            video.style.transform = `scale(${zoomLevel})`;
-            video.style.transformOrigin = 'center center';
-          }
+          // Aplicar zoom usando CSS transform al video (método compatible)
+          video.style.transform = `scale(${zoomLevel})`;
+          video.style.transformOrigin = 'center center';
+          video.style.transition = 'transform 0.3s ease';
+          
+          console.log('🔍 Zoom aplicado:', zoomLevel);
         };
         
         // Función para controlar tamaño de texto
