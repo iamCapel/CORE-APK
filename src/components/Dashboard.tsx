@@ -1769,28 +1769,80 @@ const Dashboard: React.FC = () => {
       `;
       document.head.appendChild(style);
       
-      // Indicador de zoom centrado arriba
-      const zoomIndicator = document.createElement('div');
-      zoomIndicator.style.cssText = `
+      // Overlay de georeferencia dentro del video
+      const geoOverlay = document.createElement('div');
+      geoOverlay.style.cssText = `
         position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.6);
-        color: rgba(255, 255, 255, 0.9);
-        padding: 6px 12px;
-        border-radius: 15px;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: white;
         font-size: 12px;
-        font-weight: bold;
-        z-index: 10;
-        opacity: 0.9;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
-      zoomIndicator.textContent = `${zoomLevel}x`;
       
-      // Indicador de tamaño de texto
-      const textSizeIndicator = document.createElement('div');
-      textSizeIndicator.id = 'textSizeIndicator';
-      textSizeIndicator.textContent = `A${textSizeLevel}x`;
+      // Logo MOPC arriba a la derecha del overlay
+      const mopcLogo = document.createElement('div');
+      mopcLogo.style.cssText = `
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #FF6B00 0%, #FF8C42 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 10px;
+        color: white;
+        box-shadow: 0 2px 8px rgba(255, 107, 0, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      `;
+      mopcLogo.innerHTML = 'MOPC';
+      
+      // Nombre completo del usuario
+      const userName = document.createElement('div');
+      userName.style.cssText = `
+        font-weight: bold;
+        font-size: 14px;
+        color: #FF6B00;
+        margin-bottom: 4px;
+      `;
+      userName.textContent = fullName || 'Usuario';
+      
+      // Ubicación actual
+      const locationInfo = document.createElement('div');
+      locationInfo.style.cssText = `
+        font-size: 11px;
+        opacity: 0.9;
+        line-height: 1.3;
+      `;
+      locationInfo.innerHTML = '📍 Obteniendo ubicación...';
+      
+      // Coordenadas
+      const coordinatesInfo = document.createElement('div');
+      coordinatesInfo.style.cssText = `
+        font-size: 10px;
+        opacity: 0.7;
+        font-family: monospace;
+      `;
+      coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
+      
+      // Ensamblar overlay
+      geoOverlay.appendChild(userName);
+      geoOverlay.appendChild(locationInfo);
+      geoOverlay.appendChild(coordinatesInfo);
+      geoOverlay.appendChild(mopcLogo);
       
       // Video preview
       const video = document.createElement('video');
@@ -1874,15 +1926,13 @@ const Dashboard: React.FC = () => {
       controls.appendChild(captureButton);
       controls.appendChild(flipButton);
       
-      // Agregar sliders al contenedor de video
+      // Agregar elementos al contenedor de video
       videoContainer.appendChild(video);
       videoContainer.appendChild(zoomSlider);
       videoContainer.appendChild(textSizeSlider);
-      videoContainer.appendChild(zoomIndicator);
-      videoContainer.appendChild(textSizeIndicator);
+      videoContainer.appendChild(geoOverlay); // Overlay dentro del video
       videoContainer.appendChild(closeButton);
       
-      cameraInterface.appendChild(header);
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
       document.body.appendChild(cameraInterface);
@@ -1895,42 +1945,43 @@ const Dashboard: React.FC = () => {
       }, async (position) => {
         currentPosition = position;
         
-        // Actualizar header con ubicación en vivo
+        // Actualizar overlay de georeferencia dentro del video
         try {
           if (!position || !position.coords) {
-            header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
+            locationInfo.innerHTML = '📍 Obteniendo ubicación...';
+            coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
             return;
           }
           
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
-            {
-              headers: {
-                'User-Agent': 'MOPC-App/1.0'
-              }
-            }
-          );
-          const data = await response.json();
-          if (data && data.display_name) {
-            currentAddress = data.display_name;
-          } else if (data && data.address) {
-            const addr = data.address;
-            const parts = [
-              addr.road,
-              addr.suburb || addr.neighbourhood,
-              addr.city || addr.town || addr.village,
-              addr.state,
-              addr.country
-            ].filter(Boolean);
-            currentAddress = parts.join(', ');
-          }
+          // Actualizar coordenadas
+          coordinatesInfo.innerHTML = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           
-          header.innerHTML = `📍 ${currentAddress}<br/><small>Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}</small>`;
+          // Obtener dirección con OpenStreetMap Nominatim
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&accept-language=es`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.address) {
+              const addr = data.address;
+              const parts = [
+                addr.road || addr.pedestrian || addr.street,
+                addr.suburb || addr.neighbourhood,
+                addr.city || addr.town || addr.village,
+                addr.state,
+                addr.country
+              ].filter(Boolean);
+              currentAddress = parts.join(', ');
+              locationInfo.innerHTML = `📍 ${currentAddress}`;
+            } else {
+              locationInfo.innerHTML = `📍 Ubicación desconocida`;
+            }
+          } else {
+            locationInfo.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+          }
         } catch (error) {
           if (position && position.coords) {
-            header.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}<br/><small>Error obteniendo dirección</small>`;
+            locationInfo.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           } else {
-            header.innerHTML = '📍 Error obteniendo ubicación<br/><small>Por favor espere</small>';
+            locationInfo.innerHTML = '📍 Error obteniendo ubicación';
           }
         }
       });
@@ -2127,9 +2178,6 @@ const Dashboard: React.FC = () => {
         const adjustZoom = (value: number) => {
           zoomLevel = value;
           
-          // Actualizar indicador
-          zoomIndicator.textContent = `${zoomLevel}x`;
-          
           // Actualizar slider único
           zoomSlider.value = zoomLevel.toString();
           
@@ -2145,14 +2193,13 @@ const Dashboard: React.FC = () => {
         const adjustTextSize = (value: number) => {
           textSizeLevel = value;
           
-          // Actualizar indicador
-          textSizeIndicator.textContent = `A${textSizeLevel}x`;
-          
           // Actualizar slider
           textSizeSlider.value = textSizeLevel.toString();
           
-          // Ajustar tamaño de texto del header
-          header.style.fontSize = `${14 * textSizeLevel}px`;
+          // Ajustar tamaño de texto del overlay
+          userName.style.fontSize = `${14 * textSizeLevel}px`;
+          locationInfo.style.fontSize = `${11 * textSizeLevel}px`;
+          coordinatesInfo.style.fontSize = `${10 * textSizeLevel}px`;
         };
         
         // Event listeners
