@@ -1654,48 +1654,85 @@ const Dashboard: React.FC = () => {
         max-height: 70vh;
       `;
       
-      // Botones de zoom a los lados
-      const zoomLeftButton = document.createElement('button');
-      zoomLeftButton.style.cssText = `
+      // Sliders de zoom verticales a los lados
+      const zoomSliderLeft = document.createElement('input');
+      zoomSliderLeft.type = 'range';
+      zoomSliderLeft.min = '1';
+      zoomSliderLeft.max = '4';
+      zoomSliderLeft.step = '0.5';
+      zoomSliderLeft.value = zoomLevel.toString();
+      zoomSliderLeft.style.cssText = `
         position: absolute;
-        left: 10px;
+        left: 20px;
         top: 50%;
-        transform: translateY(-50%);
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid white;
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        transform: translateY(-50%) rotate(-90deg);
+        width: 150px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.3);
+        outline: none;
+        border-radius: 3px;
         z-index: 10;
+        -webkit-appearance: none;
+        cursor: pointer;
       `;
-      zoomLeftButton.innerHTML = '−';
       
-      const zoomRightButton = document.createElement('button');
-      zoomRightButton.style.cssText = `
+      const zoomSliderRight = document.createElement('input');
+      zoomSliderRight.type = 'range';
+      zoomSliderRight.min = '1';
+      zoomSliderRight.max = '4';
+      zoomSliderRight.step = '0.5';
+      zoomSliderRight.value = zoomLevel.toString();
+      zoomSliderRight.style.cssText = `
         position: absolute;
-        right: 10px;
+        right: 20px;
         top: 50%;
-        transform: translateY(-50%);
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid white;
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        transform: translateY(-50%) rotate(90deg);
+        width: 150px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.3);
+        outline: none;
+        border-radius: 3px;
         z-index: 10;
+        -webkit-appearance: none;
+        cursor: pointer;
       `;
-      zoomRightButton.innerHTML = '+';
+      
+      // Estilos para los thumbs de los sliders
+      const style = document.createElement('style');
+      style.textContent = `
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #FF6B00;
+          cursor: pointer;
+          border-radius: 50%;
+          border: 2px solid white;
+          box-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: #FF6B00;
+          cursor: pointer;
+          border-radius: 50%;
+          border: 2px solid white;
+          box-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+        }
+        
+        input[type="range"]::-webkit-slider-runnable-track {
+          background: linear-gradient(to right, rgba(255, 107, 0, 0.3) 0%, #FF6B00 100%);
+          border-radius: 3px;
+        }
+        
+        input[type="range"]::-moz-range-track {
+          background: linear-gradient(to right, rgba(255, 107, 0, 0.3) 0%, #FF6B00 100%);
+          border-radius: 3px;
+        }
+      `;
+      document.head.appendChild(style);
       
       // Indicador de zoom centrado arriba
       const zoomIndicator = document.createElement('div');
@@ -1861,10 +1898,10 @@ const Dashboard: React.FC = () => {
       controls.appendChild(captureButton);
       controls.appendChild(flipButton);
       
-      // Agregar botones de zoom al contenedor de video
+      // Agregar sliders de zoom al contenedor de video
       videoContainer.appendChild(video);
-      videoContainer.appendChild(zoomLeftButton);
-      videoContainer.appendChild(zoomRightButton);
+      videoContainer.appendChild(zoomSliderLeft);
+      videoContainer.appendChild(zoomSliderRight);
       videoContainer.appendChild(zoomIndicator);
       videoContainer.appendChild(closeButton);
       
@@ -2110,16 +2147,16 @@ const Dashboard: React.FC = () => {
           }
         };
         
-        // Función para controlar zoom
-        const adjustZoom = async (direction: 'in' | 'out') => {
-          if (direction === 'in' && zoomLevel < 4) {
-            zoomLevel += 0.5;
-          } else if (direction === 'out' && zoomLevel > 1) {
-            zoomLevel -= 0.5;
-          }
+        // Función para controlar zoom con sliders
+        const adjustZoom = (value: number) => {
+          zoomLevel = value;
           
           // Actualizar indicador
           zoomIndicator.textContent = `${zoomLevel}x`;
+          
+          // Actualizar ambos sliders
+          zoomSliderLeft.value = zoomLevel.toString();
+          zoomSliderRight.value = zoomLevel.toString();
           
           // Aplicar zoom usando CSS transform al video (método compatible)
           video.style.transform = `scale(${zoomLevel})`;
@@ -2147,9 +2184,16 @@ const Dashboard: React.FC = () => {
         flashButton.addEventListener('click', toggleFlash);
         flipButton.addEventListener('click', flipCamera);
         
-        // Event listeners de zoom laterales
-        zoomLeftButton.addEventListener('click', () => adjustZoom('out'));
-        zoomRightButton.addEventListener('click', () => adjustZoom('in'));
+        // Event listeners de sliders verticales
+        zoomSliderLeft.addEventListener('input', (e) => {
+          const value = parseFloat((e.target as HTMLInputElement).value);
+          adjustZoom(value);
+        });
+        
+        zoomSliderRight.addEventListener('input', (e) => {
+          const value = parseFloat((e.target as HTMLInputElement).value);
+          adjustZoom(value);
+        });
         
         // Event listeners de tamaño de texto
         textSizeMinusButton.addEventListener('click', () => adjustTextSize('out'));
