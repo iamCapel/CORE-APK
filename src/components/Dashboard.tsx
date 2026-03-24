@@ -1679,7 +1679,138 @@ const Dashboard: React.FC = () => {
       `;
       closeButton.innerHTML = '✕';
       
-      // Ensamblar interfaz
+      // Estados
+      let currentPosition: any = null;
+      let currentAddress = 'Ubicación desconocida';
+      let flashMode = 'off'; // off, on, auto
+      let cameraDirection = 'back'; // back, front
+      let zoomLevel = 1; // 1x a 4x zoom
+      let textSizeLevel = 1; // 1x a 3x tamaño de letra
+      
+      // Contenedor de controles adicionales
+      const additionalControls = document.createElement('div');
+      additionalControls.style.cssText = `
+        background: rgba(0, 0, 0, 0.9);
+        padding: 15px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+      `;
+      
+      // Control de zoom
+      const zoomControl = document.createElement('div');
+      zoomControl.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        font-size: 12px;
+      `;
+      
+      const zoomMinusButton = document.createElement('button');
+      zoomMinusButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      zoomMinusButton.innerHTML = '−';
+      
+      const zoomLabel = document.createElement('span');
+      zoomLabel.style.cssText = `
+        min-width: 40px;
+        text-align: center;
+        font-weight: bold;
+      `;
+      zoomLabel.textContent = `${zoomLevel}x`;
+      
+      const zoomPlusButton = document.createElement('button');
+      zoomPlusButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      zoomPlusButton.innerHTML = '+';
+      
+      // Control de tamaño de texto
+      const textSizeControl = document.createElement('div');
+      textSizeControl.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        font-size: 12px;
+      `;
+      
+      const textSizeMinusButton = document.createElement('button');
+      textSizeMinusButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      textSizeMinusButton.innerHTML = 'A−';
+      
+      const textSizeLabel = document.createElement('span');
+      textSizeLabel.style.cssText = `
+        min-width: 40px;
+        text-align: center;
+        font-weight: bold;
+      `;
+      textSizeLabel.textContent = `${textSizeLevel}x`;
+      
+      const textSizePlusButton = document.createElement('button');
+      textSizePlusButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      textSizePlusButton.innerHTML = 'A+';
+      
+      // Ensamblar controles adicionales
+      zoomControl.appendChild(zoomMinusButton);
+      zoomControl.appendChild(zoomLabel);
+      zoomControl.appendChild(zoomPlusButton);
+      
+      textSizeControl.appendChild(textSizeMinusButton);
+      textSizeControl.appendChild(textSizeLabel);
+      textSizeControl.appendChild(textSizePlusButton);
+      
+      additionalControls.appendChild(zoomControl);
+      additionalControls.appendChild(textSizeControl);
+
+      // Ensamblar interfaz completa
       controls.appendChild(flashButton);
       controls.appendChild(captureButton);
       controls.appendChild(flipButton);
@@ -1688,14 +1819,9 @@ const Dashboard: React.FC = () => {
       cameraInterface.appendChild(header);
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
+      cameraInterface.appendChild(additionalControls);
       document.body.appendChild(cameraInterface);
-      
-      // Estados
-      let currentPosition: any = null;
-      let currentAddress = 'Ubicación desconocida';
-      let flashMode = 'off'; // off, on, auto
-      let cameraDirection = 'back'; // back, front
-      
+
       // Iniciar geolocalización en vivo
       const watchPositionId = await Geolocation.watchPosition({
         enableHighAccuracy: true,
@@ -1893,10 +2019,46 @@ const Dashboard: React.FC = () => {
           }
         };
         
+        // Función para controlar zoom
+        const adjustZoom = (direction: 'in' | 'out') => {
+          if (direction === 'in' && zoomLevel < 4) {
+            zoomLevel += 0.5;
+          } else if (direction === 'out' && zoomLevel > 1) {
+            zoomLevel -= 0.5;
+          }
+          zoomLabel.textContent = `${zoomLevel}x`;
+          
+          // Aplicar zoom al video
+          video.style.transform = `scale(${zoomLevel})`;
+          video.style.transformOrigin = 'center center';
+        };
+        
+        // Función para controlar tamaño de texto
+        const adjustTextSize = (direction: 'in' | 'out') => {
+          if (direction === 'in' && textSizeLevel < 3) {
+            textSizeLevel += 0.5;
+          } else if (direction === 'out' && textSizeLevel > 1) {
+            textSizeLevel -= 0.5;
+          }
+          textSizeLabel.textContent = `${textSizeLevel}x`;
+          
+          // Ajustar tamaño de texto del header
+          header.style.fontSize = `${14 * textSizeLevel}px`;
+        };
+        
         // Event listeners
         captureButton.addEventListener('click', capturePhoto);
         flashButton.addEventListener('click', toggleFlash);
         flipButton.addEventListener('click', flipCamera);
+        
+        // Event listeners de zoom
+        zoomMinusButton.addEventListener('click', () => adjustZoom('out'));
+        zoomPlusButton.addEventListener('click', () => adjustZoom('in'));
+        
+        // Event listeners de tamaño de texto
+        textSizeMinusButton.addEventListener('click', () => adjustTextSize('out'));
+        textSizePlusButton.addEventListener('click', () => adjustTextSize('in'));
+        
         closeButton.addEventListener('click', () => {
           stream.getTracks().forEach(track => track.stop());
           Geolocation.clearWatch({ id: watchPositionId });
