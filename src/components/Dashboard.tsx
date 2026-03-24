@@ -1800,7 +1800,7 @@ const Dashboard: React.FC = () => {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transform: scaleX(-1); // Corregir orientación invertida
+        // Orientación normal (no invertida)
       `;
       
       // Controles de cámara

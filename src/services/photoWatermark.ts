@@ -36,6 +36,43 @@ export async function addWatermarkToPhoto(
         // Dibujar la imagen original
         ctx.drawImage(img, 0, 0);
 
+        // Agregar logo MOPC como marca de agua arriba a la derecha
+        const logoSize = Math.min(canvas.width * 0.08, 80); // 8% del ancho o máximo 80px
+        const logoX = canvas.width - logoSize - 20; // 20px desde el borde derecho
+        const logoY = 20; // 20px desde el borde superior
+        
+        // Dibujar círculo con gradiente para el logo MOPC
+        const logoGradient = ctx.createRadialGradient(logoX + logoSize/2, logoY + logoSize/2, 0, logoX + logoSize/2, logoY + logoSize/2, logoSize/2);
+        logoGradient.addColorStop(0, 'rgba(255, 140, 66, 0.9)'); // Naranja más claro
+        logoGradient.addColorStop(1, 'rgba(255, 107, 0, 0.8)'); // Naranja MOPC
+        
+        ctx.fillStyle = logoGradient;
+        ctx.beginPath();
+        ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Agregar borde blanco semi-transparente
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Agregar texto "MOPC" en el centro del círculo
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${logoSize * 0.25}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.fillText('MOPC', logoX + logoSize/2, logoY + logoSize/2);
+        
+        // Resetear sombra para el resto del contenido
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
         // Configuración de la marca de agua
         const padding = Math.max(20, canvas.width * 0.02); // Padding adaptativo
         const shadowBlur = 8;
