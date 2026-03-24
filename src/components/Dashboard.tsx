@@ -1678,7 +1678,7 @@ const Dashboard: React.FC = () => {
         transition: opacity 0.3s ease;
       `;
       
-      // Slider para tamaño de texto (georeferencia) - lado derecho
+      // Slider para tamaño de texto (georeferencia) - lado derecho vertical
       const textSizeSlider = document.createElement('input');
       textSizeSlider.type = 'range';
       textSizeSlider.min = '1';
@@ -1688,7 +1688,8 @@ const Dashboard: React.FC = () => {
       textSizeSlider.style.cssText = `
         position: absolute;
         right: 5px;
-        bottom: 80px;
+        top: 50%;
+        transform: translateY(-50%) rotate(90deg);
         width: 100px;
         height: 3px;
         background: rgba(255, 255, 255, 0.15);
@@ -1755,7 +1756,7 @@ const Dashboard: React.FC = () => {
         #textSizeIndicator {
           position: absolute;
           right: 5px;
-          bottom: 60px;
+          top: 20px;
           background: rgba(0, 0, 0, 0.6);
           color: rgba(255, 255, 255, 0.8);
           padding: 4px 8px;
