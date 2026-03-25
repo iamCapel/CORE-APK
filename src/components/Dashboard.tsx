@@ -2069,28 +2069,28 @@ const Dashboard: React.FC = () => {
               ctx.font = `${10 * textSizeLevel}px Arial`;
               ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
               
-              // Dibujar logo MOPC
-              const logoSize = 32;
-              const logoX = canvas.width - logoSize - 20;
-              const logoY = 20;
+              // Dibujar logo MOPC como sello de agua arriba a la derecha
+              const logoSize = 60; // Tamaño más grande para sello de agua
+              const logoX = canvas.width - logoSize - 15; // Arriba a la derecha
+              const logoY = 15; // Posición arriba
               
-              // Dibujar círculo del logo
+              // Dibujar círculo del logo con efecto de sello de agua
               const gradient = ctx.createRadialGradient(logoX + logoSize/2, logoY + logoSize/2, 0, logoX + logoSize/2, logoY + logoSize/2, logoSize/2);
-              gradient.addColorStop(0, '#FF8C42');
-              gradient.addColorStop(1, '#FF6B00');
+              gradient.addColorStop(0, 'rgba(255, 140, 66, 0.9)'); // Más visible
+              gradient.addColorStop(1, 'rgba(255, 107, 0, 0.8)'); // Más visible
               
               ctx.fillStyle = gradient;
               ctx.beginPath();
               ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
               ctx.fill();
               
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-              ctx.lineWidth = 2;
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; // Borde más visible
+              ctx.lineWidth = 3;
               ctx.stroke();
               
-              // Texto del logo
+              // Texto del logo más grande y visible
               ctx.fillStyle = 'white';
-              ctx.font = 'bold 8px Arial';
+              ctx.font = 'bold 15px Arial';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText('MOPC', logoX + logoSize/2, logoY + logoSize/2);
