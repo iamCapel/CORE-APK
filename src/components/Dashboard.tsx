@@ -1061,6 +1061,17 @@ const Dashboard: React.FC = () => {
     const handleBackButton = () => {
       console.log('🔙 Botón de retroceso presionado');
 
+      // Si la cámara está abierta, cerrarla en lugar de salir de la app
+      if ((window as any).cameraOpen) {
+        console.log('🔙 Cerrando cámara con botón de retroceso');
+        const cameraInterface = document.querySelector('[style*="z-index: 10000"]');
+        if (cameraInterface) {
+          cameraInterface.remove();
+        }
+        (window as any).cameraOpen = false;
+        return;
+      }
+
       if (showReportView) {
         console.log('🔙 Cerrando ReportViewModern');
         handleCloseReportView();
@@ -1605,6 +1616,9 @@ const Dashboard: React.FC = () => {
     const deviceModel = getDeviceModel();
     console.log('📱 Modelo detectado:', deviceModel);
 
+    // Variable global para controlar si la cámara está abierta
+    (window as any).cameraOpen = true;
+
     try {
       console.log('📷 Iniciando cámara con geolocalización en vivo...');
       
@@ -1850,18 +1864,19 @@ const Dashboard: React.FC = () => {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transform: scaleX(-1);
       `;
       
       // Controles de cámara
       const controls = document.createElement('div');
       controls.style.cssText = `
         background: rgba(0, 0, 0, 0.9);
-        padding: 15px;
+        padding: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 20px;
+        height: auto;
+        min-height: 60px;
       `;
       
       // Botón de flash
@@ -1904,22 +1919,6 @@ const Dashboard: React.FC = () => {
       `;
       flipButton.innerHTML = '🔄';
       
-      // Botón de cerrar
-      const closeButton = document.createElement('button');
-      closeButton.style.cssText = `
-        background: rgba(255, 0, 0, 0.8);
-        border: 2px solid red;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-size: 14px;
-        cursor: pointer;
-        position: absolute;
-        top: 15px;
-        right: 15px;
-      `;
-      closeButton.innerHTML = '✕';
-      
       // Contenedor de controles adicionales (eliminado - ahora sliders laterales)
       // Los controles de tamaño de texto ahora están como slider lateral
       
@@ -1933,7 +1932,6 @@ const Dashboard: React.FC = () => {
       videoContainer.appendChild(zoomSlider);
       videoContainer.appendChild(textSizeSlider);
       videoContainer.appendChild(geoOverlay); // Overlay dentro del video
-      videoContainer.appendChild(closeButton);
       
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
@@ -2021,7 +2019,7 @@ const Dashboard: React.FC = () => {
         }
         
         console.log('🎥 Iniciando stream con constraints:', constraints);
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        let stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         video.srcObject = stream;
         video.play();
@@ -2036,8 +2034,15 @@ const Dashboard: React.FC = () => {
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
-              // Dibujar frame actual del video
+              // Aplicar zoom configurado por el usuario
+              ctx.save();
+              ctx.translate(canvas.width / 2, canvas.height / 2);
+              ctx.scale(zoomLevel, zoomLevel);
+              ctx.translate(-canvas.width / 2, -canvas.height / 2);
+              
+              // Dibujar frame actual del video con zoom
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              ctx.restore();
               
               // Dibujar overlay de georeferencia sobre el canvas
               const videoRect = video.getBoundingClientRect();
@@ -2053,15 +2058,15 @@ const Dashboard: React.FC = () => {
               
               // Dibujar texto del overlay
               ctx.fillStyle = '#FF6B00';
-              ctx.font = 'bold 14px Arial';
+              ctx.font = `bold ${14 * textSizeLevel}px Arial`;
               ctx.fillText(user?.name || 'Miguel De Jesus Cabrera Cruz', 20, canvas.height - 100);
               
               ctx.fillStyle = 'white';
-              ctx.font = '11px Arial';
+              ctx.font = `${11 * textSizeLevel}px Arial`;
               ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', 20, canvas.height - 80);
               
               ctx.fillStyle = 'white';
-              ctx.font = '10px Arial';
+              ctx.font = `${10 * textSizeLevel}px Arial`;
               ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
               
               // Dibujar logo MOPC
@@ -2150,10 +2155,6 @@ const Dashboard: React.FC = () => {
               flashMode = 'on';
               flashButton.style.background = 'yellow';
               flashButton.style.color = 'black';
-            } else if (flashMode === 'on') {
-              flashMode = 'auto';
-              flashButton.style.background = 'orange';
-              flashButton.style.color = 'white';
             } else {
               flashMode = 'off';
               flashButton.style.background = 'rgba(255, 255, 255, 0.2)';
@@ -2161,8 +2162,7 @@ const Dashboard: React.FC = () => {
             }
             
             console.log('🔦 Flash cambiado a:', flashMode);
-            // Nota: Flash real en WebRTC requiere soporte específico del dispositivo
-            // Por ahora solo cambio visual del botón
+            // Flash real en WebRTC no está implementado, solo visual
           } catch (error) {
             console.error('Error cambiando flash:', error);
           }
@@ -2207,6 +2207,7 @@ const Dashboard: React.FC = () => {
             
             console.log('🔄 Cambiando a cámara:', cameraDirection, flipConstraints);
             const newStream = await navigator.mediaDevices.getUserMedia(flipConstraints);
+            stream = newStream; // Actualizar variable stream
             video.srcObject = newStream;
             video.play();
           } catch (error) {
@@ -2257,12 +2258,6 @@ const Dashboard: React.FC = () => {
         textSizeSlider.addEventListener('input', (e) => {
           const value = parseFloat((e.target as HTMLInputElement).value);
           adjustTextSize(value);
-        });
-        
-        closeButton.addEventListener('click', () => {
-          stream.getTracks().forEach(track => track.stop());
-          Geolocation.clearWatch({ id: watchPositionId });
-          cameraInterface.remove();
         });
         
       } catch (error) {
