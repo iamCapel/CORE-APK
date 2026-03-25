@@ -2047,30 +2047,34 @@ const Dashboard: React.FC = () => {
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               ctx.restore();
               
-              // Dibujar overlay de georeferencia sobre el canvas
+              // Dibujar overlay de georeferencia con valores ACTUALES del DOM en vivo
               const videoRect = video.getBoundingClientRect();
               const overlayRect = geoOverlay.getBoundingClientRect();
-              const logoRect = mopcLogo.getBoundingClientRect();
               
               const scaleX = canvas.width / videoRect.width;
               const scaleY = canvas.height / videoRect.height;
+              
+              // Capturar valores ACTUALES del overlay en vivo
+              const currentUserName = userName.textContent;
+              const currentLocation = locationInfo.textContent;
+              const currentCoordinates = coordinatesInfo.textContent;
               
               // Dibujar fondo del overlay
               ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
               ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
               
-              // Dibujar texto del overlay
+              // Dibujar texto del overlay con valores ACTUALES
               ctx.fillStyle = '#FF6B00';
               ctx.font = `bold ${14 * textSizeLevel}px Arial`;
-              ctx.fillText(user?.name || 'Miguel De Jesus Cabrera Cruz', 20, canvas.height - 100);
+              ctx.fillText(currentUserName || 'Miguel De Jesus Cabrera Cruz', 20, canvas.height - 100);
               
               ctx.fillStyle = 'white';
               ctx.font = `${11 * textSizeLevel}px Arial`;
-              ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', 20, canvas.height - 80);
+              ctx.fillText(currentLocation || 'Ubicación desconocida', 20, canvas.height - 80);
               
               ctx.fillStyle = 'white';
               ctx.font = `${10 * textSizeLevel}px Arial`;
-              ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
+              ctx.fillText(currentCoordinates || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
               
               // Texto MOPC simple sin fondo arriba derecha
               ctx.fillStyle = 'rgba(255, 107, 0, 0.9)';
