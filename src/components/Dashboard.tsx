@@ -2019,7 +2019,7 @@ const Dashboard: React.FC = () => {
         // Función para capturar foto
         const capturePhoto = async () => {
           try {
-            // Capturar directamente lo que el usuario ve en el videoContainer
+            // Captura directa del videoContainer - solo video + overlay + logo, sin controles
             const canvas = document.createElement('canvas');
             const videoContainer = document.querySelector('[style*="flex: 1"]');
             
@@ -2029,7 +2029,6 @@ const Dashboard: React.FC = () => {
             }
             
             const videoRect = videoContainer.getBoundingClientRect();
-            
             canvas.width = videoRect.width;
             canvas.height = videoRect.height;
             const ctx = canvas.getContext('2d');
@@ -2040,13 +2039,11 @@ const Dashboard: React.FC = () => {
                 try {
                   const videoTrack = stream.getVideoTracks()[0];
                   if (videoTrack) {
-                    // Usar método compatible para flash
                     const constraints = { 
                       advanced: [{ torch: true }] 
                     } as any;
                     await videoTrack.applyConstraints(constraints);
                     
-                    // Flash por 200ms
                     await new Promise(resolve => setTimeout(resolve, 200));
                     
                     const constraintsOff = { 
@@ -2067,50 +2064,17 @@ const Dashboard: React.FC = () => {
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               ctx.restore();
               
-              // Capturar el overlay exactamente como se ve en vivo
-              const overlayRect = geoOverlay.getBoundingClientRect();
-              const logoRect = mopcLogo.getBoundingClientRect();
+              // Capturar HTML completo del videoContainer y dibujarlo en canvas
+              const html2canvas = await import('html2canvas').then(m => m.default);
+              const videoContainerCanvas = await html2canvas(videoContainer as HTMLElement, {
+                backgroundColor: null,
+                scale: 1,
+                useCORS: true,
+                allowTaint: true
+              });
               
-              // Posiciones relativas al canvas
-              const overlayX = overlayRect.left - videoRect.left;
-              const overlayY = overlayRect.top - videoRect.top;
-              const logoX = logoRect.left - videoRect.left;
-              const logoY = logoRect.top - videoRect.top;
-              
-              // Dibujar el overlay exactamente como se ve en vivo con estilos idénticos
-              ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-              ctx.fillRect(overlayX, overlayY, overlayRect.width, overlayRect.height);
-              
-              // Aplicar backdrop-filter effect simulado
-              ctx.globalAlpha = 0.95;
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-              ctx.fillRect(overlayX, overlayY, overlayRect.width, overlayRect.height);
-              ctx.globalAlpha = 1.0;
-              
-              // Dibujar borde redondeado simulado
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-              ctx.lineWidth = 1;
-              ctx.strokeRect(overlayX + 0.5, overlayY + 0.5, overlayRect.width - 1, overlayRect.height - 1);
-              
-              // Dibujar texto del overlay con valores reales y estilos exactos
-              ctx.fillStyle = '#FF6B00';
-              ctx.font = 'bold 14px Arial';
-              ctx.fillText(userName.textContent || 'Miguel De Jesus Cabrera Cruz', overlayX + 16, overlayY + 28);
-              
-              ctx.fillStyle = 'white';
-              ctx.font = '12px Arial';
-              ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', overlayX + 16, overlayY + 48);
-              
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-              ctx.font = '10px monospace';
-              ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', overlayX + 16, overlayY + 68);
-              
-              // Dibujar logo MOPC simple
-              ctx.fillStyle = 'rgba(255, 107, 0, 0.9)';
-              ctx.font = 'bold 20px Arial';
-              ctx.textAlign = 'right';
-              ctx.textBaseline = 'top';
-              ctx.fillText('MOPC', canvas.width - 15, 15);
+              // Dibujar el overlay y logo desde el HTML capturado
+              ctx.drawImage(videoContainerCanvas, 0, 0);
               
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
