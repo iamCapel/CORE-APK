@@ -2077,22 +2077,33 @@ const Dashboard: React.FC = () => {
               const logoX = logoRect.left - videoRect.left;
               const logoY = logoRect.top - videoRect.top;
               
-              // Dibujar el overlay como se ve en vivo
+              // Dibujar el overlay exactamente como se ve en vivo con estilos idénticos
               ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
               ctx.fillRect(overlayX, overlayY, overlayRect.width, overlayRect.height);
               
-              // Dibujar texto del overlay con valores reales
+              // Aplicar backdrop-filter effect simulado
+              ctx.globalAlpha = 0.95;
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+              ctx.fillRect(overlayX, overlayY, overlayRect.width, overlayRect.height);
+              ctx.globalAlpha = 1.0;
+              
+              // Dibujar borde redondeado simulado
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(overlayX + 0.5, overlayY + 0.5, overlayRect.width - 1, overlayRect.height - 1);
+              
+              // Dibujar texto del overlay con valores reales y estilos exactos
               ctx.fillStyle = '#FF6B00';
               ctx.font = 'bold 14px Arial';
-              ctx.fillText(userName.textContent || 'Miguel De Jesus Cabrera Cruz', overlayX + 16, overlayY + 30);
+              ctx.fillText(userName.textContent || 'Miguel De Jesus Cabrera Cruz', overlayX + 16, overlayY + 28);
               
               ctx.fillStyle = 'white';
-              ctx.font = '11px Arial';
-              ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', overlayX + 16, overlayY + 50);
+              ctx.font = '12px Arial';
+              ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', overlayX + 16, overlayY + 48);
               
-              ctx.fillStyle = 'white';
-              ctx.font = '10px Arial';
-              ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', overlayX + 16, overlayY + 70);
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+              ctx.font = '10px monospace';
+              ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', overlayX + 16, overlayY + 68);
               
               // Dibujar logo MOPC simple
               ctx.fillStyle = 'rgba(255, 107, 0, 0.9)';
