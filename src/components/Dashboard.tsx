@@ -1803,24 +1803,15 @@ const Dashboard: React.FC = () => {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
       
-      // Logo MOPC como sello de agua - fuera del overlay, arriba derecha del videoContainer
+      // Logo MOPC simple - solo texto, sin fondo ni círculo
       const mopcLogo = document.createElement('div');
       mopcLogo.style.cssText = `
         position: absolute;
         top: 20px;
         right: 20px;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, rgba(255, 107, 0, 0.9) 0%, rgba(255, 140, 66, 0.8) 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         font-weight: bold;
-        font-size: 15px;
-        color: white;
-        box-shadow: 0 2px 8px rgba(255, 107, 0, 0.4);
-        border: 3px solid rgba(255, 255, 255, 0.4);
+        font-size: 20px;
+        color: rgba(255, 107, 0, 0.9);
         z-index: 10;
       `;
       mopcLogo.innerHTML = 'MOPC';
@@ -2044,6 +2035,30 @@ const Dashboard: React.FC = () => {
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
+              // Activar flash si está en modo 'on' o 'auto'
+              if (flashMode === 'on' || flashMode === 'auto') {
+                try {
+                  const videoTrack = stream.getVideoTracks()[0];
+                  if (videoTrack) {
+                    // Usar método compatible para flash
+                    const constraints = { 
+                      advanced: [{ torch: true }] 
+                    } as any;
+                    await videoTrack.applyConstraints(constraints);
+                    
+                    // Flash por 200ms
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    const constraintsOff = { 
+                      advanced: [{ torch: false }] 
+                    } as any;
+                    await videoTrack.applyConstraints(constraintsOff);
+                  }
+                } catch (flashError) {
+                  console.log('Flash no disponible:', flashError);
+                }
+              }
+              
               // Capturar el video con zoom aplicado
               ctx.save();
               ctx.translate(canvas.width / 2, canvas.height / 2);
