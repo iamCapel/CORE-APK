@@ -1656,7 +1656,7 @@ const Dashboard: React.FC = () => {
       let zoomLevel = 1; // 1x a 4x zoom
       let textSizeLevel = 1; // 1x a 3x tamaño de letra
       
-      // Contenedor de video
+      // LIMPIEZA RADICAL - solo elementos esenciales
       const videoContainer = document.createElement('div');
       videoContainer.style.cssText = `
         flex: 1;
@@ -1668,122 +1668,14 @@ const Dashboard: React.FC = () => {
         overflow: hidden;
       `;
       
-      // Slider de zoom vertical a la izquierda (solo uno para cámara)
-      const zoomSlider = document.createElement('input');
-      zoomSlider.type = 'range';
-      zoomSlider.min = '1';
-      zoomSlider.max = '4';
-      zoomSlider.step = '0.5';
-      zoomSlider.value = zoomLevel.toString();
-      zoomSlider.style.cssText = `
-        position: absolute;
-        left: 5px;
-        top: 50%;
-        transform: translateY(-50%) rotate(-90deg);
-        width: 120px;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        outline: none;
-        border-radius: 2px;
-        z-index: 10;
-        -webkit-appearance: none;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
+      const video = document.createElement('video');
+      video.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       `;
       
-      // Slider para tamaño de texto (georeferencia) - lado derecho vertical
-      const textSizeSlider = document.createElement('input');
-      textSizeSlider.type = 'range';
-      textSizeSlider.min = '1';
-      textSizeSlider.max = '3';
-      textSizeSlider.step = '0.5';
-      textSizeSlider.value = textSizeLevel.toString();
-      textSizeSlider.style.cssText = `
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%) rotate(90deg);
-        width: 100px;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        outline: none;
-        border-radius: 2px;
-        z-index: 10;
-        -webkit-appearance: none;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.3s ease;
-      `;
-      
-      // Estilos más sutiles para los thumbs de los sliders
-      const style = document.createElement('style');
-      style.textContent = `
-        input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 12px;
-          height: 12px;
-          background: rgba(255, 107, 0, 0.7);
-          cursor: pointer;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 5px rgba(255, 107, 0, 0.3);
-          transition: all 0.3s ease;
-        }
-        
-        input[type="range"]::-moz-range-thumb {
-          width: 12px;
-          height: 12px;
-          background: rgba(255, 107, 0, 0.7);
-          cursor: pointer;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 5px rgba(255, 107, 0, 0.3);
-          transition: all 0.3s ease;
-        }
-        
-        input[type="range"]:hover::-webkit-slider-thumb {
-          background: rgba(255, 107, 0, 0.9);
-          box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
-        }
-        
-        input[type="range"]:hover::-moz-range-thumb {
-          background: rgba(255, 107, 0, 0.9);
-          box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
-        }
-        
-        input[type="range"]:hover {
-          opacity: 1;
-        }
-        
-        input[type="range"]::-webkit-slider-runnable-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        
-        input[type="range"]::-moz-range-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 2px;
-        }
-        
-        #textSizeIndicator {
-          position: absolute;
-          right: 5px;
-          top: 20px;
-          background: rgba(0, 0, 0, 0.6);
-          color: rgba(255, 255, 255, 0.8);
-          padding: 4px 8px;
-          border-radius: 10px;
-          font-size: 10px;
-          font-weight: bold;
-          z-index: 10;
-          opacity: 0.8;
-        }
-      `;
-      document.head.appendChild(style);
-      
-      // Overlay de georeferencia como estaba - ancho completo
+      // Overlay simple - solo lo necesario
       const geoOverlay = document.createElement('div');
       geoOverlay.style.cssText = `
         position: absolute;
@@ -1800,10 +1692,9 @@ const Dashboard: React.FC = () => {
         display: flex;
         flex-direction: column;
         gap: 4px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
       
-      // Logo MOPC simple - solo texto, sin fondo ni círculo
+      // Logo simple - solo texto
       const mopcLogo = document.createElement('div');
       mopcLogo.style.cssText = `
         position: absolute;
@@ -1816,48 +1707,41 @@ const Dashboard: React.FC = () => {
       `;
       mopcLogo.innerHTML = 'MOPC';
       
-      // Nombre completo del usuario
+      // Elementos de texto
       const userName = document.createElement('div');
       userName.style.cssText = `
         font-weight: bold;
         font-size: 14px;
         color: #FF6B00;
-        margin-bottom: 4px;
       `;
       userName.textContent = user?.name || 'Miguel De Jesus Cabrera Cruz';
       
-      // Ubicación actual
       const locationInfo = document.createElement('div');
       locationInfo.style.cssText = `
-        font-size: 11px;
-        opacity: 0.9;
-        line-height: 1.3;
+        font-size: 12px;
+        color: white;
       `;
-      locationInfo.innerHTML = '📍 Obteniendo ubicación...';
+      locationInfo.textContent = '📍 Obteniendo ubicación...';
       
-      // Coordenadas
       const coordinatesInfo = document.createElement('div');
       coordinatesInfo.style.cssText = `
         font-size: 10px;
-        opacity: 0.7;
+        color: rgba(255, 255, 255, 0.7);
         font-family: monospace;
       `;
-      coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
+      coordinatesInfo.textContent = 'Lat: --.------, Lon: --.------';
       
-      // Ensamblar overlay (sin logo MOPC)
+      // Agregar solo lo necesario al overlay
       geoOverlay.appendChild(userName);
       geoOverlay.appendChild(locationInfo);
       geoOverlay.appendChild(coordinatesInfo);
       
-      // Video preview
-      const video = document.createElement('video');
-      video.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      `;
+      // Agregar elementos al videoContainer
+      videoContainer.appendChild(video);
+      videoContainer.appendChild(geoOverlay);
+      videoContainer.appendChild(mopcLogo);
       
-      // Controles de cámara
+      // Controles simples
       const controls = document.createElement('div');
       controls.style.cssText = `
         background: rgba(0, 0, 0, 0.9);
@@ -1870,7 +1754,7 @@ const Dashboard: React.FC = () => {
         flex-shrink: 0;
       `;
       
-      // Botón de flash
+      // Botones simples
       const flashButton = document.createElement('button');
       flashButton.style.cssText = `
         background: rgba(255, 255, 255, 0.2);
@@ -1883,7 +1767,6 @@ const Dashboard: React.FC = () => {
       `;
       flashButton.innerHTML = '⚡';
       
-      // Botón de captura
       const captureButton = document.createElement('button');
       captureButton.style.cssText = `
         background: white;
@@ -1897,7 +1780,6 @@ const Dashboard: React.FC = () => {
       `;
       captureButton.innerHTML = '📷';
       
-      // Botón de giro de cámara
       const flipButton = document.createElement('button');
       flipButton.style.cssText = `
         background: rgba(255, 255, 255, 0.2);
@@ -1910,21 +1792,7 @@ const Dashboard: React.FC = () => {
       `;
       flipButton.innerHTML = '🔄';
       
-      // Contenedor de controles adicionales (eliminado - ahora sliders laterales)
-      // Los controles de tamaño de texto ahora están como slider lateral
-      
-      // Ensamblar interfaz completa
-      controls.appendChild(flashButton);
-      controls.appendChild(captureButton);
-      controls.appendChild(flipButton);
-      
-      // Agregar elementos al contenedor de video
-      videoContainer.appendChild(video);
-      videoContainer.appendChild(zoomSlider);
-      videoContainer.appendChild(textSizeSlider);
-      videoContainer.appendChild(geoOverlay); // Overlay dentro del video
-      videoContainer.appendChild(mopcLogo); // Logo MOPC arriba derecha
-      
+      // Ensamblar interfaz
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
       document.body.appendChild(cameraInterface);
@@ -2200,9 +2068,6 @@ const Dashboard: React.FC = () => {
         const adjustZoom = (value: number) => {
           zoomLevel = value;
           
-          // Actualizar slider único
-          zoomSlider.value = zoomLevel.toString();
-          
           // Aplicar zoom usando CSS transform al video (método compatible)
           video.style.transform = `scale(${zoomLevel})`;
           video.style.transformOrigin = 'center center';
@@ -2215,9 +2080,6 @@ const Dashboard: React.FC = () => {
         const adjustTextSize = (value: number) => {
           textSizeLevel = value;
           
-          // Actualizar slider
-          textSizeSlider.value = textSizeLevel.toString();
-          
           // Ajustar tamaño de texto del overlay
           userName.style.fontSize = `${14 * textSizeLevel}px`;
           locationInfo.style.fontSize = `${11 * textSizeLevel}px`;
@@ -2228,18 +2090,6 @@ const Dashboard: React.FC = () => {
         captureButton.addEventListener('click', capturePhoto);
         flashButton.addEventListener('click', toggleFlash);
         flipButton.addEventListener('click', flipCamera);
-        
-        // Event listener de slider de zoom (solo uno)
-        zoomSlider.addEventListener('input', (e) => {
-          const value = parseFloat((e.target as HTMLInputElement).value);
-          adjustZoom(value);
-        });
-        
-        // Event listener de slider de tamaño de texto
-        textSizeSlider.addEventListener('input', (e) => {
-          const value = parseFloat((e.target as HTMLInputElement).value);
-          adjustTextSize(value);
-        });
         
       } catch (error) {
         console.error('Error accediendo a la cámara:', error);
