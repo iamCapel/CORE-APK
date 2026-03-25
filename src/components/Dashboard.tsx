@@ -1629,11 +1629,12 @@ const Dashboard: React.FC = () => {
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
+        height: 100vh;
         background: black;
         z-index: 10000;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       `;
       
       // Header con geolocalización en vivo
@@ -1665,7 +1666,6 @@ const Dashboard: React.FC = () => {
         justify-content: center;
         background: black;
         overflow: hidden;
-        max-height: 70vh;
       `;
       
       // Slider de zoom vertical a la izquierda (solo uno para cámara)
@@ -1803,24 +1803,25 @@ const Dashboard: React.FC = () => {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
       
-      // Logo MOPC arriba a la derecha del overlay
+      // Logo MOPC como sello de agua - fuera del overlay, arriba derecha del videoContainer
       const mopcLogo = document.createElement('div');
       mopcLogo.style.cssText = `
         position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #FF6B00 0%, #FF8C42 100%);
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, rgba(255, 107, 0, 0.9) 0%, rgba(255, 140, 66, 0.8) 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-size: 10px;
+        font-size: 15px;
         color: white;
         box-shadow: 0 2px 8px rgba(255, 107, 0, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        border: 3px solid rgba(255, 255, 255, 0.4);
+        z-index: 10;
       `;
       mopcLogo.innerHTML = 'MOPC';
       
@@ -1852,11 +1853,10 @@ const Dashboard: React.FC = () => {
       `;
       coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
       
-      // Ensamblar overlay
+      // Ensamblar overlay (sin logo MOPC)
       geoOverlay.appendChild(userName);
       geoOverlay.appendChild(locationInfo);
       geoOverlay.appendChild(coordinatesInfo);
-      geoOverlay.appendChild(mopcLogo);
       
       // Video preview
       const video = document.createElement('video');
@@ -1932,6 +1932,7 @@ const Dashboard: React.FC = () => {
       videoContainer.appendChild(zoomSlider);
       videoContainer.appendChild(textSizeSlider);
       videoContainer.appendChild(geoOverlay); // Overlay dentro del video
+      videoContainer.appendChild(mopcLogo); // Logo MOPC arriba derecha
       
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
