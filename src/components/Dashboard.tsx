@@ -1641,7 +1641,7 @@ const Dashboard: React.FC = () => {
       header.style.cssText = `
         background: rgba(0, 0, 0, 0.8);
         color: white;
-        padding: 15px;
+        padding: 12px;
         text-align: center;
         font-size: 14px;
       `;
@@ -1870,13 +1870,13 @@ const Dashboard: React.FC = () => {
       const controls = document.createElement('div');
       controls.style.cssText = `
         background: rgba(0, 0, 0, 0.9);
-        padding: 10px;
+        padding: 8px;
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 20px;
-        height: auto;
-        min-height: 60px;
+        height: 70px;
+        flex-shrink: 0;
       `;
       
       // Botón de flash
@@ -1885,7 +1885,7 @@ const Dashboard: React.FC = () => {
         background: rgba(255, 255, 255, 0.2);
         border: 2px solid white;
         color: white;
-        padding: 15px;
+        padding: 12px;
         border-radius: 50%;
         font-size: 20px;
         cursor: pointer;
@@ -1912,7 +1912,7 @@ const Dashboard: React.FC = () => {
         background: rgba(255, 255, 255, 0.2);
         border: 2px solid white;
         color: white;
-        padding: 15px;
+        padding: 12px;
         border-radius: 50%;
         font-size: 20px;
         cursor: pointer;
