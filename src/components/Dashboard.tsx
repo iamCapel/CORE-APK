@@ -7,6 +7,7 @@ import { addWatermarkToPhoto, savePhotoToGallery } from '../services/photoWaterm
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
+import html2canvas from 'html2canvas';
 import UsersPage from './UsersPage';
 import GoogleMapView from './GoogleMapView';
 import LeafletMapView from './LeafletMapView';
@@ -1962,63 +1963,160 @@ const Dashboard: React.FC = () => {
         // Función para capturar foto
         const capturePhoto = async () => {
           try {
-            // Crear canvas para capturar frame del video
+            // Ocultar controles temporalmente para que no aparezcan en la foto
+            controls.style.display = 'none';
+            
+            // Crear canvas para capturar frame del video con zoom aplicado
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
-              // Dibujar frame actual del video
+              // Aplicar el mismo zoom que el usuario configuró
+              ctx.save();
+              ctx.translate(canvas.width / 2, canvas.height / 2);
+              ctx.scale(zoomLevel, zoomLevel);
+              ctx.translate(-canvas.width / 2, -canvas.height / 2);
+              
+              // Dibujar frame actual del video con zoom
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              ctx.restore();
+              
+              // Dibujar overlay de georeferencia sobre el canvas
+              const overlayCanvas = document.createElement('canvas');
+              const overlayCtx = overlayCanvas.getContext('2d');
+              const videoRect = videoContainer.getBoundingClientRect();
+              const scaleX = canvas.width / videoRect.width;
+              const scaleY = canvas.height / videoRect.height;
+              
+              if (overlayCtx) {
+                overlayCanvas.width = canvas.width;
+                overlayCanvas.height = canvas.height;
+                
+                // Copiar estilos del overlay
+                const overlayStyles = window.getComputedStyle(geoOverlay);
+                overlayCtx.font = overlayStyles.font;
+                overlayCtx.fillStyle = overlayStyles.backgroundColor;
+                overlayCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Dibujar texto del overlay
+                const userNameRect = userName.getBoundingClientRect();
+                const locationRect = locationInfo.getBoundingClientRect();
+                const coordsRect = coordinatesInfo.getBoundingClientRect();
+                
+                // Nombre completo
+                overlayCtx.fillStyle = window.getComputedStyle(userName).color;
+                overlayCtx.font = window.getComputedStyle(userName).font;
+                overlayCtx.fillText(
+                  userName.textContent || 'Usuario',
+                  (userNameRect.left - videoRect.left) * scaleX,
+                  (userNameRect.top - videoRect.top) * scaleY
+                );
+                
+                // Ubicación
+                overlayCtx.fillStyle = window.getComputedStyle(locationInfo).color;
+                overlayCtx.font = window.getComputedStyle(locationInfo).font;
+                overlayCtx.fillText(
+                  locationInfo.textContent || 'Ubicación desconocida',
+                  (locationRect.left - videoRect.left) * scaleX,
+                  (locationRect.top - videoRect.top) * scaleY
+                );
+                
+                // Coordenadas
+                overlayCtx.fillStyle = window.getComputedStyle(coordinatesInfo).color;
+                overlayCtx.font = window.getComputedStyle(coordinatesInfo).font;
+                overlayCtx.fillText(
+                  coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------',
+                  (coordsRect.left - videoRect.left) * scaleX,
+                  (coordsRect.top - videoRect.top) * scaleY
+                );
+              }
+              
+              // Dibujar logo MOPC
+              const logoCanvas = document.createElement('canvas');
+              const logoCtx = logoCanvas.getContext('2d');
+              if (logoCtx) {
+                const logoSize = 60; // Tamaño fijo del logo
+                logoCanvas.width = logoSize;
+                logoCanvas.height = logoSize;
+                
+                // Dibujar círculo con gradiente
+                const gradient = logoCtx.createRadialGradient(logoSize/2, logoSize/2, 0, logoSize/2, logoSize/2, logoSize/2);
+                gradient.addColorStop(0, 'rgba(255, 140, 66, 0.9)');
+                gradient.addColorStop(1, 'rgba(255, 107, 0, 0.8)');
+                
+                logoCtx.fillStyle = gradient;
+                logoCtx.beginPath();
+                logoCtx.arc(logoSize/2, logoSize/2, logoSize/2, 0, Math.PI * 2);
+                logoCtx.fill();
+                
+                // Borde
+                logoCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                logoCtx.lineWidth = 3;
+                logoCtx.stroke();
+                
+                // Texto MOPC
+                logoCtx.fillStyle = 'white';
+                logoCtx.font = 'bold 15px Arial';
+                logoCtx.textAlign = 'center';
+                logoCtx.textBaseline = 'middle';
+                logoCtx.fillText('MOPC', logoSize/2, logoSize/2);
+                
+                // Dibujar logo en el canvas principal
+                const logoRect = mopcWatermark.getBoundingClientRect();
+                const logoX = (logoRect.left - videoRect.left) * scaleX;
+                const logoY = (logoRect.top - videoRect.top) * scaleY;
+                const logoWidth = logoSize * scaleX;
+                const logoHeight = logoSize * scaleY;
+                
+                ctx.drawImage(logoCanvas, logoX, logoY, logoWidth, logoHeight);
+                
+                // Dibujar overlay sobre el canvas principal
+                ctx.drawImage(overlayCanvas, 0, 0);
+              }
               
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
               
-              // Detener stream
-              stream.getTracks().forEach(track => track.stop());
-              
-              // Detener geolocalización
-              Geolocation.clearWatch({ id: watchPositionId });
-              
-              // Remover interfaz
-              cameraInterface.remove();
-              
-              // Mostrar mensaje de procesamiento
-              const processingMessage = document.createElement('div');
-              processingMessage.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 20px 30px;
-                border-radius: 10px;
-                z-index: 10000;
-                font-size: 16px;
-                text-align: center;
-              `;
-              processingMessage.innerHTML = '📷 Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
-              document.body.appendChild(processingMessage);
-              
-              // Aplicar marca de agua
-              const watermarkedImage = await addWatermarkToPhoto(photoDataUrl, {
-                userName: user?.name || 'Usuario',
-                address: currentAddress,
-                latitude: currentPosition.coords.latitude,
-                longitude: currentPosition.coords.longitude,
-                timestamp: new Date()
-              });
-              
-              // Guardar directamente en galería
-              await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
-              
-              // Remover mensaje
-              processingMessage.remove();
-              
-              console.log('✅ Foto capturada y guardada con geolocalización en vivo');
-            }
+              // Restaurar controles
+              controls.style.display = 'flex';
+            
+            // Detener stream
+            stream.getTracks().forEach(track => track.stop());
+            
+            // Detener geolocalización
+            Geolocation.clearWatch({ id: watchPositionId });
+            
+            // Remover interfaz
+            cameraInterface.remove();
+            
+            // Mostrar mensaje de procesamiento
+            const processingMessage = document.createElement('div');
+            processingMessage.style.cssText = `
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: rgba(0, 0, 0, 0.8);
+              color: white;
+              padding: 20px 30px;
+              border-radius: 10px;
+              z-index: 10000;
+              font-size: 16px;
+              text-align: center;
+            `;
+            processingMessage.innerHTML = '📷 Guardando foto con configuración actual...<br/><small>Por favor espere</small>';
+            document.body.appendChild(processingMessage);
+            
+            // Guardar directamente en galería (la foto ya incluye overlay y logo como el usuario los configuró)
+            await savePhotoToGallery(photoDataUrl, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
+            
+            // Remover mensaje
+            processingMessage.remove();
+            
+            console.log('✅ Foto capturada y guardada exactamente como el usuario la configuró');
+          }
           } catch (error: any) {
             console.error('Error capturando foto:', error);
             alert('Error al capturar foto: ' + (error.message || 'Error desconocido'));
@@ -2224,7 +2322,6 @@ const Dashboard: React.FC = () => {
           console.log('✅ Foto capturada y guardada con método Capacitor');
         }
       }
-      
     } catch (error: any) {
       console.error('❌ Error general en la cámara:', error);
       alert('Error al abrir la cámara: ' + (error.message || 'Error desconocido'));
