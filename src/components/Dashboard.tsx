@@ -1783,13 +1783,13 @@ const Dashboard: React.FC = () => {
       `;
       document.head.appendChild(style);
       
-      // Overlay de georeferencia dentro del video
+      // Overlay de georeferencia centrado y simple
       const geoOverlay = document.createElement('div');
       geoOverlay.style.cssText = `
         position: absolute;
         bottom: 20px;
-        left: 20px;
-        right: 20px;
+        left: 50%;
+        transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.7);
         backdrop-filter: blur(8px);
         border-radius: 12px;
@@ -1801,6 +1801,8 @@ const Dashboard: React.FC = () => {
         flex-direction: column;
         gap: 4px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        max-width: calc(100% - 40px);
+        text-align: center;
       `;
       
       // Logo MOPC como sello de agua - fuera del overlay, arriba derecha del videoContainer
@@ -2070,31 +2072,12 @@ const Dashboard: React.FC = () => {
               ctx.font = `${10 * textSizeLevel}px Arial`;
               ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
               
-              // Dibujar logo MOPC como sello de agua arriba a la derecha
-              const logoSize = 60; // Tamaño más grande para sello de agua
-              const logoX = canvas.width - logoSize - 15; // Arriba a la derecha
-              const logoY = 15; // Posición arriba
-              
-              // Dibujar círculo del logo con efecto de sello de agua
-              const gradient = ctx.createRadialGradient(logoX + logoSize/2, logoY + logoSize/2, 0, logoX + logoSize/2, logoY + logoSize/2, logoSize/2);
-              gradient.addColorStop(0, 'rgba(255, 140, 66, 0.9)'); // Más visible
-              gradient.addColorStop(1, 'rgba(255, 107, 0, 0.8)'); // Más visible
-              
-              ctx.fillStyle = gradient;
-              ctx.beginPath();
-              ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
-              ctx.fill();
-              
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; // Borde más visible
-              ctx.lineWidth = 3;
-              ctx.stroke();
-              
-              // Texto del logo más grande y visible
-              ctx.fillStyle = 'white';
-              ctx.font = 'bold 15px Arial';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText('MOPC', logoX + logoSize/2, logoY + logoSize/2);
+              // Texto MOPC simple sin fondo arriba derecha
+              ctx.fillStyle = 'rgba(255, 107, 0, 0.9)';
+              ctx.font = 'bold 20px Arial';
+              ctx.textAlign = 'right';
+              ctx.textBaseline = 'top';
+              ctx.fillText('MOPC', canvas.width - 15, 15);
               
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
