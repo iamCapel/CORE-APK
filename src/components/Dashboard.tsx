@@ -1818,7 +1818,7 @@ const Dashboard: React.FC = () => {
         color: #FF6B00;
         margin-bottom: 4px;
       `;
-      userName.textContent = fullName || 'Usuario';
+      userName.textContent = user?.name || 'Miguel De Jesus Cabrera Cruz';
       
       // Ubicación actual
       const locationInfo = document.createElement('div');
@@ -1850,16 +1850,18 @@ const Dashboard: React.FC = () => {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transform: scaleX(-1);
       `;
       
       // Controles de cámara
       const controls = document.createElement('div');
       controls.style.cssText = `
         background: rgba(0, 0, 0, 0.9);
-        padding: 20px;
+        padding: 15px;
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
         align-items: center;
+        gap: 20px;
       `;
       
       // Botón de flash
@@ -2037,6 +2039,57 @@ const Dashboard: React.FC = () => {
               // Dibujar frame actual del video
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               
+              // Dibujar overlay de georeferencia sobre el canvas
+              const videoRect = video.getBoundingClientRect();
+              const overlayRect = geoOverlay.getBoundingClientRect();
+              const logoRect = mopcLogo.getBoundingClientRect();
+              
+              const scaleX = canvas.width / videoRect.width;
+              const scaleY = canvas.height / videoRect.height;
+              
+              // Dibujar fondo del overlay
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+              ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
+              
+              // Dibujar texto del overlay
+              ctx.fillStyle = '#FF6B00';
+              ctx.font = 'bold 14px Arial';
+              ctx.fillText(user?.name || 'Miguel De Jesus Cabrera Cruz', 20, canvas.height - 100);
+              
+              ctx.fillStyle = 'white';
+              ctx.font = '11px Arial';
+              ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', 20, canvas.height - 80);
+              
+              ctx.fillStyle = 'white';
+              ctx.font = '10px Arial';
+              ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
+              
+              // Dibujar logo MOPC
+              const logoSize = 32;
+              const logoX = canvas.width - logoSize - 20;
+              const logoY = 20;
+              
+              // Dibujar círculo del logo
+              const gradient = ctx.createRadialGradient(logoX + logoSize/2, logoY + logoSize/2, 0, logoX + logoSize/2, logoY + logoSize/2, logoSize/2);
+              gradient.addColorStop(0, '#FF8C42');
+              gradient.addColorStop(1, '#FF6B00');
+              
+              ctx.fillStyle = gradient;
+              ctx.beginPath();
+              ctx.arc(logoX + logoSize/2, logoY + logoSize/2, logoSize/2, 0, Math.PI * 2);
+              ctx.fill();
+              
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+              ctx.lineWidth = 2;
+              ctx.stroke();
+              
+              // Texto del logo
+              ctx.fillStyle = 'white';
+              ctx.font = 'bold 8px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('MOPC', logoX + logoSize/2, logoY + logoSize/2);
+              
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
               
@@ -2107,22 +2160,9 @@ const Dashboard: React.FC = () => {
               flashButton.style.color = 'white';
             }
             
-            // Reiniciar stream con nuevo flash
-            stream.getTracks().forEach(track => track.stop());
-            const newConstraints: any = {
-              video: {
-                facingMode: cameraDirection
-              },
-              audio: false
-            };
-            
-            if (flashMode === 'on') {
-              newConstraints.video.torch = true;
-            }
-            
-            const newStream = await navigator.mediaDevices.getUserMedia(newConstraints);
-            video.srcObject = newStream;
-            video.play();
+            console.log('🔦 Flash cambiado a:', flashMode);
+            // Nota: Flash real en WebRTC requiere soporte específico del dispositivo
+            // Por ahora solo cambio visual del botón
           } catch (error) {
             console.error('Error cambiando flash:', error);
           }
