@@ -1783,13 +1783,13 @@ const Dashboard: React.FC = () => {
       `;
       document.head.appendChild(style);
       
-      // Overlay de georeferencia centrado y simple
+      // Overlay de georeferencia como estaba - ancho completo
       const geoOverlay = document.createElement('div');
       geoOverlay.style.cssText = `
         position: absolute;
         bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
+        left: 20px;
+        right: 20px;
         background: rgba(0, 0, 0, 0.7);
         backdrop-filter: blur(8px);
         border-radius: 12px;
@@ -1801,8 +1801,6 @@ const Dashboard: React.FC = () => {
         flex-direction: column;
         gap: 4px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        max-width: calc(100% - 40px);
-        text-align: center;
       `;
       
       // Logo MOPC como sello de agua - fuera del overlay, arriba derecha del videoContainer
@@ -2030,53 +2028,58 @@ const Dashboard: React.FC = () => {
         // Función para capturar foto
         const capturePhoto = async () => {
           try {
-            // Crear canvas para capturar frame del video
+            // Capturar directamente lo que el usuario ve en el videoContainer
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            const videoContainer = document.querySelector('[style*="flex: 1"]');
+            
+            if (!videoContainer) {
+              console.error('No se encontró videoContainer');
+              return;
+            }
+            
+            const videoRect = videoContainer.getBoundingClientRect();
+            
+            canvas.width = videoRect.width;
+            canvas.height = videoRect.height;
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
-              // Aplicar zoom configurado por el usuario
+              // Capturar el video con zoom aplicado
               ctx.save();
               ctx.translate(canvas.width / 2, canvas.height / 2);
               ctx.scale(zoomLevel, zoomLevel);
               ctx.translate(-canvas.width / 2, -canvas.height / 2);
-              
-              // Dibujar frame actual del video con zoom
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               ctx.restore();
               
-              // Dibujar overlay de georeferencia con valores ACTUALES del DOM en vivo
-              const videoRect = video.getBoundingClientRect();
+              // Capturar el overlay exactamente como se ve en vivo
               const overlayRect = geoOverlay.getBoundingClientRect();
+              const logoRect = mopcLogo.getBoundingClientRect();
               
-              const scaleX = canvas.width / videoRect.width;
-              const scaleY = canvas.height / videoRect.height;
+              // Posiciones relativas al canvas
+              const overlayX = overlayRect.left - videoRect.left;
+              const overlayY = overlayRect.top - videoRect.top;
+              const logoX = logoRect.left - videoRect.left;
+              const logoY = logoRect.top - videoRect.top;
               
-              // Capturar valores ACTUALES del overlay en vivo
-              const currentUserName = userName.textContent;
-              const currentLocation = locationInfo.textContent;
-              const currentCoordinates = coordinatesInfo.textContent;
-              
-              // Dibujar fondo del overlay
+              // Dibujar el overlay como se ve en vivo
               ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-              ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
+              ctx.fillRect(overlayX, overlayY, overlayRect.width, overlayRect.height);
               
-              // Dibujar texto del overlay con valores ACTUALES
+              // Dibujar texto del overlay con valores reales
               ctx.fillStyle = '#FF6B00';
-              ctx.font = `bold ${14 * textSizeLevel}px Arial`;
-              ctx.fillText(currentUserName || 'Miguel De Jesus Cabrera Cruz', 20, canvas.height - 100);
+              ctx.font = 'bold 14px Arial';
+              ctx.fillText(userName.textContent || 'Miguel De Jesus Cabrera Cruz', overlayX + 16, overlayY + 30);
               
               ctx.fillStyle = 'white';
-              ctx.font = `${11 * textSizeLevel}px Arial`;
-              ctx.fillText(currentLocation || 'Ubicación desconocida', 20, canvas.height - 80);
+              ctx.font = '11px Arial';
+              ctx.fillText(locationInfo.textContent || 'Ubicación desconocida', overlayX + 16, overlayY + 50);
               
               ctx.fillStyle = 'white';
-              ctx.font = `${10 * textSizeLevel}px Arial`;
-              ctx.fillText(currentCoordinates || 'Lat: --.------, Lon: --.------', 20, canvas.height - 60);
+              ctx.font = '10px Arial';
+              ctx.fillText(coordinatesInfo.textContent || 'Lat: --.------, Lon: --.------', overlayX + 16, overlayY + 70);
               
-              // Texto MOPC simple sin fondo arriba derecha
+              // Dibujar logo MOPC simple
               ctx.fillStyle = 'rgba(255, 107, 0, 0.9)';
               ctx.font = 'bold 20px Arial';
               ctx.textAlign = 'right';
