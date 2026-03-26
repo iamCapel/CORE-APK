@@ -37,7 +37,7 @@ const provinciasPorRegion: Record<string, string[]> = {
   'Higuamo': ['San Pedro de Macorís', 'Hato Mayor', 'Monte Plata']
 };
 
-const municipiosPorProvincia: Record<string, string[]> = {
+const municipiosPorProvinciaDefault: Record<string, string[]> = {
   'Distrito Nacional': ['Zona Colonial', 'Gazcue', 'Ciudad Nueva', 'San Carlos', 'Villa Juana', 'Cristo Rey', 'La Esperilla'],
   'Santo Domingo': ['Los Alcarrizos', 'Pedro Brand', 'San Antonio de Guerra', 'Boca Chica', 'Santo Domingo Este', 'Santo Domingo Norte', 'Santo Domingo Oeste'],
   'Puerto Plata': ['Puerto Plata', 'Altamira', 'Guananico', 'Imbert', 'Los Hidalgos', 'Luperón', 'Río San Juan', 'Villa Isabela', 'Villa Montellano'],
@@ -79,6 +79,9 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const [distrito, setDistrito] = useState('');
   const [distritoPersonalizado, setDistritoPersonalizado] = useState('');
   const [mostrarDistritoPersonalizado, setMostrarDistritoPersonalizado] = useState(false);
+  const [mostrarAgregarMunicipio, setMostrarAgregarMunicipio] = useState(false);
+  const [nuevoMunicipio, setNuevoMunicipio] = useState('');
+  const [municipiosPorProvinciaState, setMunicipiosPorProvinciaState] = useState<Record<string, string[]>>(municipiosPorProvinciaDefault);
   const [fechaInicio, setFechaInicio] = useState('');
   const [hastaLaFecha, setHastaLaFecha] = useState(true);
   const [fechaFinal, setFechaFinal] = useState('');
@@ -92,7 +95,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const [guardando, setGuardando] = useState(false);
 
   const provinciasDisponibles = useMemo(() => (region ? provinciasPorRegion[region] || [] : []), [region]);
-  const municipiosDisponibles = useMemo(() => (provincia ? municipiosPorProvincia[provincia] || [] : []), [provincia]);
+  const municipiosDisponibles = useMemo(() => (provincia ? municipiosPorProvinciaState[provincia] || [] : []), [provincia, municipiosPorProvinciaState]);
   const distritosDisponibles = useMemo(() => (municipio ? distritosPorMunicipio[municipio] || [] : []), [municipio]);
 
   const distritoFinal = mostrarDistritoPersonalizado ? distritoPersonalizado : distrito;
@@ -154,6 +157,34 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     setHastaLaFecha(true);
     setFechaFinal('');
     setVehiculosDetalles([{ tipo: '', modelo: '', ficha: '', fichaError: '' }]);
+  };
+
+  const handleAddMunicipio = () => {
+    const nombre = nuevoMunicipio.trim();
+    if (!provincia) {
+      setMensaje('Seleccione primero la provincia antes de agregar municipio.');
+      return;
+    }
+    if (!nombre) {
+      setMensaje('Ingrese el nombre del municipio a agregar.');
+      return;
+    }
+
+    const existingMunicipios = municipiosPorProvinciaState[provincia] || [];
+    if (existingMunicipios.includes(nombre)) {
+      setMensaje('El municipio ya existe en la provincia seleccionada.');
+      return;
+    }
+
+    const updatedMunicipios = [...existingMunicipios, nombre].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    setMunicipiosPorProvinciaState(prev => ({
+      ...prev,
+      [provincia]: updatedMunicipios
+    }));
+    setMunicipio(nombre);
+    setMostrarAgregarMunicipio(false);
+    setNuevoMunicipio('');
+    setMensaje(`Municipio '${nombre}' agregado a ${provincia} y seleccionado.`);
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -291,6 +322,18 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                 required
                 onChange={setMunicipio}
               />
+              <button
+                type="button"
+                className="modern-button"
+                style={{ marginTop: 8, background: '#2a9d8f', color: 'white', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', padding: '8px 12px' }}
+                disabled={!provincia}
+                onClick={() => {
+                  setNuevoMunicipio('');
+                  setMostrarAgregarMunicipio(true);
+                }}
+              >
+                ➕ Agregar municipio existente
+              </button>
             </div>
 
             <div className="form-row">
@@ -439,6 +482,53 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
 
             {mensaje && <p style={{ marginTop: '1rem', color: '#fff' }}>{mensaje}</p>}
           </form>
+
+          {mostrarAgregarMunicipio && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999
+            }}>
+              <div style={{
+                width: '90%',
+                maxWidth: '420px',
+                background: '#10121a',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                padding: 16
+              }}>
+                <h2 style={{ margin: '0 0 8px', color: '#fff', fontSize: '1.1rem' }}>Agregar municipio existente</h2>
+                <p style={{ color: '#ddd', margin: '0 0 12px' }}>
+                  Provincia: <strong>{provincia || '(seleccionar provincia primero)'}</strong>
+                </p>
+                <ModernInput
+                  id="nuevoMunicipio"
+                  type="text"
+                  label="Nombre del municipio"
+                  placeholder="Ej. San Francisco de Macorís"
+                  value={nuevoMunicipio}
+                  onChange={(val) => setNuevoMunicipio(String(val))}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
+                  <button type="button" className="btn-modern" onClick={() => setMostrarAgregarMunicipio(false)} style={{ background: '#565a69' }}>
+                    Cancelar
+                  </button>
+                  <button type="button" className="btn-modern" onClick={handleAddMunicipio} style={{ background: '#2a9d8f' }}>
+                    Agregar municipio
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </ModernFormContainer>
       </div>
     </div>
