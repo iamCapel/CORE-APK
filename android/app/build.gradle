@@ -29,6 +29,14 @@ android {
             buildConfigField "String", "DEVICE_MODEL", '"Samsung Galaxy A04s"'
         }
 
+        note12 {
+            dimension "model"
+            applicationIdSuffix ".note12"
+            versionNameSuffix "-note12"
+            resValue "string", "device_model", "Xiaomi Redmi Note 12"
+            buildConfigField "String", "DEVICE_MODEL", '"Xiaomi Redmi Note 12"'
+        }
+
         generic {
             dimension "model"
             applicationIdSuffix ".generic"
