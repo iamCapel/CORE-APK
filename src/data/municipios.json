@@ -1,0 +1,68 @@
+{
+  "provinces": [
+    "Distrito Nacional",
+    "Santo Domingo",
+    "Puerto Plata",
+    "Espaillat",
+    "La Vega",
+    "Monseñor Nouel",
+    "Sánchez Ramírez",
+    "Duarte",
+    "María Trinidad Sánchez",
+    "Samaná",
+    "Hermanas Mirabal",
+    "Valverde",
+    "Monte Cristi",
+    "Dajabón",
+    "Santiago Rodríguez",
+    "Santiago",
+    "San Cristóbal",
+    "Peravia",
+    "San José de Ocoa",
+    "Barahona",
+    "Pedernales",
+    "Independencia",
+    "Bahoruco",
+    "San Juan",
+    "Elías Piña",
+    "Azua",
+    "La Altagracia",
+    "La Romana",
+    "El Seibo",
+    "San Pedro de Macorís",
+    "Hato Mayor",
+    "Monte Plata"
+  ],
+  "municipalities": {
+    "Distrito Nacional": {
+      "municipios": [
+        "Zona Colonial",
+        "Gazcue",
+        "Ciudad Nueva",
+        "San Carlos",
+        "Villa Juana",
+        "Cristo Rey",
+        "La Esperilla"
+      ],
+      "distritos": {
+        "Zona Colonial": ["Ensanche Luperón"],
+        "La Esperilla": ["La Julia"]
+      }
+    },
+    "Santo Domingo": {
+      "municipios": [
+        "Los Alcarrizos",
+        "Pedro Brand",
+        "San Antonio de Guerra",
+        "Boca Chica",
+        "Santo Domingo Este",
+        "Santo Domingo Norte",
+        "Santo Domingo Oeste"
+      ],
+      "distritos": {
+        "Santo Domingo Norte": ["La Victoria", "Villa Mella"],
+        "Boca Chica": ["La Caleta"]
+      }
+    }
+  }
+}

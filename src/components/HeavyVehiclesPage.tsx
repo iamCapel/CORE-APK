@@ -1,8 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ModernFormContainer } from './ModernFormContainer';
 import { ModernSelect } from './ModernSelect';
 import { ModernInput } from './ModernInput';
 import { firebaseHeavyVehiclesStorage, HeavyVehicleRecord } from '../services/firebaseHeavyVehiclesStorage';
+import {
+  getMunicipios,
+  addUserMunicipio,
+  addUserDistrito
+} from '../services/municipioService';
 import './HeavyVehiclesPage.css';
 
 interface HeavyVehiclesPageProps {
@@ -81,7 +86,8 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const [mostrarDistritoPersonalizado, setMostrarDistritoPersonalizado] = useState(false);
   const [mostrarAgregarMunicipio, setMostrarAgregarMunicipio] = useState(false);
   const [nuevoMunicipio, setNuevoMunicipio] = useState('');
-  const [municipiosPorProvinciaState, setMunicipiosPorProvinciaState] = useState<Record<string, string[]>>(municipiosPorProvinciaDefault);
+  const [municipiosPorProvinciaState, setMunicipiosPorProvinciaState] = useState<Record<string, string[]>>({});
+  const [distritosPorMunicipioState, setDistritosPorMunicipioState] = useState<Record<string, string[]>>(distritosPorMunicipio);
   const [fechaInicio, setFechaInicio] = useState('');
   const [hastaLaFecha, setHastaLaFecha] = useState(true);
   const [fechaFinal, setFechaFinal] = useState('');
@@ -96,9 +102,65 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
 
   const provinciasDisponibles = useMemo(() => (region ? provinciasPorRegion[region] || [] : []), [region]);
   const municipiosDisponibles = useMemo(() => (provincia ? municipiosPorProvinciaState[provincia] || [] : []), [provincia, municipiosPorProvinciaState]);
-  const distritosDisponibles = useMemo(() => (municipio ? distritosPorMunicipio[municipio] || [] : []), [municipio]);
+  const distritosDisponibles = useMemo(() => (municipio ? distritosPorMunicipioState[municipio] || [] : []), [municipio, distritosPorMunicipioState]);
 
   const distritoFinal = mostrarDistritoPersonalizado ? distritoPersonalizado : distrito;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadMunicipios = async () => {
+      try {
+        const data = await getMunicipios();
+        if (!isMounted) return;
+
+        setMunicipiosPorProvinciaState(
+          Object.fromEntries(
+            Object.entries(data.municipalities).map(([prov, props]) => [prov, props.municipios])
+          )
+        );
+
+        const distritosMap: Record<string, string[]> = {};
+        for (const perm of Object.values(data.municipalities)) {
+          if (perm.distritos) {
+            Object.entries(perm.distritos).forEach(([mun, dist]) => {
+              distritosMap[mun] = dist;
+            });
+          }
+        }
+
+        setDistritosPorMunicipioState(prev => ({ ...prev, ...distritosMap }));
+      } catch (err) {
+        console.error('Error cargando municipios jerárquicos:', err);
+      }
+    };
+
+    loadMunicipios();
+
+    const refreshTimer = window.setInterval(() => {
+      getMunicipios().then(data => {
+        setMunicipiosPorProvinciaState(
+          Object.fromEntries(
+            Object.entries(data.municipalities).map(([prov, props]) => [prov, props.municipios])
+          )
+        );
+        const distritosMap: Record<string, string[]> = {};
+        for (const perm of Object.values(data.municipalities)) {
+          if (perm.distritos) {
+            Object.entries(perm.distritos).forEach(([mun, dist]) => {
+              distritosMap[mun] = dist;
+            });
+          }
+        }
+        setDistritosPorMunicipioState(prev => ({ ...prev, ...distritosMap }));
+      }).catch(() => {});
+    }, 15 * 24 * 60 * 60 * 1000); // 15 días
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, []);
 
   const handleVehiculoChange = (index: number, field: 'tipo' | 'modelo' | 'ficha', value: string) => {
     setVehiculosDetalles(prev => {
@@ -181,6 +243,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
       ...prev,
       [provincia]: updatedMunicipios
     }));
+    addUserMunicipio(provincia, nombre);
     setMunicipio(nombre);
     setMostrarAgregarMunicipio(false);
     setNuevoMunicipio('');
@@ -237,6 +300,19 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     };
 
     try {
+      // Guardar distrito personalizado como parte de catálogo de distritos para este municipio.
+      if (distritoFinal && municipio) {
+        const existingDistritos = distritosPorMunicipioState[municipio] || [];
+        if (!existingDistritos.includes(distritoFinal)) {
+          const updatedDistritos = [...existingDistritos, distritoFinal].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+          setDistritosPorMunicipioState(prev => ({
+            ...prev,
+            [municipio]: updatedDistritos
+          }));
+          addUserDistrito(municipio, distritoFinal);
+        }
+      }
+
       setGuardando(true);
       await Promise.all(vehiculosDetalles.map(async (vehiculo) => {
         const id = crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
