@@ -82,8 +82,8 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const [provincia, setProvincia] = useState('');
   const [municipio, setMunicipio] = useState('');
   const [distrito, setDistrito] = useState('');
-  const [distritoPersonalizado, setDistritoPersonalizado] = useState('');
-  const [mostrarDistritoPersonalizado, setMostrarDistritoPersonalizado] = useState(false);
+  const [mostrarAgregarDistrito, setMostrarAgregarDistrito] = useState(false);
+  const [nuevoDistrito, setNuevoDistrito] = useState('');
   const [mostrarAgregarMunicipio, setMostrarAgregarMunicipio] = useState(false);
   const [nuevoMunicipio, setNuevoMunicipio] = useState('');
   const [municipiosPorProvinciaState, setMunicipiosPorProvinciaState] = useState<Record<string, string[]>>({});
@@ -103,8 +103,6 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const provinciasDisponibles = useMemo(() => (region ? provinciasPorRegion[region] || [] : []), [region]);
   const municipiosDisponibles = useMemo(() => (provincia ? municipiosPorProvinciaState[provincia] || [] : []), [provincia, municipiosPorProvinciaState]);
   const distritosDisponibles = useMemo(() => (municipio ? distritosPorMunicipioState[municipio] || [] : []), [municipio, distritosPorMunicipioState]);
-
-  const distritoFinal = mostrarDistritoPersonalizado ? distritoPersonalizado : distrito;
 
   useEffect(() => {
     let isMounted = true;
@@ -213,8 +211,6 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     setProvincia('');
     setMunicipio('');
     setDistrito('');
-    setDistritoPersonalizado('');
-    setMostrarDistritoPersonalizado(false);
     setFechaInicio('');
     setHastaLaFecha(true);
     setFechaFinal('');
@@ -250,10 +246,39 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     setMensaje(`Municipio '${nombre}' agregado a ${provincia} y seleccionado.`);
   };
 
+  const handleAddDistrito = () => {
+    const nombre = nuevoDistrito.trim();
+    if (!municipio) {
+      setMensaje('Seleccione primero el municipio antes de agregar el distrito.');
+      return;
+    }
+    if (!nombre) {
+      setMensaje('Ingrese el nombre del distrito a agregar.');
+      return;
+    }
+
+    const existingDistritos = distritosPorMunicipioState[municipio] || [];
+    if (existingDistritos.includes(nombre)) {
+      setMensaje('El distrito ya existe en el municipio seleccionado.');
+      return;
+    }
+
+    const updatedDistritos = [...existingDistritos, nombre].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    setDistritosPorMunicipioState(prev => ({
+      ...prev,
+      [municipio]: updatedDistritos
+    }));
+    addUserDistrito(municipio, nombre);
+    setDistrito(nombre);
+    setMostrarAgregarDistrito(false);
+    setNuevoDistrito('');
+    setMensaje(`Distrito '${nombre}' agregado a ${municipio} y seleccionado.`);
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!region || !provincia || !municipio || !distritoFinal) {
+    if (!region || !provincia || !municipio || !distrito) {
       setMensaje('Por favor complete todos los campos de dirección jerárquica.');
       return;
     }
@@ -291,7 +316,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
       region,
       provincia,
       municipio,
-      distrito: distritoFinal,
+      distrito,
       fechaInicio,
       hastaLaFecha,
       fechaFinal: hastaLaFecha ? new Date().toISOString().slice(0, 10) : fechaFinal,
@@ -300,16 +325,16 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     };
 
     try {
-      // Guardar distrito personalizado como parte de catálogo de distritos para este municipio.
-      if (distritoFinal && municipio) {
+      // Guardar distrito como parte de catálogo de distritos para este municipio.
+      if (distrito && municipio) {
         const existingDistritos = distritosPorMunicipioState[municipio] || [];
-        if (!existingDistritos.includes(distritoFinal)) {
-          const updatedDistritos = [...existingDistritos, distritoFinal].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+        if (!existingDistritos.includes(distrito)) {
+          const updatedDistritos = [...existingDistritos, distrito].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
           setDistritosPorMunicipioState(prev => ({
             ...prev,
             [municipio]: updatedDistritos
           }));
-          addUserDistrito(municipio, distritoFinal);
+          addUserDistrito(municipio, distrito);
         }
       }
 
@@ -425,27 +450,13 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                 required
                 onChange={(val) => {
                   if (val === 'otros') {
-                    setMostrarDistritoPersonalizado(true);
+                    setMostrarAgregarDistrito(true);
                     setDistrito('');
                   } else {
-                    setMostrarDistritoPersonalizado(false);
                     setDistrito(val);
-                    setDistritoPersonalizado('');
                   }
                 }}
               />
-
-              {mostrarDistritoPersonalizado && (
-                <ModernInput
-                  id="distritoPersonalizado"
-                  type="text"
-                  label="Distrito personalizado"
-                  placeholder="Ingresar nombre de distrito"
-                  value={distritoPersonalizado}
-                  onChange={(val) => setDistritoPersonalizado(String(val))}
-                  required
-                />
-              )}
             </div>
 
             <div className="form-row">
@@ -597,6 +608,52 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                   </button>
                   <button type="button" className="btn-modern" onClick={handleAddMunicipio} style={{ background: '#2a9d8f' }}>
                     Agregar municipio
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mostrarAgregarDistrito && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999
+            }}>
+              <div style={{
+                width: '90%',
+                maxWidth: '420px',
+                background: '#10121a',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                padding: 16
+              }}>
+                <h2 style={{ margin: '0 0 8px', color: '#fff', fontSize: '1.1rem' }}>Agregar distrito municipal</h2>
+                <p style={{ color: '#ddd', margin: '0 0 12px' }}>
+                  Municipio: <strong>{municipio || '(seleccionar municipio primero)'}</strong>
+                </p>
+                <ModernInput
+                  id="nuevoDistrito"
+                  type="text"
+                  label="Nombre del distrito"
+                  placeholder="Ej. Los Pinos"
+                  value={nuevoDistrito}
+                  onChange={(val) => setNuevoDistrito(String(val))}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
+                  <button type="button" className="btn-modern" onClick={() => setMostrarAgregarDistrito(false)} style={{ background: '#565a69' }}>
+                    Cancelar
+                  </button>
+                  <button type="button" className="btn-modern" onClick={handleAddDistrito} style={{ background: '#2a9d8f' }}>
+                    Agregar distrito
                   </button>
                 </div>
               </div>
