@@ -157,10 +157,12 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
             {hint}
             {required && <span className="required">*</span>}
           </div>
-          <div className={`modern-select-value ${value ? 'has-value' : ''}`}>
+          <div className="modern-select-value">
             {selectedOption ? (
               <div className="selected-option">
-                {selectedOption.icon && <span className="option-icon">{selectedOption.icon}</span>}
+                {selectedOption.icon && !selectedOption.special && (
+                  <span className="option-icon">{selectedOption.icon}</span>
+                )}
                 <span className="option-text">{selectedOption.label}</span>
                 {selectedOption.description && (
                   <span className="option-description">{selectedOption.description}</span>
@@ -215,8 +217,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
             </div>
 
             {/* Search */}
-            <div className="modern-select-modal-search">
-              <span className="search-icon">🔍</span>
+              <div className="modern-select-modal-search">
               <input
                 ref={inputRef}
                 type="text"
@@ -248,7 +249,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
                     onClick={() => selectOption(option.value)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
-                    {option.icon && <span className="option-icon">{option.icon}</span>}
+                    {!option.special && option.icon && <span className="option-icon">{option.icon}</span>}
                     <div className="option-content">
                       <span className="option-text">{option.label}</span>
                       {option.description && (
