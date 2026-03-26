@@ -67,14 +67,40 @@ const distritosPorMunicipio: Record<string, string[]> = {
 };
 
 const heavyVehicleTypes = [
-  'Camión Volqueta',
   'Excavadora',
-  'Bulldozer',
   'Retroexcavadora',
+  'Motoniveladora',
+  'Rodillo Compactador',
+  'Rodillo Liso',
+  'Rodillo Pata de Cabra',
+  'Rodillo Neumático',
+  'Cargador Frontal',
+  'Bulldozer',
+  'Camión Volquete',
+  'Camión Cisterna',
+  'Camión de Carga',
+  'Compactadora',
+  'Compactadora Vibratoria',
+  'Pavimentadora',
+  'Finisher',
+  'Recicladora de Asfalto',
+  'Fresadora',
+  'Barredora',
+  'Distribuidor de Asfalto',
+  'Planta de Asfalto',
+  'Planta de Concreto',
+  'Mezcladora de Concreto',
+  'Bomba de Concreto',
+  'Vibradora de Concreto',
+  'Zanjadora',
+  'Perforadora',
+  'Martillo Hidráulico',
   'Grúa',
-  'Dumpers',
-  'Moto niveladora',
-  'Compactadora'
+  'Minicargador',
+  'Tractor',
+  'Generador Eléctrico',
+  'Compresor de Aire',
+  'Otros'
 ];
 
 const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
@@ -96,6 +122,8 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     { tipo: '', modelo: '', ficha: '', fichaError: '' }
   ]);
   const [numeroVehiculos, setNumeroVehiculos] = useState<number>(1);
+
+  const [tipoVehiculosDisponibles] = useState<string[]>(heavyVehicleTypes);
 
   const [mensaje, setMensaje] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -165,10 +193,23 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
       const next = [...prev];
       const row = { ...next[index] };
       if (field === 'ficha') {
-        const upper = value.toUpperCase();
-        row.ficha = upper;
-        row.fichaError = upper && !/^[A-Z]{2}-\d+$/.test(upper)
-          ? 'Debe tener el formato XX-123 (dos letras, guion, números).'
+        const raw = value.toUpperCase();
+        // Limpiar caracteres inválidos y usar el formato: LL-NNNNN
+        const sanitized = raw.replace(/[^A-Z0-9-]/g, '');
+        const sinGuion = sanitized.replace(/-/g, '');
+
+        const letras = sinGuion.slice(0, 2).replace(/[^A-Z]/g, '');
+        const numeros = sinGuion.slice(2).replace(/[^0-9]/g, '');
+
+        let fichaFormateada = letras;
+        if (letras.length === 2) {
+          fichaFormateada += '-';
+          fichaFormateada += numeros;
+        }
+
+        row.ficha = fichaFormateada;
+        row.fichaError = fichaFormateada && !/^[A-Z]{2}-\d+$/.test(fichaFormateada)
+          ? 'Formato inválido: debe ser dos letras mayúsculas, un guion y números (Ej. AB-12345).'
           : '';
       } else {
         row[field] = value;
@@ -182,6 +223,8 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     setVehiculosDetalles(prev => [...prev, { tipo: '', modelo: '', ficha: '', fichaError: '' }]);
     setNumeroVehiculos(prev => prev + 1);
   };
+
+
 
   const removeVehiculo = (index: number) => {
     setVehiculosDetalles(prev => prev.filter((_, i) => i !== index));
@@ -512,9 +555,6 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                   value={numeroVehiculos}
                   onChange={(val) => setCantidadVehiculos(val)}
                 />
-                <button type="button" className="btn-modern" style={{ minWidth: 'auto' }} onClick={addVehiculo}>
-                  + Agregar vehículo
-                </button>
               </div>
 
               {vehiculosDetalles.map((vehiculo, index) => (
@@ -526,7 +566,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                       hint={`Tipo de vehículo #${index + 1}`}
                       placeholder="Seleccionar tipo"
                       value={vehiculo.tipo}
-                      options={heavyVehicleTypes.map(val => ({ value: val, label: val }))}
+                      options={tipoVehiculosDisponibles.map(val => ({ value: val, label: val }))}
                       required
                       onChange={(val) => handleVehiculoChange(index, 'tipo', val)}
                     />
@@ -539,12 +579,6 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                       value={vehiculo.modelo}
                       onChange={(val) => handleVehiculoChange(index, 'modelo', String(val))}
                     />
-
-                    <div style={{ alignSelf: 'flex-end' }}>
-                      <button type="button" className="btn-modern" onClick={() => removeVehiculo(index)} style={{ background: '#c0392b' }}>
-                        Eliminar
-                      </button>
-                    </div>
                   </div>
 
                   <ModernInput
@@ -557,6 +591,18 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                     required
                   />
                   {vehiculo.fichaError && <p style={{ color: '#ffb703', marginTop: '-0.8rem' }}>{vehiculo.fichaError}</p>}
+                  {index === vehiculosDetalles.length - 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+                      <button
+                        type="button"
+                        className="btn-modern"
+                        onClick={addVehiculo}
+                        style={{ minWidth: 'auto' }}
+                      >
+                        + Agregar vehículo
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
