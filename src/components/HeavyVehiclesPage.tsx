@@ -189,7 +189,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   };
 
   const setCantidadVehiculos = (cantidad: number) => {
-    if (cantidad < 1) cantidad = 1;
+    if (cantidad < 0) cantidad = 0;
     if (cantidad > 50) cantidad = 50;
 
     setNumeroVehiculos(cantidad);
