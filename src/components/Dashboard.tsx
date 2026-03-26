@@ -617,6 +617,7 @@ const Dashboard: React.FC = () => {
   // password recovery state
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetUsername, setResetUsername] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [resetError, setResetError] = useState('');
   const [resetSuccess, setResetSuccess] = useState('');
   const [canResend, setCanResend] = useState(true);
@@ -1361,13 +1362,29 @@ const Dashboard: React.FC = () => {
     setResetError('');
     setResetSuccess('');
 
-    if (!resetUsername.trim()) {
-      setResetError('Por favor ingrese el nombre de usuario.');
+    if (!resetUsername.trim() || !resetEmail.trim()) {
+      setResetError('Por favor ingrese usuario y correo electrónico.');
       return;
     }
 
     try {
       const candidate = await firebaseUserStorage.getUserByUsername(resetUsername.trim());
+
+      if (!candidate) {
+        setResetError('No se encontró usuario con ese nombre de usuario en Firebase.');
+        return;
+      }
+
+      if (candidate.email?.toLowerCase() !== resetEmail.trim().toLowerCase()) {
+        setResetError('El correo no coincide con el usuario en Firebase. Verifique los datos.');
+        return;
+      }
+
+      if (!candidate.email) {
+        setResetError('El usuario no tiene correo registrado en Firebase. Contacte al administrador.');
+        return;
+      }
+
 
       if (!candidate) {
         setResetError('No se encontró usuario con ese nombre de usuario en Firebase.');
@@ -2610,6 +2627,19 @@ const Dashboard: React.FC = () => {
                       value={resetUsername}
                       onChange={e => setResetUsername(e.target.value)}
                       autoComplete="username"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="resetEmail">Correo electrónico</label>
+                    <input
+                      id="resetEmail"
+                      type="email"
+                      className="form-input"
+                      placeholder="Ingrese su correo electrónico"
+                      value={resetEmail}
+                      onChange={e => setResetEmail(e.target.value)}
+                      autoComplete="email"
                     />
                   </div>
 
