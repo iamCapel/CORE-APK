@@ -15,6 +15,27 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        buildFeatures {
+            buildConfig true
+        }
+    }
+    flavorDimensions "model"
+    productFlavors {
+        a04s {
+            dimension "model"
+            applicationIdSuffix ".a04s"
+            versionNameSuffix "-a04s"
+            resValue "string", "device_model", "Samsung Galaxy A04s"
+            buildConfigField "String", "DEVICE_MODEL", '"Samsung Galaxy A04s"'
+        }
+
+        generic {
+            dimension "model"
+            applicationIdSuffix ".generic"
+            versionNameSuffix "-generic"
+            resValue "string", "device_model", "Generic"
+            buildConfigField "String", "DEVICE_MODEL", '"Generic"'
+        }
     }
     buildTypes {
         release {
