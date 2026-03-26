@@ -1368,10 +1368,10 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      const candidate = await firebaseUserStorage.getUserByUsername(resetUsername.trim());
+      const candidate = await firebaseUserStorage.getUserByUsernameInsensitive(resetUsername.trim());
 
       if (!candidate) {
-        setResetError('No se encontró usuario con ese nombre de usuario en Firebase.');
+        setResetError('No se encontró usuario con ese nombre de usuario en Firebase. Verifique el usuario.');
         return;
       }
 

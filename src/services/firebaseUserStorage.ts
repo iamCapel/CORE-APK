@@ -129,7 +129,7 @@ export async function logoutUser() {
   }
 }
 
-// Obtener usuario por username
+// Obtener usuario por username (case-sensitive)
 export async function getUserByUsername(username: string) {
   try {
     const q = query(collection(db, USERS_COLLECTION), where("username", "==", username));
@@ -139,6 +139,27 @@ export async function getUserByUsername(username: string) {
     return snapshot.docs[0].data() as UserData;
   } catch (error) {
     console.error("Error obteniendo usuario:", error);
+    return null;
+  }
+}
+
+// Obtener usuario por username (case-insensitivo y fallback completo)
+export async function getUserByUsernameInsensitive(username: string) {
+  if (!username || !username.trim()) return null;
+  const normalized = username.trim().toLowerCase();
+
+  // Primero intento exacto (para evitar lecturas masivas si ya coincide)
+  const exact = await getUserByUsername(username.trim());
+  if (exact) return exact;
+
+  try {
+    const allUsersSnapshot = await getDocs(collection(db, USERS_COLLECTION));
+    const record = allUsersSnapshot.docs
+      .map(doc => doc.data() as UserData)
+      .find(user => user.username?.trim().toLowerCase() === normalized);
+    return record || null;
+  } catch (error) {
+    console.error("Error en búsqueda insensible de usuario:", error);
     return null;
   }
 }
