@@ -393,23 +393,21 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                 hint="Municipio"
                 placeholder={provincia ? 'Seleccionar municipio' : '— primero provincia —'}
                 value={municipio}
-                options={municipiosDisponibles.map(m => ({ value: m, label: m }))}
+                options={[
+                  ...municipiosDisponibles.map(m => ({ value: m, label: m })),
+                  { value: '__add_municipio', label: '➕ Agregar municipio existente', special: true }
+                ]}
                 disabled={!provincia}
                 required
-                onChange={setMunicipio}
-              />
-              <button
-                type="button"
-                className="modern-button"
-                style={{ marginTop: 8, background: '#2a9d8f', color: 'white', borderRadius: 6, border: '1px solid rgba(255,255,255,0.2)', padding: '8px 12px' }}
-                disabled={!provincia}
-                onClick={() => {
-                  setNuevoMunicipio('');
-                  setMostrarAgregarMunicipio(true);
+                onChange={(val) => {
+                  if (val === '__add_municipio') {
+                    setNuevoMunicipio('');
+                    setMostrarAgregarMunicipio(true);
+                  } else {
+                    setMunicipio(val);
+                  }
                 }}
-              >
-                ➕ Agregar municipio existente
-              </button>
+              />
             </div>
 
             <div className="form-row">
