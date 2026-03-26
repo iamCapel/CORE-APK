@@ -46,6 +46,45 @@ export async function sendWelcomeEmail(userData: {
 }
 
 /**
+ * Enviar email de recuperación de contraseña
+ */
+export async function sendPasswordResetEmail(userData: {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+}) {
+  try {
+    const templateParams = {
+      to_email: userData.email,
+      to_name: userData.name,
+      username: userData.username,
+      password: userData.password,
+      role: userData.role,
+      platform_url: 'https://core-mopc.vercel.app',
+      from_name: 'MOPC - Sistema de Gestión',
+      subject: 'Restablecimiento de contraseña - MOPC'
+    };
+
+    console.log('📧 Enviando email de recuperación a:', userData.email);
+
+    const response = await emailjs.send(
+      EMAILJS_SERVICE_ID,
+      EMAILJS_TEMPLATE_ID,
+      templateParams,
+      EMAILJS_PUBLIC_KEY
+    );
+
+    console.log('✅ Email de recuperación enviado exitosamente:', response.status, response.text);
+    return { success: true, message: 'Email de recuperación enviado correctamente' };
+  } catch (error: any) {
+    console.error('❌ Error enviando email de recuperación:', error);
+    return { success: false, error: error.message || 'Error al enviar email de recuperación' };
+  }
+}
+
+/**
  * Enviar email de verificación completada
  */
 export async function sendVerificationEmail(userData: {

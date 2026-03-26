@@ -2176,6 +2176,34 @@ input[type="radio"]:disabled {
   margin: 0;
 }
 
+.forgot-password-row {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #ffa100;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.9rem;
+  margin-top: 6px;
+  padding: 0;
+}
+
+.link-button:disabled {
+  color: #999;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.success-message {
+  color: #1e7e34;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
 /* ===== MODALES CON GLASSMORPHISM ===== */
 .gps-approval-overlay {
   position: fixed;

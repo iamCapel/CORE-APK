@@ -21,6 +21,7 @@ import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { userStorage } from '../services/userStorage';
 import * as firebaseUserStorage from '../services/firebaseUserStorage';
+import { sendPasswordResetEmail } from '../services/emailService';
 import firebaseReportStorage from '../services/firebaseReportStorage';
 import { MdAdd, MdBarChart, MdMap, MdPeople, MdFileUpload } from 'react-icons/md';
 import { useGpsTracker } from '../hooks/useGpsTracker';
@@ -612,6 +613,16 @@ const Dashboard: React.FC = () => {
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // password recovery state
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetUsername, setResetUsername] = useState('');
+  const [resetName, setResetName] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [canResend, setCanResend] = useState(true);
+  const [resendSeconds, setResendSeconds] = useState(0);
 
   // Bottom navigation state
   const [activeNav, setActiveNav] = useState('dashboard');
@@ -1329,6 +1340,75 @@ const Dashboard: React.FC = () => {
       console.error('❌ Error en login:', err);
       setLoginError('⚠️ Error del sistema. Recargue la página e intente nuevamente.');
       setIsLoading(false);
+    }
+  };
+
+  const startResendTimer = () => {
+    setCanResend(false);
+    setResendSeconds(60);
+
+    const interval = setInterval(() => {
+      setResendSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleSendPasswordRecovery = async () => {
+    setResetError('');
+    setResetSuccess('');
+
+    if (!resetUsername.trim() || !resetName.trim() || !resetEmail.trim()) {
+      setResetError('Por favor complete usuario, nombre y correo electrónico.');
+      return;
+    }
+
+    try {
+      const candidate = await firebaseUserStorage.getUserByUsername(resetUsername.trim());
+
+      if (!candidate) {
+        setResetError('No se encontró usuario con ese nombre de usuario en Firebase.');
+        return;
+      }
+
+      if (candidate.email?.toLowerCase() !== resetEmail.trim().toLowerCase() ||
+          candidate.name?.trim().toLowerCase() !== resetName.trim().toLowerCase()) {
+        setResetError('Los datos no coinciden con el registro de Firebase. Verifique usuario, nombre y correo.');
+        return;
+      }
+
+      // Intenta recuperar contraseña de almacenamiento local si existe
+      const localUser = userStorage.getUserByUsername(resetUsername.trim());
+      const password = localUser?.password;
+
+      if (!password) {
+        setResetError('No es posible recuperar contraseña porque no está almacenada localmente. Contacte a soporte.');
+        return;
+      }
+
+      const emailResult = await sendPasswordResetEmail({
+        name: candidate.name || resetName.trim(),
+        username: candidate.username,
+        email: candidate.email,
+        password,
+        role: candidate.role || 'Técnico'
+      });
+
+      if (!emailResult.success) {
+        setResetError(emailResult.error || 'Error enviando correo de recuperación');
+        return;
+      }
+
+      setResetSuccess('Email enviado con éxito. Revise su bandeja de entrada.');
+      startResendTimer();
+    } catch (err: any) {
+      console.error('Error enviando recuperación de contraseña:', err);
+      setResetError('Ocurrió un error interno. Intente más tarde.');
     }
   };
 
@@ -2503,7 +2583,80 @@ const Dashboard: React.FC = () => {
             >
               {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
+
+            <div className="forgot-password-row">
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => setShowResetModal(true)}
+                disabled={isLoading}
+              >
+                Recuperar contraseña
+              </button>
+            </div>
           </form>
+
+          {showResetModal && (
+            <div className="modal-overlay" onClick={() => setShowResetModal(false)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Recuperar contraseña</h3>
+                  <button className="modal-close" onClick={() => setShowResetModal(false)}>&times;</button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <label htmlFor="resetUsername">Usuario</label>
+                    <input
+                      id="resetUsername"
+                      type="text"
+                      className="form-input"
+                      placeholder="Ingrese su usuario"
+                      value={resetUsername}
+                      onChange={e => setResetUsername(e.target.value)}
+                      autoComplete="username"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="resetName">Nombre completo</label>
+                    <input
+                      id="resetName"
+                      type="text"
+                      className="form-input"
+                      placeholder="Ingrese su nombre completo"
+                      value={resetName}
+                      onChange={e => setResetName(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="resetEmail">Correo electrónico</label>
+                    <input
+                      id="resetEmail"
+                      type="email"
+                      className="form-input"
+                      placeholder="Ingrese su correo electrónico"
+                      value={resetEmail}
+                      onChange={e => setResetEmail(e.target.value)}
+                      autoComplete="email"
+                    />
+                  </div>
+
+                  {resetError && <div className="error-message">{resetError}</div>}
+                  {resetSuccess && <div className="success-message">{resetSuccess}</div>}
+
+                  <button
+                    type="button"
+                    className="login-button"
+                    onClick={handleSendPasswordRecovery}
+                    disabled={!canResend}
+                  >
+                    {canResend ? 'Enviar' : `Espere ${resendSeconds} seg para reenviar`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
               <div className="login-footer">
                 <p> 2025 Ministerio de Obras Públicas y Comunicaciones</p>
