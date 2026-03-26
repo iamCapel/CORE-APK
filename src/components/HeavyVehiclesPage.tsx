@@ -546,7 +546,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
 
             <div className="form-row" style={{ flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '12px' }}>
-                <h3>Vehículos ({vehiculosDetalles.length})</h3>
+                <h3>Vehículos ({vehiculosDetalles.length}) - BUILD-VERSION 042</h3>
                 <ModernInput
                   id="numVehiculos"
                   type="number"
@@ -591,18 +591,6 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                     required
                   />
                   {vehiculo.fichaError && <p style={{ color: '#ffb703', marginTop: '-0.8rem' }}>{vehiculo.fichaError}</p>}
-                  {index === vehiculosDetalles.length - 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
-                      <button
-                        type="button"
-                        className="btn-modern"
-                        onClick={addVehiculo}
-                        style={{ minWidth: 'auto' }}
-                      >
-                        + Agregar vehículo
-                      </button>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
