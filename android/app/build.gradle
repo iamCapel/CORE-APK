@@ -37,6 +37,14 @@ android {
             buildConfigField "String", "DEVICE_MODEL", '"Xiaomi Redmi Note 12"'
         }
 
+        tcl20l {
+            dimension "model"
+            applicationIdSuffix ".tcl20l"
+            versionNameSuffix "-tcl20l"
+            resValue "string", "device_model", "TCL 20L Plus"
+            buildConfigField "String", "DEVICE_MODEL", '"TCL 20L Plus"'
+        }
+
         generic {
             dimension "model"
             applicationIdSuffix ".generic"
