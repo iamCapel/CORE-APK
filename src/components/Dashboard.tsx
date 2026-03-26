@@ -617,8 +617,6 @@ const Dashboard: React.FC = () => {
   // password recovery state
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetUsername, setResetUsername] = useState('');
-  const [resetName, setResetName] = useState('');
-  const [resetEmail, setResetEmail] = useState('');
   const [resetError, setResetError] = useState('');
   const [resetSuccess, setResetSuccess] = useState('');
   const [canResend, setCanResend] = useState(true);
@@ -1363,8 +1361,8 @@ const Dashboard: React.FC = () => {
     setResetError('');
     setResetSuccess('');
 
-    if (!resetUsername.trim() || !resetName.trim() || !resetEmail.trim()) {
-      setResetError('Por favor complete usuario, nombre y correo electrónico.');
+    if (!resetUsername.trim()) {
+      setResetError('Por favor ingrese el nombre de usuario.');
       return;
     }
 
@@ -1376,23 +1374,21 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      if (candidate.email?.toLowerCase() !== resetEmail.trim().toLowerCase() ||
-          candidate.name?.trim().toLowerCase() !== resetName.trim().toLowerCase()) {
-        setResetError('Los datos no coinciden con el registro de Firebase. Verifique usuario, nombre y correo.');
+      if (!candidate.email) {
+        setResetError('El usuario no tiene correo registrado en Firebase. Contacte al administrador.');
         return;
       }
 
-      // Intenta recuperar contraseña de almacenamiento local si existe
       const localUser = userStorage.getUserByUsername(resetUsername.trim());
       const password = localUser?.password;
 
       if (!password) {
-        setResetError('No es posible recuperar contraseña porque no está almacenada localmente. Contacte a soporte.');
+        setResetError('No se encontró la contraseña en el almacenamiento local. Si el usuario usa Firebase Auth, el administrador debe resetearla.');
         return;
       }
 
       const emailResult = await sendPasswordResetEmail({
-        name: candidate.name || resetName.trim(),
+        name: candidate.name || candidate.username,
         username: candidate.username,
         email: candidate.email,
         password,
@@ -2614,31 +2610,6 @@ const Dashboard: React.FC = () => {
                       value={resetUsername}
                       onChange={e => setResetUsername(e.target.value)}
                       autoComplete="username"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="resetName">Nombre completo</label>
-                    <input
-                      id="resetName"
-                      type="text"
-                      className="form-input"
-                      placeholder="Ingrese su nombre completo"
-                      value={resetName}
-                      onChange={e => setResetName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="resetEmail">Correo electrónico</label>
-                    <input
-                      id="resetEmail"
-                      type="email"
-                      className="form-input"
-                      placeholder="Ingrese su correo electrónico"
-                      value={resetEmail}
-                      onChange={e => setResetEmail(e.target.value)}
-                      autoComplete="email"
                     />
                   </div>
 
