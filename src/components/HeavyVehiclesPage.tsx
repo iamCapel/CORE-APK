@@ -95,7 +95,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const [vehiculosDetalles, setVehiculosDetalles] = useState<Array<{ tipo: string; modelo: string; ficha: string; fichaError?: string }>>([
     { tipo: '', modelo: '', ficha: '', fichaError: '' }
   ]);
-  const [numeroVehiculos, setNumeroVehiculos] = useState(1);
+  const [numeroVehiculos, setNumeroVehiculos] = useState<number>(1);
 
   const [mensaje, setMensaje] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -188,19 +188,24 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     setNumeroVehiculos(prev => Math.max(1, prev - 1));
   };
 
-  const setCantidadVehiculos = (cantidad: number) => {
-    if (cantidad < 0) cantidad = 0;
-    if (cantidad > 50) cantidad = 50;
+  const setCantidadVehiculos = (cantidad: number | string) => {
+    let numeric = Number(cantidad);
+    if (Number.isNaN(numeric) || cantidad === '') {
+      numeric = 0;
+    }
 
-    setNumeroVehiculos(cantidad);
+    if (numeric < 0) numeric = 0;
+    if (numeric > 50) numeric = 50;
+
+    setNumeroVehiculos(numeric);
     setVehiculosDetalles(prev => {
       const next = [...prev];
-      if (cantidad > next.length) {
-        for (let i = next.length; i < cantidad; i++) {
+      if (numeric > next.length) {
+        for (let i = next.length; i < numeric; i++) {
           next.push({ tipo: '', modelo: '', ficha: '', fichaError: '' });
         }
-      } else if (cantidad < next.length) {
-        next.splice(cantidad);
+      } else if (numeric < next.length) {
+        next.splice(numeric);
       }
       return next;
     });
@@ -505,7 +510,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                   label="Cantidad de vehículos"
                   placeholder="Ej 5"
                   value={numeroVehiculos}
-                  onChange={(val) => setCantidadVehiculos(Number(val) || 1)}
+                  onChange={(val) => setCantidadVehiculos(val)}
                 />
                 <button type="button" className="btn-modern" style={{ minWidth: 'auto' }} onClick={addVehiculo}>
                   + Agregar vehículo

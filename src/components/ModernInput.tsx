@@ -31,8 +31,24 @@ export const ModernInput: React.FC<ModernInputProps> = ({
   autoFocus = false
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value;
-    onChange(newValue);
+    const rawValue = e.target.value;
+
+    if (type === 'number') {
+      if (rawValue === '') {
+        onChange('');
+        return;
+      }
+
+      const parsed = Number(rawValue);
+      if (!Number.isNaN(parsed)) {
+        onChange(parsed);
+      } else {
+        onChange('');
+      }
+      return;
+    }
+
+    onChange(rawValue);
   };
 
   return (
