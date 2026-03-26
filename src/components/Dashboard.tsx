@@ -1621,6 +1621,13 @@ const Dashboard: React.FC = () => {
 
     try {
       console.log('📷 Iniciando cámara con geolocalización en vivo...');
+
+      // Limpiar guarda de foto previas para evitar duplicados indeseados
+      try {
+        localStorage.removeItem('mopc_photo_gallery');
+      } catch (error) {
+        console.warn('No se pudo limpiar gallery cache:', error);
+      }
       
       // Mostrar interfaz de cámara con controles
       const cameraInterface = document.createElement('div');
@@ -1714,7 +1721,15 @@ const Dashboard: React.FC = () => {
         font-size: 14px;
         color: #FF6B00;
       `;
-      userName.textContent = user?.name || 'Miguel De Jesus Cabrera Cruz';
+      userName.textContent = user?.fullName || user?.name || user?.username || 'Miguel De Jesus Cabrera Cruz';
+      
+      const dateTimeInfo = document.createElement('div');
+      dateTimeInfo.style.cssText = `
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.7);
+      `;
+      const now = new Date();
+      dateTimeInfo.textContent = `🕒 ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
       
       const locationInfo = document.createElement('div');
       locationInfo.style.cssText = `
@@ -1733,6 +1748,7 @@ const Dashboard: React.FC = () => {
       
       // Agregar solo lo necesario al overlay
       geoOverlay.appendChild(userName);
+      geoOverlay.appendChild(dateTimeInfo);
       geoOverlay.appendChild(locationInfo);
       geoOverlay.appendChild(coordinatesInfo);
       
@@ -1765,6 +1781,7 @@ const Dashboard: React.FC = () => {
         font-size: 20px;
         cursor: pointer;
       `;
+      flashButton.title = 'Encender / Apagar flash';
       flashButton.innerHTML = '⚡';
       
       const captureButton = document.createElement('button');
@@ -1778,6 +1795,7 @@ const Dashboard: React.FC = () => {
         cursor: pointer;
         font-weight: bold;
       `;
+      captureButton.title = 'Capturar foto';
       captureButton.innerHTML = '📷';
       
       const flipButton = document.createElement('button');
@@ -1790,12 +1808,80 @@ const Dashboard: React.FC = () => {
         font-size: 20px;
         cursor: pointer;
       `;
+      flipButton.title = 'Cambiar cámara frontal/trasera';
       flipButton.innerHTML = '🔄';
+      flipButton.style.cssText = `
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 12px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+      `;
+      flipButton.innerHTML = '🔄';
+
+      const zoomLabel = document.createElement('div');
+      zoomLabel.style.cssText = `
+        color: white;
+        font-size: 11px;
+        text-align: center;
+        width: 120px;
+      `;
+      zoomLabel.textContent = `Zoom: ${zoomLevel.toFixed(1)}x`;
+
+      const zoomSlider = document.createElement('input');
+      zoomSlider.type = 'range';
+      zoomSlider.min = '1';
+      zoomSlider.max = '3';
+      zoomSlider.step = '0.1';
+      zoomSlider.value = String(zoomLevel);
+      zoomSlider.style.cssText = `
+        width: 120px;
+        appearance: none;
+      `;
+
+      const textSizeLabel = document.createElement('div');
+      textSizeLabel.style.cssText = `
+        color: white;
+        font-size: 11px;
+        text-align: center;
+        width: 120px;
+      `;
+      textSizeLabel.textContent = `Texto: ${textSizeLevel.toFixed(1)}x`;
+
+      const textSizeSlider = document.createElement('input');
+      textSizeSlider.type = 'range';
+      textSizeSlider.min = '0.8';
+      textSizeSlider.max = '2.0';
+      textSizeSlider.step = '0.1';
+      textSizeSlider.value = String(textSizeLevel);
+      textSizeSlider.style.cssText = `
+        width: 120px;
+        appearance: none;
+      `;
       
       // Ensamblar interfaz
+      controls.appendChild(flashButton);      
+      controls.appendChild(captureButton);
+      controls.appendChild(flipButton);
+
       cameraInterface.appendChild(videoContainer);
       cameraInterface.appendChild(controls);
       document.body.appendChild(cameraInterface);
+
+      const zoomContainer = document.createElement('div');
+      zoomContainer.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;';
+      zoomContainer.appendChild(zoomLabel);
+      zoomContainer.appendChild(zoomSlider);
+
+      const textSizeContainer = document.createElement('div');
+      textSizeContainer.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;';
+      textSizeContainer.appendChild(textSizeLabel);
+      textSizeContainer.appendChild(textSizeSlider);
+
+      controls.appendChild(zoomContainer);
+      controls.appendChild(textSizeContainer);
 
       // Iniciar geolocalización en vivo
       const watchPositionId = await Geolocation.watchPosition({
@@ -1814,10 +1900,13 @@ const Dashboard: React.FC = () => {
           }
           
           // Actualizar coordenadas
+          const currentTime = new Date();
+          dateTimeInfo.textContent = `🕒 ${currentTime.toLocaleDateString()} ${currentTime.toLocaleTimeString()}`;
           coordinatesInfo.innerHTML = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           
           // Obtener dirección con OpenStreetMap Nominatim
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&accept-language=es`);
+
           if (response.ok) {
             const data = await response.json();
             if (data && data.address) {
@@ -1838,6 +1927,8 @@ const Dashboard: React.FC = () => {
             locationInfo.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           }
         } catch (error) {
+          const errorTime = new Date();
+          dateTimeInfo.textContent = `🕒 ${errorTime.toLocaleDateString()} ${errorTime.toLocaleTimeString()}`;
           if (position && position.coords) {
             locationInfo.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           } else {
@@ -1887,6 +1978,10 @@ const Dashboard: React.FC = () => {
         // Función para capturar foto
         const capturePhoto = async () => {
           try {
+            // Evitar taps repetidos que generen duplicados
+            captureButton.disabled = true;
+            setTimeout(() => { captureButton.disabled = false; }, 1500);
+
             // Captura directa del videoContainer - solo video + overlay + logo, sin controles
             const canvas = document.createElement('canvas');
             const videoContainer = document.querySelector('[style*="flex: 1"]');
@@ -1946,15 +2041,9 @@ const Dashboard: React.FC = () => {
               
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-              
-              // Detener stream
-              stream.getTracks().forEach(track => track.stop());
-              
-              // Detener geolocalización
-              Geolocation.clearWatch({ id: watchPositionId });
-              
-              // Remover interfaz
-              cameraInterface.remove();
+
+              // En esta versión seguimos con la cámara abierta para continuar tomando.
+              // No cerramos stream ni removemos la interfaz.
               
               // Mostrar mensaje de procesamiento
               const processingMessage = document.createElement('div');
@@ -1974,21 +2063,34 @@ const Dashboard: React.FC = () => {
               processingMessage.innerHTML = '📷 Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
               document.body.appendChild(processingMessage);
               
-              // Aplicar marca de agua
-              const watermarkedImage = await addWatermarkToPhoto(photoDataUrl, {
-                userName: user?.name || 'Usuario',
-                address: currentAddress,
-                latitude: currentPosition.coords.latitude,
-                longitude: currentPosition.coords.longitude,
-                timestamp: new Date()
-              });
-              
-              // Guardar directamente en galería
-              await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
-              
-              // Remover mensaje
+              // Guardar directamente el fotograma tal cual viene de la vista en vivo,
+              // haciendo que el usuario vea en la galería lo mismo que ve en la cámara.
+              await savePhotoToGallery(photoDataUrl, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
+
+              // Mensaje de éxito dentro de la propia interfaz
+              const successMessage = document.createElement('div');
+              successMessage.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 10px;
+                z-index: 10001;
+                font-size: 14px;
+              `;
+              successMessage.textContent = '📸 Foto guardada correctamente. Sigue tomando.';
+              document.body.appendChild(successMessage);
+
+              setTimeout(() => {
+                successMessage.remove();
+              }, 1800);
+
+              // Remover mensaje de procesamiento
               processingMessage.remove();
-              
+
               console.log('✅ Foto capturada y guardada con geolocalización en vivo');
             }
           } catch (error: any) {
@@ -2090,6 +2192,18 @@ const Dashboard: React.FC = () => {
         captureButton.addEventListener('click', capturePhoto);
         flashButton.addEventListener('click', toggleFlash);
         flipButton.addEventListener('click', flipCamera);
+
+        zoomSlider.addEventListener('input', (event: Event) => {
+          const value = parseFloat((event.target as HTMLInputElement).value);
+          adjustZoom(value);
+          zoomLabel.textContent = `Zoom: ${value.toFixed(1)}x`;
+        });
+
+        textSizeSlider.addEventListener('input', (event: Event) => {
+          const value = parseFloat((event.target as HTMLInputElement).value);
+          adjustTextSize(value);
+          textSizeLabel.textContent = `Texto: ${value.toFixed(1)}x`;
+        });
         
       } catch (error) {
         console.error('Error accediendo a la cámara:', error);
