@@ -71,6 +71,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           required={required}
           autoFocus={autoFocus}
           className="modern-input-field"
+          {...(type === 'number' ? { min: 0, max: 50 } : {})}
         />
         {unit && <span className="input-unit">{unit}</span>}
       </div>
