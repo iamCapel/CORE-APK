@@ -52,6 +52,14 @@ android {
             resValue "string", "device_model", "Generic"
             buildConfigField "String", "DEVICE_MODEL", '"Generic"'
         }
+
+        moto_g73 {
+            dimension "model"
+            applicationIdSuffix ".moto_g73"
+            versionNameSuffix "-moto_g73"
+            resValue "string", "device_model", "Motorola Moto G73 5G"
+            buildConfigField "String", "DEVICE_MODEL", '"Motorola Moto G73 5G"'
+        }
     }
     buildTypes {
         release {

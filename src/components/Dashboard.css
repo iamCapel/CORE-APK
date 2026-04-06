@@ -1941,12 +1941,24 @@ select,
   background-repeat: no-repeat;
   background-position: right var(--spacing-sm) center;
   background-size: 16px;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   box-shadow: var(--shadow-sm);
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+/* Workaround Xiaomi / MIUI select rendering bug: */
+select,
+.form-select,
+select option,
+.form-select option,
+select:focus,
+.form-select:focus {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
 }
 
 select:hover,
@@ -2746,6 +2758,32 @@ select option[value="otros"] {
 
 .notification-bell-button:hover svg {
   transform: rotate(15deg);
+}
+
+.notification-fullscreen-button {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+.notification-fullscreen-button:hover {
+  color: var(--orange);
+  background: rgba(255, 107, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.notification-fullscreen-button svg {
+  transition: transform 0.3s ease;
+}
+
+.notification-fullscreen-button:hover svg {
+  transform: scale(1.1);
 }
 
 .notification-badge {

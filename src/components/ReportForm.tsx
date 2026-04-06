@@ -9,6 +9,7 @@ import { ModernInput } from './ModernInput';
 import { ModernFormContainer } from './ModernFormContainer';
 import SimpleDateSelect from './SimpleDateSelect';
 import FichaInput from './FichaInput';
+import { getMunicipios, addUserMunicipio } from '../services/municipioService';
 import './ModernDashboard.css';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
@@ -63,6 +64,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const [mostrarSectorPersonalizado, setMostrarSectorPersonalizado] = useState(false);
   const [distritoPersonalizado, setDistritoPersonalizado] = useState('');
   const [mostrarDistritoPersonalizado, setMostrarDistritoPersonalizado] = useState(false);
+  const [mostrarAgregarMunicipio, setMostrarAgregarMunicipio] = useState(false);
+  const [nuevoMunicipio, setNuevoMunicipio] = useState('');
+  const [municipiosPorProvinciaState, setMunicipiosPorProvinciaState] = useState<Record<string, string[]>>(municipiosPorProvincia);
   const [fechaReporte, setFechaReporte] = useState('');
   
   // Generar opciones de fechas para los selects
@@ -202,9 +206,13 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   // Lógica de habilitación de campos
   const provinciasDisponibles = region ? provinciasPorRegion[region] || [] : [];
-  const municipiosDisponibles = provincia ? municipiosPorProvincia[provincia] || [] : [];
+  const municipiosDisponibles = provincia ? (municipiosPorProvinciaState[provincia] || []) : [];
   const distritosDisponibles = municipio ? distritosPorMunicipio[municipio] || [] : [];
   const sectoresDisponibles = provincia ? sectoresPorProvincia[provincia] || [] : [];
+
+  useEffect(() => {
+    setMunicipiosPorProvinciaState(municipiosPorProvincia);
+  }, [municipiosPorProvincia]);
   
   // Verificar si todos los campos geográficos están completos
   const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
@@ -258,6 +266,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setProvincia('');
     setDistrito('');
     setMunicipio('');
+    setMostrarAgregarMunicipio(false);
+    setNuevoMunicipio('');
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -272,6 +282,8 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setProvincia(value);
     setDistrito('');
     setMunicipio('');
+    setMostrarAgregarMunicipio(false);
+    setNuevoMunicipio('');
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -283,6 +295,21 @@ const ReportForm: React.FC<ReportFormProps> = ({
 
   const handleMunicipioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
+    if (value === 'otros') {
+      setMostrarAgregarMunicipio(true);
+      setMunicipio('');
+      setDistrito('');
+      setSector('');
+      setSectorPersonalizado('');
+      setMostrarSectorPersonalizado(false);
+      setDistritoPersonalizado('');
+      setMostrarDistritoPersonalizado(false);
+      setTipoIntervencion('');
+      setSubTipoCanal('');
+      return;
+    }
+
+    setMostrarAgregarMunicipio(false);
     setMunicipio(value);
     setDistrito('');
     setSector('');
@@ -292,6 +319,39 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setMostrarDistritoPersonalizado(false);
     setTipoIntervencion('');
     setSubTipoCanal('');
+  };
+
+  const handleAddMunicipio = () => {
+    const nombre = nuevoMunicipio.trim();
+
+    if (!provincia) {
+      alert('Seleccione primero la provincia antes de agregar el municipio.');
+      return;
+    }
+
+    if (!nombre) {
+      alert('Ingrese el nombre del municipio a agregar.');
+      return;
+    }
+
+    const existingMunicipios = municipiosPorProvinciaState[provincia] || [];
+    if (existingMunicipios.includes(nombre)) {
+      alert('El municipio ya existe en esta provincia.');
+      return;
+    }
+
+    const updatedMunicipios = [...existingMunicipios, nombre].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    setMunicipiosPorProvinciaState(prev => ({
+      ...prev,
+      [provincia]: updatedMunicipios
+    }));
+
+    addUserMunicipio(provincia, nombre);
+    setMunicipio(nombre);
+    setMostrarAgregarMunicipio(false);
+    setNuevoMunicipio('');
+
+    alert(`Municipio "${nombre}" agregado y seleccionado.`);
   };
 
   const handleDistritoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -834,6 +894,33 @@ const ReportForm: React.FC<ReportFormProps> = ({
           subtitle="Complete todos los campos requeridos para registrar la intervención"
           icon="🏗️"
         >
+          {/* Sección de tipo de intervención */}
+          <div className="form-grid">
+            <ModernSelect
+              id="tipoIntervencion"
+              icon="🛠️"
+              hint="Tipo de Intervención"
+              placeholder="Seleccionar tipo"
+              value={tipoIntervencion}
+              options={opcionesIntervencion.map(opcion => ({ value: opcion, label: opcion }))}
+              required
+              onChange={val => handleTipoIntervencionChange({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>)}
+            />
+
+            {tipoIntervencion === 'Canalización' && (
+              <ModernSelect
+                id="subTipoCanal"
+                icon="💧"
+                hint="Tipo de Canal"
+                placeholder="Seleccionar tipo de canal"
+                value={subTipoCanal}
+                options={canalOptions.map(opcion => ({ value: opcion, label: opcion }))}
+                required
+                onChange={(val) => setSubTipoCanal(String(val))}
+              />
+            )}
+          </div>
+
           {/* Sección de ubicación */}
           <div className="form-grid">
             <ModernSelect
@@ -865,11 +952,44 @@ const ReportForm: React.FC<ReportFormProps> = ({
               hint="Municipio"
               placeholder={provincia ? 'Seleccionar municipio' : '— primero provincia —'}
               value={municipio}
-              options={municipiosDisponibles.map(m => ({ value: m, label: m }))}
+              options={[
+                ...municipiosDisponibles.map(m => ({ value: m, label: m })),
+                { value: 'otros', label: '➕ Agregar nuevo municipio', special: true }
+              ]}
               disabled={!provincia}
               required
               onChange={val => handleMunicipioChange({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>)}
             />
+
+            {mostrarAgregarMunicipio && (
+              <div className="municipio-add-form" style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
+                <ModernInput
+                  id="nuevoMunicipio"
+                  type="text"
+                  label="Agregar nuevo municipio"
+                  placeholder="Ingrese nombre del municipio"
+                  value={nuevoMunicipio}
+                  onChange={(val) => setNuevoMunicipio(String(val))}
+                  icon="🏘️"
+                />
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn-modern" onClick={handleAddMunicipio}>
+                    Guardar municipio
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-modern"
+                    style={{ background: '#565a69' }}
+                    onClick={() => {
+                      setMostrarAgregarMunicipio(false);
+                      setNuevoMunicipio('');
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
 
             <ModernSelect
               id="distrito"
@@ -940,34 +1060,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
               placeholder="Seleccionar fecha final"
               disabled={!fechaInicio}
             />
-          </div>
-
-          {/* Sección de tipo de intervención */}
-          <div className="form-grid">
-            <ModernSelect
-              id="tipoIntervencion"
-              icon="🛠️"
-              hint="Tipo de Intervención"
-              placeholder="Seleccionar tipo"
-              value={tipoIntervencion}
-              options={opcionesIntervencion.map(opcion => ({ value: opcion, label: opcion }))}
-              disabled={!camposGeograficosCompletos}
-              required
-              onChange={val => handleTipoIntervencionChange({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>)}
-            />
-
-            {tipoIntervencion === 'Canalización' && (
-              <ModernSelect
-                id="subTipoCanal"
-                icon="💧"
-                hint="Tipo de Canal"
-                placeholder="Seleccionar tipo de canal"
-                value={subTipoCanal}
-                options={canalOptions.map(opcion => ({ value: opcion, label: opcion }))}
-                required
-                onChange={(val) => setSubTipoCanal(String(val))}
-              />
-            )}
           </div>
 
           {/* Sección de plantilla dinámica */}
@@ -1058,24 +1150,6 @@ const ReportForm: React.FC<ReportFormProps> = ({
                           <h6 style={{ margin: 0, color: 'var(--primary-orange)', fontSize: '16px', fontWeight: '600' }}>
                             🚜 Vehículo #{index + 1}
                           </h6>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setVehiculos(vehiculos.filter((_, i) => i !== index));
-                            }}
-                            style={{
-                              padding: '6px 16px',
-                              backgroundColor: '#E74C3C',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '13px',
-                              fontWeight: '600'
-                            }}
-                          >
-                            ✕ Eliminar
-                          </button>
                         </div>
                         
                         <div className="form-grid">

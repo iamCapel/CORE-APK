@@ -22,7 +22,9 @@
             android:screenOrientation="portrait"
             android:resizeableActivity="false"
             android:supportsPictureInPicture="false"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:fitsSystemWindows="true"
+            android:windowLayoutInDisplayCutoutMode="shortEdges">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

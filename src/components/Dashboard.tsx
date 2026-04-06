@@ -650,6 +650,9 @@ const Dashboard: React.FC = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [pendingReportsList, setPendingReportsList] = useState<any[]>([]);
   const [showPendingModal, setShowPendingModal] = useState(false);
+
+  // Estado de pantalla completa
+  const [isFullScreen, setIsFullScreen] = useState(false);
   
   // Estado para el menú desplegable del usuario
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -692,6 +695,26 @@ const Dashboard: React.FC = () => {
       setPendingCount(0);
     }
   };
+
+  const toggleFullScreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen?.();
+        setIsFullScreen(true);
+      } else {
+        await document.exitFullscreen?.();
+        setIsFullScreen(false);
+      }
+    } catch (err) {
+      console.warn('No se pudo alternar pantalla completa', err);
+    }
+  };
+
+  useEffect(() => {
+    const onFullScreenChange = () => setIsFullScreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullScreenChange);
+  }, []);
 
   // Función para obtener lista detallada de reportes pendientes del usuario
   const getPendingReports = async () => {
@@ -2693,6 +2716,29 @@ const Dashboard: React.FC = () => {
                   {pendingCount > 99 ? '99+' : pendingCount}
                 </span>
               )}
+            </button>
+            <button
+              className="notification-fullscreen-button"
+              onClick={toggleFullScreen}
+              title={isFullScreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {isFullScreen ? (
+                  <>
+                    <path d="M16 18l4 0l0 -4" />
+                    <path d="M8 6l-4 0l0 4" />
+                    <path d="M16 6l4 0l0 4" />
+                    <path d="M8 18l-4 0l0 -4" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M4 9l0 -4l4 0" />
+                    <path d="M20 15l0 4l-4 0" />
+                    <path d="M20 9l0 -4l-4 0" />
+                    <path d="M4 15l0 4l4 0" />
+                  </>
+                )}
+              </svg>
             </button>
           </div>
         </div>

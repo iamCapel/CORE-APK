@@ -66,6 +66,24 @@ const distritosPorMunicipio: Record<string, string[]> = {
   'Duarte': ['Nagua'],
 };
 
+const opcionesIntervencion = [
+  'Rehabilitación Camino Vecinal',
+  'Rehabilitación acceso a mina',
+  'Restauración Calles comunidad',
+  'Confección de cabezal de puente',
+  'Restauración de vías de Comunicación',
+  'Operativo de Emergencia',
+  'Limpieza de alcantarillas',
+  'Confección de puente',
+  'Limpieza de Cañada',
+  'Colocación de alcantarillas',
+  'Canalización',
+  'Desalojo',
+  'Habilitación Zona protegida o Espacio público'
+];
+
+const canalOptions = ['Río', 'Arroyo', 'Cañada'];
+
 const heavyVehicleTypes = [
   'Excavadora',
   'Retroexcavadora',
@@ -104,6 +122,8 @@ const heavyVehicleTypes = [
 ];
 
 const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
+  const [tipoIntervencion, setTipoIntervencion] = useState('');
+  const [subTipoCanal, setSubTipoCanal] = useState('');
   const [region, setRegion] = useState('');
   const [provincia, setProvincia] = useState('');
   const [municipio, setMunicipio] = useState('');
@@ -326,6 +346,16 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!tipoIntervencion) {
+      setMensaje('Seleccione el tipo de intervención.');
+      return;
+    }
+
+    if (tipoIntervencion === 'Canalización' && !subTipoCanal) {
+      setMensaje('Seleccione el tipo de canal.');
+      return;
+    }
+
     if (!region || !provincia || !municipio || !distrito) {
       setMensaje('Por favor complete todos los campos de dirección jerárquica.');
       return;
@@ -361,6 +391,8 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     const baseRecord: Omit<HeavyVehicleRecord, 'id' | 'tipoVehiculo' | 'modelo' | 'ficha' | 'cantidadVehiculos'> = {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      tipoIntervencion,
+      subTipoCanal: tipoIntervencion === 'Canalización' ? subTipoCanal : undefined,
       region,
       provincia,
       municipio,
@@ -436,6 +468,33 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
           icon="🚚"
         >
           <form onSubmit={onSubmit}>
+            {/* Selector de tipo de intervención */}
+            <div className="form-row">
+              <ModernSelect
+                id="tipoIntervencion"
+                icon="🛠️"
+                hint="Tipo de Intervención"
+                placeholder="Seleccionar tipo"
+                value={tipoIntervencion}
+                options={opcionesIntervencion.map(opcion => ({ value: opcion, label: opcion }))}
+                required
+                onChange={setTipoIntervencion}
+              />
+
+              {tipoIntervencion === 'Canalización' && (
+                <ModernSelect
+                  id="subTipoCanal"
+                  icon="💧"
+                  hint="Tipo de Canal"
+                  placeholder="Seleccionar tipo de canal"
+                  value={subTipoCanal}
+                  options={canalOptions.map(opcion => ({ value: opcion, label: opcion }))}
+                  required
+                  onChange={setSubTipoCanal}
+                />
+              )}
+            </div>
+
             <div className="form-row">
               <ModernSelect
                 id="region"

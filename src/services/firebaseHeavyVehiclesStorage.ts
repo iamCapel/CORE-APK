@@ -10,6 +10,8 @@ export interface HeavyVehicleRecord {
   id: string;
   createdAt: string;
   updatedAt: string;
+  tipoIntervencion?: string;
+  subTipoCanal?: string;
   region: string;
   provincia: string;
   municipio: string;
@@ -119,14 +121,23 @@ class FirebaseHeavyVehiclesStorage {
       const duplicate = existingVehiculos.some((v: any) => v.ficha === vehiculo.ficha && v.tipo === vehiculo.tipo);
       const mergedVehiculos = duplicate ? existingVehiculos : [...existingVehiculos, vehiculo];
 
+      // Actualizar tipo de intervención si se proporciona uno más específico
+      const updates: any = { vehiculos: mergedVehiculos };
+      if (record.tipoIntervencion && existingReport.tipoIntervencion === 'Vehículos Pesados') {
+        updates.tipoIntervencion = record.tipoIntervencion;
+        if (record.subTipoCanal) {
+          updates.subTipoCanal = record.subTipoCanal;
+        }
+      }
+
       if (!duplicate) {
-        await firebaseReportStorage.updateReport(existingReport.id, { vehiculos: mergedVehiculos });
+        await firebaseReportStorage.updateReport(existingReport.id, updates);
       }
 
       try {
         await reportStorage.saveReport({
           ...existingReport,
-          vehiculos: mergedVehiculos,
+          ...updates,
           fechaModificacion: new Date().toISOString(),
           modificadoPor: record.usuarioId || existingReport.usuarioId || 'sistema'
         });
@@ -138,14 +149,23 @@ class FirebaseHeavyVehiclesStorage {
     }
 
     // Si no existe reporte, creamos uno nuevo completo con estado completado
+    const tipoIntervencionDisplay = record.tipoIntervencion 
+      ? (record.subTipoCanal ? `${record.tipoIntervencion}: ${record.subTipoCanal}` : record.tipoIntervencion)
+      : 'Vehículos Pesados';
+    
+    const observacionesConTipo = record.tipoIntervencion
+      ? `${record.observaciones || 'Registro de vehículo pesado'} - Intervención: ${tipoIntervencionDisplay}`
+      : (record.observaciones || 'Registro de vehículo pesado asociada');
+
     const newReport: Partial<ReportData> = {
       region: record.region,
       provincia: record.provincia,
       municipio: record.municipio,
       distrito: record.distrito || record.distritoPersonalizado || '',
       sector: '',
-      tipoIntervencion: 'Vehículos Pesados',
-      observaciones: record.observaciones || 'Registro de vehículo pesado asociada',
+      tipoIntervencion: record.tipoIntervencion || 'Vehículos Pesados',
+      subTipoCanal: record.subTipoCanal,
+      observaciones: observacionesConTipo,
       metricData: {},
       vehiculos: [vehiculo],
       fechaInicio: record.fechaInicio,
