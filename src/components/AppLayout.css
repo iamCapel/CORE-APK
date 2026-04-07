@@ -46,24 +46,7 @@
   padding: 0;
 }
 
-/* Para navegación inferior fija - Espaciado dinámico */
-.app-layout > *:last-child {
-  padding-bottom: 80px;
-}
 
-/* En dispositivos móviles con navigation bar más grande */
-@media (max-width: 768px) {
-  .app-layout > *:last-child {
-    padding-bottom: 90px;
-  }
-}
-
-/* Para dispositivos muy pequeños */
-@media (max-width: 480px) {
-  .app-layout > *:last-child {
-    padding-bottom: 100px;
-  }
-}
 
 /* Evitar scroll horizontal en todos los dispositivos */
 html, body {

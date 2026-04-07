@@ -17,6 +17,7 @@ import MyReportsHierarchy from './MyReportsHierarchy';
 import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
 import HeavyVehiclesPage from './HeavyVehiclesPage';
+import ChatPage from './ChatPage';
 import AppLayout from './AppLayout';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { userStorage } from '../services/userStorage';
@@ -636,6 +637,7 @@ const Dashboard: React.FC = () => {
   const [showHierarchy, setShowHierarchy] = useState(false);
   const [showSettingsPage, setShowSettingsPage] = useState(false);
   const [showHeavyVehiclesPage, setShowHeavyVehiclesPage] = useState(false);
+  const [showChatPage, setShowChatPage] = useState(false);
   const [interventionToEdit, setInterventionToEdit] = useState<any>(null);
 
   // ReportView states
@@ -2467,6 +2469,15 @@ const Dashboard: React.FC = () => {
   }
 
   // Si se debe mostrar la página de configuración
+  if (showChatPage && user) {
+    return (
+      <ChatPage
+        currentUser={user}
+        onBack={() => setShowChatPage(false)}
+      />
+    );
+  }
+
   if (showSettingsPage && user) {
     return (
       <UserSettingsPage 
@@ -2740,6 +2751,15 @@ const Dashboard: React.FC = () => {
                 )}
               </svg>
             </button>
+            <button
+              className="notification-fullscreen-button"
+              onClick={() => setShowChatPage(true)}
+              title="Mensajes"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -2952,48 +2972,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra de navegación inferior */}
-      <nav className="bottom-navigation">
-        <button 
-          className={`nav-item ${activeNav === 'dashboard' ? 'active' : ''}`}
-          onClick={() => handleBottomNavClick('dashboard')}
-          title="Dashboard"
-        >
-          <HomeIcon size={24} />
-          <span>Inicio</span>
-        </button>
-        
-        <button 
-          className={`nav-item ${activeNav === 'crear' ? 'active' : ''}`}
-          onClick={() => handleBottomNavClick('crear')}
-          title="Crear Reporte"
-        >
-          <CreateIcon size={24} />
-          <span>Crear</span>
-        </button>
-        
-        <button 
-          className={`nav-item ${activeNav === 'reportes' ? 'active' : ''}`}
-          onClick={() => handleBottomNavClick('reportes')}
-          title="Mis Reportes"
-        >
-          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10"></line>
-            <line x1="12" y1="20" x2="12" y2="4"></line>
-            <line x1="6" y1="20" x2="6" y2="14"></line>
-          </svg>
-          <span>Reportes</span>
-        </button>
-        
-        <button 
-          className={`nav-item ${activeNav === 'opciones' ? 'active' : ''}`}
-          onClick={() => handleBottomNavClick('opciones')}
-          title="Opciones"
-        >
-          <OptionsIcon size={24} />
-          <span>Opciones</span>
-        </button>
-      </nav>
+
 
       {/* Modal de Reportes Pendientes */}
       <PendingReportsModal
