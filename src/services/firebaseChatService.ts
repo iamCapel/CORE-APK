@@ -2,12 +2,15 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   addDoc,
   updateDoc,
+  writeBatch,
   query,
   where,
   orderBy,
+  limitToLast,
   onSnapshot,
   serverTimestamp,
   increment,
@@ -104,6 +107,57 @@ export async function sendMessage(
     lastMessageSenderId: senderId,
     [`unreadCount.${otherUserId}`]: increment(1),
   });
+
+  // Enviar notificación push al destinatario (fire-and-forget, no bloquea el chat)
+  sendPushNotification(otherUserId, senderName, trimmed, chatId).catch(() => {});
+}
+
+/**
+ * Obtiene el token FCM del destinatario y llama al endpoint /api/notify.
+ * Se ejecuta en segundo plano — los errores no afectan el envío del mensaje.
+ */
+async function sendPushNotification(
+  recipientId: string,
+  senderName: string,
+  messageText: string,
+  chatId: string
+): Promise<void> {
+  try {
+    const userSnap = await getDoc(doc(db, 'users', recipientId));
+    if (!userSnap.exists()) return;
+    const fcmToken = userSnap.data()?.fcmToken;
+    if (!fcmToken) return;
+
+    const body = messageText.length > 100
+      ? messageText.substring(0, 100) + '...'
+      : messageText;
+
+    // En Android WebView las rutas relativas no funcionan — usar URL absoluta
+    const notifyUrl = process.env.REACT_APP_VERCEL_URL
+      ? `https://${process.env.REACT_APP_VERCEL_URL}/api/notify`
+      : 'https://mopc-core.vercel.app/api/notify';
+
+    const response = await fetch(notifyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-notify-secret': process.env.REACT_APP_NOTIFY_SECRET || '',
+      },
+      body: JSON.stringify({
+        token: fcmToken,
+        title: senderName,
+        body,
+        data: { chatId, senderId: recipientId, type: 'chat_message' },
+      }),
+    });
+
+    // Si el token expiró, limpiarlo de Firestore
+    if (response.status === 410) {
+      await updateDoc(doc(db, 'users', recipientId), { fcmToken: null });
+    }
+  } catch (_) {
+    // Silenciar errores — la notificación es opcional
+  }
 }
 
 export async function markMessagesAsRead(
@@ -138,7 +192,16 @@ export function subscribeToUserChats(
       return tb - ta;
     });
 
-    callback(chats);
+    // Deduplicar: un solo chat por usuario — conservar el más reciente
+    const seen = new Set<string>();
+    const deduped = chats.filter(chat => {
+      const otherId = chat.participants.find(p => p !== userId) || '';
+      if (!otherId || seen.has(otherId)) return false;
+      seen.add(otherId);
+      return true;
+    });
+
+    callback(deduped);
   });
 }
 
@@ -148,14 +211,27 @@ export function subscribeToMessages(
 ): Unsubscribe {
   const q = query(
     collection(db, 'chats', chatId, 'messages'),
-    orderBy('timestamp', 'asc')
+    orderBy('timestamp', 'asc'),
+    limitToLast(50)
   );
 
-  return onSnapshot(q, (snapshot) => {
-    const messages: ChatMessage[] = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<ChatMessage, 'id'>),
-    }));
-    callback(messages);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const messages: ChatMessage[] = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Omit<ChatMessage, 'id'>),
+      }));
+      callback(messages);
+    },
+    (error) => console.error('[Chat] subscribeToMessages error:', error)
+  );
+}
+
+export async function deleteChatRoom(chatId: string): Promise<void> {
+  const batch = writeBatch(db);
+  const messagesSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
+  messagesSnap.docs.forEach((d) => batch.delete(d.ref));
+  batch.delete(doc(db, 'chats', chatId));
+  await batch.commit();
 }

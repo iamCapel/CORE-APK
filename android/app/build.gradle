@@ -23,42 +23,38 @@ android {
     productFlavors {
         a04s {
             dimension "model"
-            applicationIdSuffix ".a04s"
-            versionNameSuffix "-a04s"
             resValue "string", "device_model", "Samsung Galaxy A04s"
             buildConfigField "String", "DEVICE_MODEL", '"Samsung Galaxy A04s"'
         }
 
         note12 {
             dimension "model"
-            applicationIdSuffix ".note12"
-            versionNameSuffix "-note12"
             resValue "string", "device_model", "Xiaomi Redmi Note 12"
             buildConfigField "String", "DEVICE_MODEL", '"Xiaomi Redmi Note 12"'
         }
 
         tcl20l {
             dimension "model"
-            applicationIdSuffix ".tcl20l"
-            versionNameSuffix "-tcl20l"
             resValue "string", "device_model", "TCL 20L Plus"
             buildConfigField "String", "DEVICE_MODEL", '"TCL 20L Plus"'
         }
 
         generic {
             dimension "model"
-            applicationIdSuffix ".generic"
-            versionNameSuffix "-generic"
             resValue "string", "device_model", "Generic"
             buildConfigField "String", "DEVICE_MODEL", '"Generic"'
         }
 
         moto_g73 {
             dimension "model"
-            applicationIdSuffix ".moto_g73"
-            versionNameSuffix "-moto_g73"
             resValue "string", "device_model", "Motorola Moto G73 5G"
             buildConfigField "String", "DEVICE_MODEL", '"Motorola Moto G73 5G"'
+        }
+
+        sunshine_t1_elite {
+            dimension "model"
+            resValue "string", "device_model", "Sunshine T1 Elite"
+            buildConfigField "String", "DEVICE_MODEL", '"Sunshine T1 Elite"'
         }
     }
     buildTypes {

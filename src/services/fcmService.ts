@@ -1,0 +1,89 @@
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
+
+let _removeListeners: (() => void) | null = null;
+
+/**
+ * Inicializa las notificaciones push para el dispositivo.
+ * Solicita permiso, registra el token FCM y lo guarda en Firestore.
+ */
+export async function initializePushNotifications(userId: string): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+
+  // Eliminar listeners anteriores si existen
+  removePushListeners();
+
+  // Solicitar permiso
+  const { receive } = await PushNotifications.requestPermissions();
+  if (receive !== 'granted') {
+    console.warn('[FCM] Permiso de notificaciones denegado');
+    return;
+  }
+
+  // Registrar en FCM
+  await PushNotifications.register();
+
+  // Guardar token cuando se recibe
+  const onRegistration = async (token: Token) => {
+    console.log('[FCM] Token registrado:', token.value.substring(0, 20) + '...');
+    await saveFcmToken(userId, token.value);
+  };
+
+  // Notificación recibida mientras la app está en primer plano
+  const onForeground = (notification: PushNotificationSchema) => {
+    console.log('[FCM] Notificación en primer plano:', notification.title);
+    // Android muestra la notificación automáticamente en segundo plano.
+    // En primer plano se puede mostrar una alerta o banner interno si se desea.
+  };
+
+  // Usuario tocó una notificación
+  const onActionPerformed = (action: ActionPerformed) => {
+    console.log('[FCM] Notificación tocada:', action.notification.data);
+    // Aquí se puede agregar navegación al chat específico si se desea
+  };
+
+  PushNotifications.addListener('registration', onRegistration);
+  PushNotifications.addListener('registrationError', (err) => {
+    console.error('[FCM] Error de registro:', err.error);
+  });
+  PushNotifications.addListener('pushNotificationReceived', onForeground);
+  PushNotifications.addListener('pushNotificationActionPerformed', onActionPerformed);
+
+  _removeListeners = () => {
+    PushNotifications.removeAllListeners();
+  };
+}
+
+/**
+ * Elimina todos los listeners de notificaciones push.
+ */
+export function removePushListeners(): void {
+  if (_removeListeners) {
+    _removeListeners();
+    _removeListeners = null;
+  }
+}
+
+/**
+ * Guarda el token FCM del dispositivo en el documento del usuario en Firestore.
+ */
+export async function saveFcmToken(userId: string, token: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, 'users', userId), { fcmToken: token });
+  } catch (error) {
+    console.error('[FCM] Error guardando token:', error);
+  }
+}
+
+/**
+ * Borra el token FCM del usuario (logout).
+ */
+export async function clearFcmToken(userId: string): Promise<void> {
+  try {
+    await updateDoc(doc(db, 'users', userId), { fcmToken: null });
+  } catch (error) {
+    console.error('[FCM] Error borrando token:', error);
+  }
+}

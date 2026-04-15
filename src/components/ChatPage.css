@@ -18,11 +18,39 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 12px 16px 0;
+  padding-top: max(12px, env(safe-area-inset-top));
   background: var(--dark-surface, #111114);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
-  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+/* ── Header del mural ── */
+.chat-mural-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.chat-mural-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: rgba(255,255,255,0.95);
+  line-height: 1.15;
+}
+
+.chat-mural-subtitle {
+  font-size: 12px;
+  color: rgba(255,255,255,0.38);
+  font-weight: 400;
+  padding-bottom: 10px;
+}
+
+.chat-mural-subtitle strong {
+  color: var(--accent, #e8701a);
+  font-weight: 600;
 }
 
 .chat-topbar-title {
@@ -57,23 +85,27 @@
   border-radius: 8px;
   transition: background 0.15s;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 2px;
 }
 .chat-back-btn:hover { background: rgba(255,255,255,0.07); }
 
 .chat-new-btn {
-  background: none;
+  background: var(--accent, #e8701a);
   border: none;
   cursor: pointer;
-  color: var(--accent, #e8701a);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  border-radius: 8px;
-  transition: background 0.15s;
+  padding: 8px;
+  border-radius: 10px;
+  transition: opacity 0.15s;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 1px;
 }
-.chat-new-btn:hover { background: rgba(232,112,26,0.1); }
+.chat-new-btn:hover { opacity: 0.85; }
 
 /* ── Search bar ── */
 .chat-search-bar {
@@ -134,17 +166,19 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  background: none;
+  padding: 13px 14px;
+  background: rgba(255,255,255,0.03);
   border: none;
+  border-left: 3px solid transparent;
   cursor: pointer;
   width: 100%;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  transition: background 0.12s;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.12s, border-left-color 0.12s;
   color: var(--text-primary, rgba(255,255,255,0.92));
 }
-.chat-list-item:hover { background: rgba(255,255,255,0.04); }
+.chat-list-item:hover { background: rgba(255,255,255,0.06); border-left-color: rgba(232,112,26,0.4); }
+.chat-list-item.has-unread { border-left-color: var(--accent, #e8701a); background: rgba(232,112,26,0.06); }
 
 .chat-list-avatar {
   position: relative;
@@ -318,7 +352,7 @@
 }
 
 .bubble-theirs {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.14);
   border-bottom-left-radius: 4px;
   color: rgba(255,255,255,0.92);
 }
@@ -488,6 +522,7 @@
   border: none;
   outline: none;
   color: rgba(255,255,255,0.92);
+
   font-size: 14px;
   width: 100%;
 }
@@ -540,4 +575,45 @@
 .chat-modal-user-sub {
   font-size: 12px;
   color: rgba(255,255,255,0.4);
+}
+
+/* ── Swipe-to-delete (lista de chats) ── */
+.cp-swipe-row {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.cp-swipe-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  display: flex;
+  align-items: stretch;
+}
+
+.cp-swipe-delete-btn {
+  flex: 1;
+  background: #e84040;
+  border: none;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.cp-swipe-delete-btn:hover { background: #c0392b; }
+
+.cp-swipe-content {
+  position: relative;
+  z-index: 1;
+  background: var(--dark-bg, #0a0a0c);
+  will-change: transform;
 }

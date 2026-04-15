@@ -28,6 +28,9 @@ const config: CapacitorConfig = {
     },
     App: {
       appendUserAgent: "MOPC-Core/1.0"
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
     }
   }
 };

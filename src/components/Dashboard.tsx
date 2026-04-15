@@ -18,9 +18,12 @@ import ReportViewModern from './ReportViewModern';
 import UserSettingsPage from './UserSettingsPage';
 import HeavyVehiclesPage from './HeavyVehiclesPage';
 import ChatPage from './ChatPage';
+import BubbleFeedChat from './BubbleFeedChat';
 import AppLayout from './AppLayout';
 import ChatList from './ChatList';
 import { subscribeToUserChats } from '../services/firebaseChatService';
+import { enableNetwork } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { useNotificationSound } from '../hooks/useNotificationSound';
 import { UserRole, applyUserTheme, getRoleBadge, normalizeRole } from '../types/userRoles';
 import { userStorage } from '../services/userStorage';
@@ -37,7 +40,7 @@ import './BottomNavigation.css';
 import './MyReportsPage.css';
 import './ModernDashboard.css';
 
-/* Ã”Ã¶Ã‡Ã”Ã¶Ã‡ Iconos para navegaciâ”œâ”‚n inferior Ã”Ã¶Ã‡Ã”Ã¶Ã‡ */
+/* ÔöÇÔöÇ Iconos para navegación inferior ÔöÇÔöÇ */
 const HomeIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -59,7 +62,7 @@ const OptionsIcon = ({ size = 24, color = "currentColor" }: { size?: number; col
   </svg>
 );
 
-/* Ã”Ã¶Ã‡Ã”Ã¶Ã‡ Icono de usuario cuadrado para la topbar Ã”Ã¶Ã‡Ã”Ã¶Ã‡ */
+/* ÔöÇÔöÇ Icono de usuario cuadrado para la topbar ÔöÇÔöÇ */
 const UserAvatarIcon: React.FC<{ photoUrl?: string }> = ({ photoUrl }) => {
   if (photoUrl) {
     return <img src={photoUrl} alt="Avatar" className="topbar-av-photo topbar-av-md" style={{ objectFit: 'cover' }} />;
@@ -96,7 +99,7 @@ const TruckIcon = ({ size = 24, color = "currentColor" }: { size?: number; color
 );
 const FileUploadIcon = MdFileUpload as IconComponent;
 
-/* Ã”Ã¶Ã‡Ã”Ã¶Ã‡ Icono de Câ”œÃ­mara Ã”Ã¶Ã‡Ã”Ã¶Ã‡ */
+/* ÔöÇÔöÇ Icono de Cámara ÔöÇÔöÇ */
 const CameraIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -119,29 +122,29 @@ interface User {
 }
 
 const plantillaDefault: Field[] = [
-  { key: 'punto_inicial', label: 'Punto inicial de la intervenciâ”œâ”‚n', type: 'text', unit: 'Coordenadas decimales' },
-  { key: 'punto_alcanzado', label: 'Punto alcanzado en la intervenciâ”œâ”‚n', type: 'text', unit: 'Coordenadas decimales' },
-  { key: 'longitud_intervencion', label: 'Longitud de intervenciâ”œâ”‚n', type: 'number', unit: 'km' },
-  { key: 'limpieza_superficie', label: 'Limpieza de superficie', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'perfilado_superficie', label: 'Perfilado de superficie', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'compactado_superficie', label: 'Compactado de superficie', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'conformacion_cunetas', label: 'Conformaciâ”œâ”‚n de cunetas', type: 'number', unit: 'ml' },
-  { key: 'extraccion_bote_material', label: 'Extracciâ”œâ”‚n y bote de material inservible', type: 'number', unit: 'mâ”¬â”‚' },
-  { key: 'escarificacion_superficies', label: 'Escarificaciâ”œâ”‚n de superficies', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'conformacion_plataforma', label: 'Conformaciâ”œâ”‚n de plataforma', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'zafra_material', label: 'Zafra de material', type: 'number', unit: 'mâ”¬â”‚' },
-  { key: 'motonivelacion_superficie', label: 'Motonivelaciâ”œâ”‚n de superficie', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'suministro_extension_material', label: 'Suministro y extensiâ”œâ”‚n de material', type: 'number', unit: 'mâ”¬â”‚' },
-  { key: 'suministro_colocacion_grava', label: 'Suministro y colocaciâ”œâ”‚n de grava', type: 'number', unit: 'mâ”¬â”‚' },
-  { key: 'nivelacion_compactacion_grava', label: 'Nivelaciâ”œâ”‚n y compactaciâ”œâ”‚n de grava', type: 'number', unit: 'mâ”¬â–“' },
-  { key: 'reparacion_alcantarillas', label: 'Reparaciâ”œâ”‚n de alcantarillas existentes', type: 'number', unit: 'und' },
-  { key: 'construccion_alcantarillas', label: 'Construcciâ”œâ”‚n de alcantarillas', type: 'number', unit: 'und' },
+  { key: 'punto_inicial', label: 'Punto inicial de la intervención', type: 'text', unit: 'Coordenadas decimales' },
+  { key: 'punto_alcanzado', label: 'Punto alcanzado en la intervención', type: 'text', unit: 'Coordenadas decimales' },
+  { key: 'longitud_intervencion', label: 'Longitud de intervención', type: 'number', unit: 'km' },
+  { key: 'limpieza_superficie', label: 'Limpieza de superficie', type: 'number', unit: 'm²' },
+  { key: 'perfilado_superficie', label: 'Perfilado de superficie', type: 'number', unit: 'm²' },
+  { key: 'compactado_superficie', label: 'Compactado de superficie', type: 'number', unit: 'm²' },
+  { key: 'conformacion_cunetas', label: 'Conformación de cunetas', type: 'number', unit: 'ml' },
+  { key: 'extraccion_bote_material', label: 'Extracción y bote de material inservible', type: 'number', unit: 'mó' },
+  { key: 'escarificacion_superficies', label: 'Escarificación de superficies', type: 'number', unit: 'm²' },
+  { key: 'conformacion_plataforma', label: 'Conformación de plataforma', type: 'number', unit: 'm²' },
+  { key: 'zafra_material', label: 'Zafra de material', type: 'number', unit: 'mó' },
+  { key: 'motonivelacion_superficie', label: 'Motonivelación de superficie', type: 'number', unit: 'm²' },
+  { key: 'suministro_extension_material', label: 'Suministro y extensión de material', type: 'number', unit: 'mó' },
+  { key: 'suministro_colocacion_grava', label: 'Suministro y colocación de grava', type: 'number', unit: 'mó' },
+  { key: 'nivelacion_compactacion_grava', label: 'Nivelación y compactación de grava', type: 'number', unit: 'm²' },
+  { key: 'reparacion_alcantarillas', label: 'Reparación de alcantarillas existentes', type: 'number', unit: 'und' },
+  { key: 'construccion_alcantarillas', label: 'Construcción de alcantarillas', type: 'number', unit: 'und' },
   { key: 'limpieza_alcantarillas', label: 'Limpieza de alcantarillas', type: 'number', unit: 'und' },
-  { key: 'limpieza_cauces', label: 'Limpieza de cauces y caâ”œâ–’adas', type: 'number', unit: 'ml' },
+  { key: 'limpieza_cauces', label: 'Limpieza de cauces y cañadas', type: 'number', unit: 'ml' },
   { key: 'obras_drenaje', label: 'Obras de drenaje', type: 'number', unit: 'ml' },
-  { key: 'construccion_terraplenes', label: 'Construcciâ”œâ”‚n de terraplenes', type: 'number', unit: 'mâ”¬â”‚' },
-  { key: 'relleno_compactacion', label: 'Relleno y compactaciâ”œâ”‚n de material', type: 'number', unit: 'mâ”¬â”‚' },
-  { key: 'conformacion_taludes', label: 'Conformaciâ”œâ”‚n de taludes', type: 'number', unit: 'mâ”¬â–“' }
+  { key: 'construccion_terraplenes', label: 'Construcción de terraplenes', type: 'number', unit: 'mó' },
+  { key: 'relleno_compactacion', label: 'Relleno y compactación de material', type: 'number', unit: 'mó' },
+  { key: 'conformacion_taludes', label: 'Conformación de taludes', type: 'number', unit: 'm²' }
 ];
 
 const regionesRD = [
@@ -161,61 +164,61 @@ const regionesRD = [
 const provinciasPorRegion: Record<string, string[]> = {
   'Ozama o Metropolitana': ['Distrito Nacional', 'Santo Domingo'],
   'Cibao Norte': ['Puerto Plata', 'Espaillat'],
-  'Cibao Sur': ['La Vega', 'Monseâ”œâ–’or Nouel', 'Sâ”œÃ­nchez Ramâ”œÂ¡rez'],
-  'Cibao Nordeste': ['Duarte', 'Marâ”œÂ¡a Trinidad Sâ”œÃ­nchez', 'Samanâ”œÃ­', 'Hermanas Mirabal'],
-  'Cibao Noroeste': ['Valverde', 'Monte Cristi', 'Dajabâ”œâ”‚n', 'Santiago Rodrâ”œÂ¡guez'],
+  'Cibao Sur': ['La Vega', 'Monseñor Nouel', 'Sánchez Ramírez'],
+  'Cibao Nordeste': ['Duarte', 'María Trinidad Sánchez', 'Samaná', 'Hermanas Mirabal'],
+  'Cibao Noroeste': ['Valverde', 'Monte Cristi', 'Dajabón', 'Santiago Rodríguez'],
   'Santiago': ['Santiago'],
-  'Valdesia': ['San Cristâ”œâ”‚bal', 'Peravia', 'San Josâ”œÂ® de Ocoa'],
+  'Valdesia': ['San Cristóbal', 'Peravia', 'San José de Ocoa'],
   'Enriquillo': ['Barahona', 'Pedernales', 'Independencia', 'Bahoruco'],
-  'El Valle': ['San Juan', 'Elâ”œÂ¡as Piâ”œâ–’a', 'Azua'],
+  'El Valle': ['San Juan', 'Elías Piña', 'Azua'],
   'Yuma': ['La Altagracia', 'La Romana', 'El Seibo'],
-  'Higuamo': ['San Pedro de Macorâ”œÂ¡s', 'Hato Mayor', 'Monte Plata']
+  'Higuamo': ['San Pedro de Macorís', 'Hato Mayor', 'Monte Plata']
 };
 
-// Municipios por Provincia de Repâ”œâ•‘blica Dominicana
+// Municipios por Provincia de República Dominicana
 const municipiosPorProvincia: Record<string, string[]> = {
   // Cibao Norte
-  'Puerto Plata': ['Puerto Plata', 'Altamira', 'Guananico', 'Imbert', 'Los Hidalgos', 'Luperâ”œâ”‚n', 'Râ”œÂ¡o San Juan', 'Villa Isabela', 'Villa Montellano'],
-  'Espaillat': ['Moca', 'Cayetano Germosâ”œÂ®n', 'Gaspar Hernâ”œÃ­ndez', 'Jamao al Norte'],
-  'Santiago': ['Santiago', 'Bisonâ”œâ”‚ (Navarrete)', 'Jâ”œÃ­nico', 'Licey al Medio', 'Puâ”œâ–’al', 'Sabana Iglesia', 'San Josâ”œÂ® de las Matas', 'Tamboril', 'Villa Gonzâ”œÃ­lez'],
+  'Puerto Plata': ['Puerto Plata', 'Altamira', 'Guananico', 'Imbert', 'Los Hidalgos', 'Luperón', 'Río San Juan', 'Villa Isabela', 'Villa Montellano'],
+  'Espaillat': ['Moca', 'Cayetano Germosén', 'Gaspar Hernández', 'Jamao al Norte'],
+  'Santiago': ['Santiago', 'Bisonó (Navarrete)', 'Jánico', 'Licey al Medio', 'Puñal', 'Sabana Iglesia', 'San José de las Matas', 'Tamboril', 'Villa González'],
   
   // Cibao Sur  
   'La Vega': ['La Vega', 'Constanza', 'Jarabacoa', 'Jima Abajo'],
-  'Monseâ”œâ–’or Nouel': ['Bonao', 'Maimâ”œâ”‚n', 'Piedra Blanca'],
-  'Sâ”œÃ­nchez Ramâ”œÂ¡rez': ['Cotuâ”œÂ¡', 'Cevicos', 'Fantino', 'La Mata'],
+  'Monseñor Nouel': ['Bonao', 'Maimón', 'Piedra Blanca'],
+  'Sánchez Ramírez': ['Cotuí', 'Cevicos', 'Fantino', 'La Mata'],
   
   // Cibao Nordeste
-  'Duarte': ['San Francisco de Macorâ”œÂ¡s', 'Arenoso', 'Castillo', 'Eugenio Marâ”œÂ¡a de Hostos', 'Las Guâ”œÃ­ranas', 'Pimentel', 'Villa Riva'],
-  'Marâ”œÂ¡a Trinidad Sâ”œÃ­nchez': ['Nagua', 'Cabrera', 'El Factor', 'Râ”œÂ¡o San Juan'],
-  'Samanâ”œÃ­': ['Samanâ”œÃ­', 'Las Terrenas', 'Sâ”œÃ­nchez'],
+  'Duarte': ['San Francisco de Macorís', 'Arenoso', 'Castillo', 'Eugenio María de Hostos', 'Las Guáranas', 'Pimentel', 'Villa Riva'],
+  'María Trinidad Sánchez': ['Nagua', 'Cabrera', 'El Factor', 'Río San Juan'],
+  'Samaná': ['Samaná', 'Las Terrenas', 'Sánchez'],
   
   // Cibao Noroeste
-  'Monte Cristi': ['Monte Cristi', 'Castaâ”œâ–’uelas', 'Guayubâ”œÂ¡n', 'Las Matas de Santa Cruz', 'Pepillo Salcedo (Manzanillo)', 'Villa Vâ”œÃ­squez'],
-  'Dajabâ”œâ”‚n': ['Dajabâ”œâ”‚n', 'El Pino', 'Loma de Cabrera', 'Partido', 'Restauraciâ”œâ”‚n'],
-  'Santiago Rodrâ”œÂ¡guez': ['San Ignacio de Sabaneta', 'Los Almâ”œÃ­cigos', 'Monciâ”œâ”‚n'],
+  'Monte Cristi': ['Monte Cristi', 'Castañuelas', 'Guayubín', 'Las Matas de Santa Cruz', 'Pepillo Salcedo (Manzanillo)', 'Villa Vásquez'],
+  'Dajabón': ['Dajabón', 'El Pino', 'Loma de Cabrera', 'Partido', 'Restauración'],
+  'Santiago Rodríguez': ['San Ignacio de Sabaneta', 'Los Almácigos', 'Monción'],
   'Valverde': ['Mao', 'Esperanza', 'Laguna Salada'],
   
   // Cibao Centro
   'Hermanas Mirabal': ['Salcedo', 'Tenares', 'Villa Tapia'],
   
   // Valdesia
-  'San Cristâ”œâ”‚bal': ['San Cristâ”œâ”‚bal', 'Bajos de Haina', 'Cambita Garabitos', 'Los Cacaos', 'Sabana Grande de Palenque', 'San Gregorio de Nigua', 'Villa Altagracia', 'Yaguate'],
-  'Peravia': ['Banâ”œÂ¡', 'Nizao', 'Sabana Buey'],
-  'San Josâ”œÂ® de Ocoa': ['San Josâ”œÂ® de Ocoa', 'Rancho Arriba', 'Sabana Larga'],
+  'San Cristóbal': ['San Cristóbal', 'Bajos de Haina', 'Cambita Garabitos', 'Los Cacaos', 'Sabana Grande de Palenque', 'San Gregorio de Nigua', 'Villa Altagracia', 'Yaguate'],
+  'Peravia': ['Baní', 'Nizao', 'Sabana Buey'],
+  'San José de Ocoa': ['San José de Ocoa', 'Rancho Arriba', 'Sabana Larga'],
   
   // Enriquillo
-  'Barahona': ['Barahona', 'Cabral', 'El Peâ”œâ–’â”œâ”‚n', 'Enriquillo', 'Fundaciâ”œâ”‚n', 'Jaquimeyes', 'La Ciâ”œÂ®naga', 'Las Salinas', 'Paraâ”œÂ¡so', 'Polo', 'Vicente Noble'],
+  'Barahona': ['Barahona', 'Cabral', 'El Peñón', 'Enriquillo', 'Fundación', 'Jaquimeyes', 'La Ciénaga', 'Las Salinas', 'Paraíso', 'Polo', 'Vicente Noble'],
   'Pedernales': ['Pedernales', 'Oviedo'],
-  'Independencia': ['Jimanâ”œÂ¡', 'Cristâ”œâ”‚bal', 'Duvergâ”œÂ®', 'La Descubierta', 'Mella', 'Postrer Râ”œÂ¡o'],
-  'Bahoruco': ['Neiba', 'Galvâ”œÃ­n', 'Los Râ”œÂ¡os', 'Tamayo', 'Villa Jaragua'],
+  'Independencia': ['Jimaní', 'Cristóbal', 'Duvergé', 'La Descubierta', 'Mella', 'Postrer Río'],
+  'Bahoruco': ['Neiba', 'Galván', 'Los Ríos', 'Tamayo', 'Villa Jaragua'],
   
   // El Valle
-  'Azua': ['Azua de Compostela', 'Estebanâ”œÂ¡a', 'Guayabal', 'Las Charcas', 'Las Yayas de Viajama', 'Padre Las Casas', 'Peralta', 'Pueblo Viejo', 'Sabana de la Mar', 'Tâ”œÃ­bara Arriba'],
-  'San Juan': ['San Juan de la Maguana', 'Bohechâ”œÂ¡o', 'El Cercado', 'Juan de Herrera', 'Las Matas de Farfâ”œÃ­n', 'Vallejuelo'],
-  'Elâ”œÂ¡as Piâ”œâ–’a': ['Comendador', 'Bâ”œÃ­nica', 'El Llano', 'Hondo Valle', 'Juan Santiago', 'Pedro Santana'],
+  'Azua': ['Azua de Compostela', 'Estebanía', 'Guayabal', 'Las Charcas', 'Las Yayas de Viajama', 'Padre Las Casas', 'Peralta', 'Pueblo Viejo', 'Sabana de la Mar', 'Tábara Arriba'],
+  'San Juan': ['San Juan de la Maguana', 'Bohechío', 'El Cercado', 'Juan de Herrera', 'Las Matas de Farfán', 'Vallejuelo'],
+  'Elías Piña': ['Comendador', 'Bánica', 'El Llano', 'Hondo Valle', 'Juan Santiago', 'Pedro Santana'],
   
   // Higuamo
-  'San Pedro de Macorâ”œÂ¡s': ['San Pedro de Macorâ”œÂ¡s', 'Consuelo', 'Guayacanes', 'Quisqueya', 'Ramâ”œâ”‚n Santana'],
+  'San Pedro de Macorís': ['San Pedro de Macorís', 'Consuelo', 'Guayacanes', 'Quisqueya', 'Ramón Santana'],
   'Hato Mayor': ['Hato Mayor del Rey', 'El Valle', 'Sabana de la Mar'],
   'El Seibo': ['El Seibo', 'Miches'],
   
@@ -224,61 +227,61 @@ const municipiosPorProvincia: Record<string, string[]> = {
   'Santo Domingo': ['Santo Domingo Este', 'Santo Domingo Norte', 'Santo Domingo Oeste', 'Boca Chica', 'Los Alcarrizos', 'Pedro Brand', 'San Antonio de Guerra'],
   
   // Yuma
-  'La Altagracia': ['Higâ”œâ•ey', 'San Rafael del Yuma'],
+  'La Altagracia': ['Higüey', 'San Rafael del Yuma'],
   'La Romana': ['La Romana', 'Guaymate', 'Villa Hermosa'],
   
   // Valle
-  'Monte Plata': ['Monte Plata', 'Bayaguana', 'Peralvillo', 'Sabana Grande de Boyâ”œÃ­', 'Yamasâ”œÃ­']
+  'Monte Plata': ['Monte Plata', 'Bayaguana', 'Peralvillo', 'Sabana Grande de Boyá', 'Yamasá']
 };
 
 const sectoresPorProvincia: Record<string, string[]> = {
   // Cibao Norte
-  'Puerto Plata': ['Centro Urbano', 'Costa Dorada', 'Malecon', 'Playa Dorada', 'Cofresâ”œÂ¡', 'La Uniâ”œâ”‚n', 'Las Flores', 'Villa Montellano', 'Los Reyes', 'San Marcos'],
-  'Espaillat': ['Centro', 'El Carmen', 'Las Flores', 'La Javilla', 'San Antonio', 'Villa Olga', 'Los Cocos', 'Jamao', 'Râ”œÂ¡o Verde'],
-  'Santiago': ['Centro Histâ”œâ”‚rico', 'Los Jardines', 'Bella Vista', 'Cienfuegos', 'La Otra Banda', 'Pueblo Nuevo', 'Villa Olga', 'Los Salados', 'Tamboril Centro', 'Sabana Iglesia'],
+  'Puerto Plata': ['Centro Urbano', 'Costa Dorada', 'Malecon', 'Playa Dorada', 'Cofresí', 'La Unión', 'Las Flores', 'Villa Montellano', 'Los Reyes', 'San Marcos'],
+  'Espaillat': ['Centro', 'El Carmen', 'Las Flores', 'La Javilla', 'San Antonio', 'Villa Olga', 'Los Cocos', 'Jamao', 'Río Verde'],
+  'Santiago': ['Centro Histórico', 'Los Jardines', 'Bella Vista', 'Cienfuegos', 'La Otra Banda', 'Pueblo Nuevo', 'Villa Olga', 'Los Salados', 'Tamboril Centro', 'Sabana Iglesia'],
 
   // Cibao Sur
-  'La Vega': ['Centro', 'Rincâ”œâ”‚n', 'Buenos Aires', 'Las Flores', 'Constanza Centro', 'Jarabacoa Centro', 'El Limâ”œâ”‚n', 'La Sabina'],
-  'Monseâ”œâ–’or Nouel': ['Centro de Bonao', 'Villa Sonadora', 'Pueblo Nuevo', 'Los Maestros', 'Maimâ”œâ”‚n Centro', 'Piedra Blanca Centro'],
-  'Sâ”œÃ­nchez Ramâ”œÂ¡rez': ['Cotuâ”œÂ¡ Centro', 'Villa La Mata', 'Fantino Centro', 'Cevicos Centro', 'Los Botados', 'Villa Sonadora'],
+  'La Vega': ['Centro', 'Rincón', 'Buenos Aires', 'Las Flores', 'Constanza Centro', 'Jarabacoa Centro', 'El Limón', 'La Sabina'],
+  'Monseñor Nouel': ['Centro de Bonao', 'Villa Sonadora', 'Pueblo Nuevo', 'Los Maestros', 'Maimón Centro', 'Piedra Blanca Centro'],
+  'Sánchez Ramírez': ['Cotuí Centro', 'Villa La Mata', 'Fantino Centro', 'Cevicos Centro', 'Los Botados', 'Villa Sonadora'],
 
   // Cibao Nordeste  
-  'Duarte': ['Centro de San Francisco', 'Villa Riva', 'Castillo', 'Pimentel', 'Las Guâ”œÃ­ranas', 'Arenoso Centro', 'Hostos'],
-  'Marâ”œÂ¡a Trinidad Sâ”œÃ­nchez': ['Nagua Centro', 'Cabrera Centro', 'Râ”œÂ¡o San Juan Centro', 'El Factor', 'Los Cacaos', 'Villa Clara'],
-  'Samanâ”œÃ­': ['Santa Bâ”œÃ­rbara Centro', 'Las Terrenas Centro', 'Sâ”œÃ­nchez Centro', 'Las Galeras', 'El Limâ”œâ”‚n'],
+  'Duarte': ['Centro de San Francisco', 'Villa Riva', 'Castillo', 'Pimentel', 'Las Guáranas', 'Arenoso Centro', 'Hostos'],
+  'María Trinidad Sánchez': ['Nagua Centro', 'Cabrera Centro', 'Río San Juan Centro', 'El Factor', 'Los Cacaos', 'Villa Clara'],
+  'Samaná': ['Santa Bárbara Centro', 'Las Terrenas Centro', 'Sánchez Centro', 'Las Galeras', 'El Limón'],
   'Hermanas Mirabal': ['Salcedo Centro', 'Tenares Centro', 'Villa Tapia Centro', 'La Joya', 'Villa Hermosa'],
 
   // Cibao Noroeste
   'Valverde': ['Mao Centro', 'Esperanza Centro', 'Laguna Salada Centro', 'Guayacanes', 'Villa Elisa'],  
-  'Monte Cristi': ['Monte Cristi Centro', 'Guayubâ”œÂ¡n Centro', 'Castaâ”œâ–’uelas Centro', 'Las Matas Centro', 'Villa Vâ”œÃ­squez Centro'],
-  'Dajabâ”œâ”‚n': ['Dajabâ”œâ”‚n Centro', 'Loma de Cabrera Centro', 'Restauraciâ”œâ”‚n Centro', 'El Pino Centro', 'Partido Centro'],
-  'Santiago Rodrâ”œÂ¡guez': ['Sabaneta Centro', 'Monciâ”œâ”‚n Centro', 'Villa Los Almâ”œÃ­cigos Centro', 'Los Quemados', 'El Rubio'],
+  'Monte Cristi': ['Monte Cristi Centro', 'Guayubín Centro', 'Castañuelas Centro', 'Las Matas Centro', 'Villa Vásquez Centro'],
+  'Dajabón': ['Dajabón Centro', 'Loma de Cabrera Centro', 'Restauración Centro', 'El Pino Centro', 'Partido Centro'],
+  'Santiago Rodríguez': ['Sabaneta Centro', 'Monción Centro', 'Villa Los Almácigos Centro', 'Los Quemados', 'El Rubio'],
 
   // Valdesia
-  'San Cristâ”œâ”‚bal': ['Centro Histâ”œâ”‚rico', 'Villa Altagracia Centro', 'Haina Centro', 'Los Cacaos Centro', 'Nigua Centro', 'Cambita Centro'],
-  'Peravia': ['Banâ”œÂ¡ Centro', 'Matanzas Centro', 'Nizao Centro', 'Villa Sombrero', 'Catalina'],  
-  'San Josâ”œÂ® de Ocoa': ['Centro', 'Rancho Arriba Centro', 'Sabana Larga Centro', 'El Pinar', 'Los Frâ”œÂ¡os'],
+  'San Cristóbal': ['Centro Histórico', 'Villa Altagracia Centro', 'Haina Centro', 'Los Cacaos Centro', 'Nigua Centro', 'Cambita Centro'],
+  'Peravia': ['Baní Centro', 'Matanzas Centro', 'Nizao Centro', 'Villa Sombrero', 'Catalina'],  
+  'San José de Ocoa': ['Centro', 'Rancho Arriba Centro', 'Sabana Larga Centro', 'El Pinar', 'Los Fríos'],
 
   // Enriquillo
-  'Barahona': ['Barahona Centro', 'Cabral Centro', 'Enriquillo Centro', 'Paraâ”œÂ¡so Centro', 'Las Salinas Centro', 'Vicente Noble Centro'],
+  'Barahona': ['Barahona Centro', 'Cabral Centro', 'Enriquillo Centro', 'Paraíso Centro', 'Las Salinas Centro', 'Vicente Noble Centro'],
   'Pedernales': ['Pedernales Centro', 'Oviedo Centro', 'Cabo Rojo', 'Manuel Goya'],
-  'Independencia': ['Jimanâ”œÂ¡ Centro', 'Duvergâ”œÂ® Centro', 'La Descubierta Centro', 'Cristâ”œâ”‚bal Centro', 'Mella Centro'],
-  'Bahoruco': ['Neiba Centro', 'Galvâ”œÃ­n Centro', 'Tamayo Centro', 'Los Râ”œÂ¡os Centro', 'Villa Jaragua Centro'],
+  'Independencia': ['Jimaní Centro', 'Duvergé Centro', 'La Descubierta Centro', 'Cristóbal Centro', 'Mella Centro'],
+  'Bahoruco': ['Neiba Centro', 'Galván Centro', 'Tamayo Centro', 'Los Ríos Centro', 'Villa Jaragua Centro'],
 
   // El Valle  
   'Azua': ['Azua Centro', 'Las Charcas Centro', 'Padre Las Casas Centro', 'Peralta Centro', 'Pueblo Viejo Centro'],
-  'San Juan': ['San Juan Centro', 'Las Matas de Farfâ”œÃ­n Centro', 'Bohechâ”œÂ¡o Centro', 'El Cercado Centro', 'Juan de Herrera Centro'],
-  'Elâ”œÂ¡as Piâ”œâ–’a': ['Comendador Centro', 'Bâ”œÃ­nica Centro', 'Hondo Valle Centro', 'Pedro Santana Centro', 'El Llano Centro'],
+  'San Juan': ['San Juan Centro', 'Las Matas de Farfán Centro', 'Bohechío Centro', 'El Cercado Centro', 'Juan de Herrera Centro'],
+  'Elías Piña': ['Comendador Centro', 'Bánica Centro', 'Hondo Valle Centro', 'Pedro Santana Centro', 'El Llano Centro'],
 
   // Higuamo
-  'San Pedro de Macorâ”œÂ¡s': ['Centro Histâ”œâ”‚rico', 'Consuelo Centro', 'Los Llanos Centro', 'Quisqueya Centro', 'Ramâ”œâ”‚n Santana Centro'],
+  'San Pedro de Macorís': ['Centro Histórico', 'Consuelo Centro', 'Los Llanos Centro', 'Quisqueya Centro', 'Ramón Santana Centro'],
   'Hato Mayor': ['Hato Mayor Centro', 'Sabana de la Mar Centro', 'El Valle Centro', 'Yerba Buena', 'Los Hatos'],
-  'Monte Plata': ['Monte Plata Centro', 'Bayaguana Centro', 'Sabana Grande Centro', 'Yamasâ”œÃ­ Centro', 'Peralvillo Centro'],
+  'Monte Plata': ['Monte Plata Centro', 'Bayaguana Centro', 'Sabana Grande Centro', 'Yamasá Centro', 'Peralvillo Centro'],
 
   // Yuma
-  'La Altagracia': ['Higâ”œâ•ey Centro', 'Punta Cana', 'Bâ”œÃ­varo', 'San Rafael del Yuma Centro', 'Miches', 'El Seibo Centro'],
+  'La Altagracia': ['Higüey Centro', 'Punta Cana', 'Bávaro', 'San Rafael del Yuma Centro', 'Miches', 'El Seibo Centro'],
   'La Romana': ['La Romana Centro', 'Casa de Campo', 'Guaymate Centro', 'Villa Hermosa Centro', 'Caleta'],
-  'El Seibo': ['El Seibo Centro', 'Miches Centro', 'Pedro Sâ”œÃ­nchez', 'Santa Lucâ”œÂ¡a'],
+  'El Seibo': ['El Seibo Centro', 'Miches Centro', 'Pedro Sánchez', 'Santa Lucía'],
 
   // Ozama  
   'Distrito Nacional': ['Zona Colonial', 'Gazcue', 'Ciudad Nueva', 'San Carlos', 'Villa Juana', 'Cristo Rey', 'La Esperilla'],
@@ -287,7 +290,7 @@ const sectoresPorProvincia: Record<string, string[]> = {
 
 // Distritos municipales organizados por municipio
 const distritosPorMunicipio: Record<string, string[]> = {
-  // REGIâ”œÃ´N OZAMA O METROPOLITANA
+  // REGIÓN OZAMA O METROPOLITANA
   // Distrito Nacional
   'Santo Domingo': [],
   'Distrito Nacional': [],
@@ -305,192 +308,192 @@ const distritosPorMunicipio: Record<string, string[]> = {
   'Monte Plata': ['Chirino', 'Don Juan'],
   'Bayaguana': ['Monte Bonito'],
   'Peralvillo': [],
-  'Sabana Grande de Boyâ”œÃ­': ['Gonzalo'],
-  'Yamasâ”œÃ­': [],
+  'Sabana Grande de Boyá': ['Gonzalo'],
+  'Yamasá': [],
   
-  // REGIâ”œÃ´N CIBAO NORTE
+  // REGIÓN CIBAO NORTE
   // Puerto Plata
-  'Puerto Plata': ['Yâ”œÃ­sica Arriba'],
-  'Altamira': ['Râ”œÂ¡o Grande'],
+  'Puerto Plata': ['Yásica Arriba'],
+  'Altamira': ['Río Grande'],
   'Guananico': [],
   'Imbert': [],
   'Los Hidalgos': [],
-  'Luperâ”œâ”‚n': ['La Isabela', 'Belloso'],
-  'Sosâ”œâ•‘a': ['Sabaneta de Yâ”œÃ­sica'],
+  'Luperón': ['La Isabela', 'Belloso'],
+  'Sosúa': ['Sabaneta de Yásica'],
   'Villa Isabela': [],
   'Villa Montellano': [],
   
   // Espaillat
-  'Moca': ['Josâ”œÂ® Contreras', 'San Vâ”œÂ¡ctor', 'Juan Lâ”œâ”‚pez'],
-  'Cayetano Germosâ”œÂ®n': [],
-  'Gaspar Hernâ”œÃ­ndez': ['Veragua'],
+  'Moca': ['José Contreras', 'San Víctor', 'Juan López'],
+  'Cayetano Germosén': [],
+  'Gaspar Hernández': ['Veragua'],
   'Jamao al Norte': [],
   
-  // REGIâ”œÃ´N SANTIAGO
+  // REGIÓN SANTIAGO
   // Santiago
-  'Santiago de los Caballeros': ['Pedro Garcâ”œÂ¡a', 'El Limâ”œâ”‚n'],
-  'Santiago': ['Pedro Garcâ”œÂ¡a', 'El Limâ”œâ”‚n'],
+  'Santiago de los Caballeros': ['Pedro García', 'El Limón'],
+  'Santiago': ['Pedro García', 'El Limón'],
   'Baitoa': [],
-  'Bisonâ”œâ”‚': [],
-  'Bisonâ”œâ”‚ (Navarrete)': [],
-  'Jâ”œÃ­nico': ['El Caimito'],
+  'Bisonó': [],
+  'Bisonó (Navarrete)': [],
+  'Jánico': ['El Caimito'],
   'Licey al Medio': ['Las Palomas'],
-  'Puâ”œâ–’al': ['Guayabal'],
+  'Puñal': ['Guayabal'],
   'Sabana Iglesia': [],
-  'San Josâ”œÂ® de las Matas': ['El Rubio', 'La Cuesta'],
+  'San José de las Matas': ['El Rubio', 'La Cuesta'],
   'Tamboril': ['Canca la Reyna'],
-  'Villa Gonzâ”œÃ­lez': ['Palmar Arriba'],
+  'Villa González': ['Palmar Arriba'],
   
-  // REGIâ”œÃ´N CIBAO SUR
+  // REGIÓN CIBAO SUR
   // La Vega
-  'La Vega': ['Râ”œÂ¡o Verde Arriba', 'El Ranchito'],
+  'La Vega': ['Río Verde Arriba', 'El Ranchito'],
   'Constanza': ['Tireo', 'La Sabina'],
   'Jarabacoa': ['Manabao', 'Buena Vista'],
   'Jima Abajo': [],
   
-  // Monseâ”œâ–’or Nouel
+  // Monseñor Nouel
   'Bonao': ['Sabana del Puerto', 'Jayaco'],
-  'Maimâ”œâ”‚n': [],
+  'Maimón': [],
   'Piedra Blanca': [],
   
-  // Sâ”œÃ­nchez Ramâ”œÂ¡rez
-  'Cotuâ”œÂ¡': [],
+  // Sánchez Ramírez
+  'Cotuí': [],
   'Cevicos': ['La Cueva'],
   'Fantino': [],
   'La Mata': [],
   
-  // REGIâ”œÃ´N CIBAO NORDESTE
+  // REGIÓN CIBAO NORDESTE
   // Duarte
-  'San Francisco de Macorâ”œÂ¡s': ['La Peâ”œâ–’a', 'Cenovâ”œÂ¡'],
+  'San Francisco de Macorís': ['La Peña', 'Cenoví'],
   'Arenoso': ['Las Coles', 'El Aguacate'],
   'Castillo': [],
-  'Eugenio Marâ”œÂ¡a de Hostos': ['Sabana Grande'],
-  'Las Guâ”œÃ­ranas': [],
+  'Eugenio María de Hostos': ['Sabana Grande'],
+  'Las Guáranas': [],
   'Pimentel': [],
   'Villa Riva': ['Agua Santa del Yuna'],
   
-  // Marâ”œÂ¡a Trinidad Sâ”œÃ­nchez
-  'Nagua': ['Las Gordas', 'San Josâ”œÂ® de Matanzas'],
+  // María Trinidad Sánchez
+  'Nagua': ['Las Gordas', 'San José de Matanzas'],
   'Cabrera': ['Arroyo Salado'],
   'El Factor': ['El Pozo'],
-  'Râ”œÂ¡o San Juan': [],
+  'Río San Juan': [],
   
-  // Samanâ”œÃ­
-  'Samanâ”œÃ­': ['El Limâ”œâ”‚n', 'Arroyo Barril', 'Las Galeras'],
+  // Samaná
+  'Samaná': ['El Limón', 'Arroyo Barril', 'Las Galeras'],
   'Las Terrenas': [],
-  'Sâ”œÃ­nchez': [],
+  'Sánchez': [],
   
   // Hermanas Mirabal
   'Salcedo': ['Jamao Afuera', 'Blanco'],
   'Tenares': [],
   'Villa Tapia': [],
   
-  // REGIâ”œÃ´N CIBAO NOROESTE
+  // REGIÓN CIBAO NOROESTE
   // Valverde
-  'Mao': ['Guatapanal', 'Jaibâ”œâ”‚n', 'Amina'],
-  'Esperanza': ['Maizal', 'Jicomâ”œÂ®'],
-  'Laguna Salada': ['Jaibâ”œâ”‚n'],
+  'Mao': ['Guatapanal', 'Jaibón', 'Amina'],
+  'Esperanza': ['Maizal', 'Jicomé'],
+  'Laguna Salada': ['Jaibón'],
   
   // Monte Cristi
   'Monte Cristi': ['Villa Elisa'],
-  'Castaâ”œâ–’uelas': ['Palo Verde'],
-  'Guayubâ”œÂ¡n': ['Hatillo Palma', 'Cana Chapetâ”œâ”‚n'],
+  'Castañuelas': ['Palo Verde'],
+  'Guayubín': ['Hatillo Palma', 'Cana Chapetón'],
   'Las Matas de Santa Cruz': [],
   'Pepillo Salcedo': [],
   'Pepillo Salcedo (Manzanillo)': [],
-  'Villa Vâ”œÃ­squez': [],
+  'Villa Vásquez': [],
   
-  // Dajabâ”œâ”‚n
-  'Dajabâ”œâ”‚n': [],
+  // Dajabón
+  'Dajabón': [],
   'El Pino': [],
   'Loma de Cabrera': ['Capotillo'],
   'Partido': [],
-  'Restauraciâ”œâ”‚n': [],
+  'Restauración': [],
   
-  // Santiago Rodrâ”œÂ¡guez
+  // Santiago Rodríguez
   'Sabaneta': [],
   'San Ignacio de Sabaneta': [],
-  'Monciâ”œâ”‚n': [],
-  'Villa Los Almâ”œÃ­cigos': [],
-  'Los Almâ”œÃ­cigos': [],
+  'Monción': [],
+  'Villa Los Almácigos': [],
+  'Los Almácigos': [],
   
-  // REGIâ”œÃ´N VALDESIA
-  // San Cristâ”œâ”‚bal
-  'San Cristâ”œâ”‚bal': [],
+  // REGIÓN VALDESIA
+  // San Cristóbal
+  'San Cristóbal': [],
   'Bajos de Haina': ['El Carril'],
   'Cambita Garabitos': ['Medina'],
   'Los Cacaos': [],
   'Sabana Grande de Palenque': [],
   'San Gregorio de Nigua': [],
-  'Villa Altagracia': ['San Josâ”œÂ® del Puerto', 'La Guinea'],
-  'Yaguate': ['Doâ”œâ–’a Ana'],
+  'Villa Altagracia': ['San José del Puerto', 'La Guinea'],
+  'Yaguate': ['Doña Ana'],
   
   // Peravia
-  'Banâ”œÂ¡': ['El Caâ”œâ–’afâ”œÂ¡stol', 'Villa Fundaciâ”œâ”‚n', 'Paya', 'Villa Sombrero', 'El Limonal', 'Los Almâ”œÃ­cigos'],
+  'Baní': ['El Cañafístol', 'Villa Fundación', 'Paya', 'Villa Sombrero', 'El Limonal', 'Los Almácigos'],
   'Nizao': ['Pizarrete'],
   'Matanzas': ['Santana'],
   'Sabana Buey': [],
   
-  // San Josâ”œÂ® de Ocoa
-  'San Josâ”œÂ® de Ocoa': [],
+  // San José de Ocoa
+  'San José de Ocoa': [],
   'Rancho Arriba': [],
   'Sabana Larga': [],
   
-  // REGIâ”œÃ´N ENRIQUILLO
+  // REGIÓN ENRIQUILLO
   // Barahona
   'Barahona': [],
   'Cabral': [],
-  'El Peâ”œâ–’â”œâ”‚n': [],
+  'El Peñón': [],
   'Enriquillo': ['Arroyo Dulce'],
-  'Fundaciâ”œâ”‚n': ['Pescaderâ”œÂ¡a'],
+  'Fundación': ['Pescadería'],
   'Jaquimeyes': ['Palo Alto'],
-  'La Ciâ”œÂ®naga': [],
+  'La Ciénaga': [],
   'Las Salinas': [],
-  'Paraâ”œÂ¡so': ['Los Patos', 'Canoa'],
+  'Paraíso': ['Los Patos', 'Canoa'],
   'Polo': [],
   'Vicente Noble': [],
   
   // Pedernales
-  'Pedernales': ['Josâ”œÂ® Francisco Peâ”œâ–’a Gâ”œâ”‚mez'],
+  'Pedernales': ['José Francisco Peña Gómez'],
   'Oviedo': ['Juancho'],
   
   // Independencia
-  'Jimanâ”œÂ¡': ['El Limâ”œâ”‚n'],
-  'Cristâ”œâ”‚bal': ['Batey 8'],
-  'Duvergâ”œÂ®': [],
-  'La Descubierta': ['Boca de Cachâ”œâ”‚n'],
+  'Jimaní': ['El Limón'],
+  'Cristóbal': ['Batey 8'],
+  'Duvergé': [],
+  'La Descubierta': ['Boca de Cachón'],
   'Mella': ['La Colonia'],
-  'Postrer Râ”œÂ¡o': ['Guayabal'],
+  'Postrer Río': ['Guayabal'],
   
   // Bahoruco
   'Neiba': [],
-  'Galvâ”œÃ­n': ['El Palmar'],
-  'Los Râ”œÂ¡os': ['Las Clavellinas'],
+  'Galván': ['El Palmar'],
+  'Los Ríos': ['Las Clavellinas'],
   'Tamayo': ['Cabral', 'Uvilla'],
   'Villa Jaragua': [],
   
-  // REGIâ”œÃ´N EL VALLE
+  // REGIÓN EL VALLE
   // San Juan
   'San Juan': ['El Rosario', 'Hato del Padre', 'La Jagua', 'Las Maguanas-Hato Nuevo'],
   'San Juan de la Maguana': ['El Rosario', 'Hato del Padre', 'La Jagua', 'Las Maguanas-Hato Nuevo'],
-  'Bohechâ”œÂ¡o': ['Arroyo Cano', 'Yaque'],
+  'Bohechío': ['Arroyo Cano', 'Yaque'],
   'El Cercado': ['Batista'],
-  'Juan de Herrera': ['Jâ”œÂ¡nova'],
-  'Las Matas de Farfâ”œÃ­n': ['Matayaya', 'Carrera de Yegua'],
+  'Juan de Herrera': ['Jínova'],
+  'Las Matas de Farfán': ['Matayaya', 'Carrera de Yegua'],
   'Vallejuelo': ['Jorjillo'],
   
-  // Elâ”œÂ¡as Piâ”œâ–’a
+  // Elías Piña
   'Comendador': ['Guayajayuco', 'Sabana Cruz', 'Sabana Larga', 'Guanito'],
-  'Bâ”œÃ­nica': ['Sabana Higâ”œâ•ero', 'Sabana Cruz'],
+  'Bánica': ['Sabana Higüero', 'Sabana Cruz'],
   'El Llano': ['Guayabo'],
   'Hondo Valle': ['Rancho de la Guardia'],
   'Juan Santiago': ['Las Caobas'],
-  'Pedro Santana': ['Râ”œÂ¡o Limpio'],
+  'Pedro Santana': ['Río Limpio'],
   
   // Azua
   'Azua': ['Barro Arriba', 'Las Barias-La Estancia', 'Los Jovillos'],
   'Azua de Compostela': ['Barro Arriba', 'Las Barias-La Estancia', 'Los Jovillos'],
-  'Estebanâ”œÂ¡a': [],
+  'Estebanía': [],
   'Guayabal': [],
   'Las Charcas': [],
   'Las Yayas de Viajama': ['Villarpando'],
@@ -499,16 +502,16 @@ const distritosPorMunicipio: Record<string, string[]> = {
   'Pueblo Viejo': [],
   'Sabana Yegua': ['Proyeto 4'],
   'Sabana de la Mar': ['Elupina Cordero'],
-  'Tâ”œÃ­bara Arriba': ['Amiama Gâ”œâ”‚mez', 'Tâ”œÃ­bara Abajo', 'Los Toros'],
+  'Tábara Arriba': ['Amiama Gómez', 'Tábara Abajo', 'Los Toros'],
   
-  // REGIâ”œÃ´N HIGUAMO
-  // San Pedro de Macorâ”œÂ¡s
-  'San Pedro de Macorâ”œÂ¡s': [],
+  // REGIÓN HIGUAMO
+  // San Pedro de Macorís
+  'San Pedro de Macorís': [],
   'Consuelo': [],
   'Guayacanes': ['El Puerto'],
   'Los Llanos': [],
   'Quisqueya': [],
-  'Ramâ”œâ”‚n Santana': [],
+  'Ramón Santana': [],
   
   // Hato Mayor
   'Hato Mayor': ['Mata Palacio', 'Guayabo Dulce'],
@@ -516,9 +519,9 @@ const distritosPorMunicipio: Record<string, string[]> = {
   'El Valle': [],
   'Yerba Buena': [],
   
-  // REGIâ”œÃ´N YUMA
+  // REGIÓN YUMA
   // La Altagracia
-  'Higâ”œâ•ey': ['La Otra Banda'],
+  'Higüey': ['La Otra Banda'],
   'San Rafael del Yuma': ['Boca de Yuma', 'Bayahibe'],
   
   // La Romana
@@ -527,7 +530,7 @@ const distritosPorMunicipio: Record<string, string[]> = {
   'Villa Hermosa': ['Cumayasa'],
   
   // El Seibo
-  'El Seibo': ['Pedro Sâ”œÃ­nchez'],
+  'El Seibo': ['Pedro Sánchez'],
   'Miches': ['El Cedro', 'La Gina']
 };
 
@@ -535,62 +538,62 @@ const distritosPorMunicipio: Record<string, string[]> = {
 const distritosPorProvincia: Record<string, string[]> = municipiosPorProvincia;
 
 const opcionesIntervencion = [
-  'Rehabilitaciâ”œâ”‚n Camino Vecinal',
-  'Rehabilitaciâ”œâ”‚n acceso a mina',
-  'Restauraciâ”œâ”‚n Calles comunidad',
-  'Confecciâ”œâ”‚n de cabezal de puente',
-  'Restauraciâ”œâ”‚n de vâ”œÂ¡as de Comunicaciâ”œâ”‚n',
+  'Rehabilitación Camino Vecinal',
+  'Rehabilitación acceso a mina',
+  'Restauración Calles comunidad',
+  'Confección de cabezal de puente',
+  'Restauración de vías de Comunicación',
   'Operativo de Emergencia',
   'Limpieza de alcantarillas',
-  'Confecciâ”œâ”‚n de puente',
-  'Limpieza de Caâ”œâ–’ada',
-  'Colocaciâ”œâ”‚n de alcantarillas',
-  'Canalizaciâ”œâ”‚n',
+  'Confección de puente',
+  'Limpieza de Cañada',
+  'Colocación de alcantarillas',
+  'Canalización',
   'Desalojo',
-  'Habilitaciâ”œâ”‚n Zona protegida o Espacio pâ”œâ•‘blico'
+  'Habilitación Zona protegida o Espacio público'
 ];
 
-const canalOptions = ['Râ”œÂ¡o', 'Arroyo', 'Caâ”œâ–’ada'];
+const canalOptions = ['Río', 'Arroyo', 'Cañada'];
 
 const plantillasPorIntervencion: Record<string, Field[]> = {
-  'Rehabilitaciâ”œâ”‚n Camino Vecinal': [
+  'Rehabilitación Camino Vecinal': [
     { key: 'nombre_camino', label: 'Nombre del camino vecinal', type: 'text', unit: '' },
-    { key: 'punto_inicial', label: 'Punto inicial de la intervenciâ”œâ”‚n', type: 'text', unit: 'Coordenadas decimales' },
-    { key: 'punto_alcanzado', label: 'Punto alcanzado en la intervenciâ”œâ”‚n', type: 'text', unit: 'Coordenadas decimales' },
-    { key: 'longitud_intervencion', label: 'Longitud de intervenciâ”œâ”‚n', type: 'number', unit: 'km' },
-    { key: 'limpieza_superficie', label: 'Limpieza de superficie de rodadura (Incluye Cunetas)', type: 'number', unit: 'mâ”¬â–“' },
-    { key: 'perfilado_superficie', label: 'Perfilado de superficie', type: 'number', unit: 'mâ”¬â–“' },
-    { key: 'extraccion_material', label: 'Extracciâ”œâ”‚n de material inservible', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'bote_material', label: 'Bote de material inservible', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'conformacion_plataforma', label: 'Conformaciâ”œâ”‚n de plataforma', type: 'number', unit: 'mâ”¬â–“' },
-    { key: 'zafra_material', label: 'Zafra de material', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'motonivelacion_superficie', label: 'Motonivelaciâ”œâ”‚n de superficie', type: 'number', unit: 'mâ”¬â–“' },
-    { key: 'suministro_extension_material', label: 'Suministro y extensiâ”œâ”‚n de material', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'suministro_colocacion_grava', label: 'Suministro y colocaciâ”œâ”‚n de grava', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'nivelacion_compactacion_grava', label: 'Nivelaciâ”œâ”‚n y compactaciâ”œâ”‚n de grava', type: 'number', unit: 'mâ”¬â–“' },
-    { key: 'reparacion_alcantarillas', label: 'Reparaciâ”œâ”‚n de alcantarillas existentes', type: 'number', unit: 'und' },
-    { key: 'construccion_alcantarillas', label: 'Construcciâ”œâ”‚n de alcantarillas', type: 'number', unit: 'und' },
+    { key: 'punto_inicial', label: 'Punto inicial de la intervención', type: 'text', unit: 'Coordenadas decimales' },
+    { key: 'punto_alcanzado', label: 'Punto alcanzado en la intervención', type: 'text', unit: 'Coordenadas decimales' },
+    { key: 'longitud_intervencion', label: 'Longitud de intervención', type: 'number', unit: 'km' },
+    { key: 'limpieza_superficie', label: 'Limpieza de superficie de rodadura (Incluye Cunetas)', type: 'number', unit: 'm²' },
+    { key: 'perfilado_superficie', label: 'Perfilado de superficie', type: 'number', unit: 'm²' },
+    { key: 'extraccion_material', label: 'Extracción de material inservible', type: 'number', unit: 'mó' },
+    { key: 'bote_material', label: 'Bote de material inservible', type: 'number', unit: 'mó' },
+    { key: 'conformacion_plataforma', label: 'Conformación de plataforma', type: 'number', unit: 'm²' },
+    { key: 'zafra_material', label: 'Zafra de material', type: 'number', unit: 'mó' },
+    { key: 'motonivelacion_superficie', label: 'Motonivelación de superficie', type: 'number', unit: 'm²' },
+    { key: 'suministro_extension_material', label: 'Suministro y extensión de material', type: 'number', unit: 'mó' },
+    { key: 'suministro_colocacion_grava', label: 'Suministro y colocación de grava', type: 'number', unit: 'mó' },
+    { key: 'nivelacion_compactacion_grava', label: 'Nivelación y compactación de grava', type: 'number', unit: 'm²' },
+    { key: 'reparacion_alcantarillas', label: 'Reparación de alcantarillas existentes', type: 'number', unit: 'und' },
+    { key: 'construccion_alcantarillas', label: 'Construcción de alcantarillas', type: 'number', unit: 'und' },
     { key: 'limpieza_alcantarillas', label: 'Limpieza de alcantarillas', type: 'number', unit: 'und' },
-    { key: 'limpieza_cauces', label: 'Limpieza de cauces y caâ”œâ–’adas', type: 'number', unit: 'ml' },
+    { key: 'limpieza_cauces', label: 'Limpieza de cauces y cañadas', type: 'number', unit: 'ml' },
     { key: 'obras_drenaje', label: 'Obras de drenaje', type: 'number', unit: 'ml' },
-    { key: 'construccion_terraplenes', label: 'Construcciâ”œâ”‚n de terraplenes', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'relleno_compactacion', label: 'Relleno y compactaciâ”œâ”‚n de material', type: 'number', unit: 'mâ”¬â”‚' },
-    { key: 'conformacion_taludes', label: 'Conformaciâ”œâ”‚n de taludes', type: 'number', unit: 'mâ”¬â–“' }
+    { key: 'construccion_terraplenes', label: 'Construcción de terraplenes', type: 'number', unit: 'mó' },
+    { key: 'relleno_compactacion', label: 'Relleno y compactación de material', type: 'number', unit: 'mó' },
+    { key: 'conformacion_taludes', label: 'Conformación de taludes', type: 'number', unit: 'm²' }
   ],
-  'Rehabilitaciâ”œâ”‚n acceso a mina': [{ key: 'nombre_mina', label: 'Nombre mina', type: 'text', unit: '' }, ...plantillaDefault],
-  'Restauraciâ”œâ”‚n Calles comunidad': [...plantillaDefault],
-  'Confecciâ”œâ”‚n de cabezal de puente': [...plantillaDefault],
-  'Restauraciâ”œâ”‚n de vâ”œÂ¡as de Comunicaciâ”œâ”‚n': [...plantillaDefault],
+  'Rehabilitación acceso a mina': [{ key: 'nombre_mina', label: 'Nombre mina', type: 'text', unit: '' }, ...plantillaDefault],
+  'Restauración Calles comunidad': [...plantillaDefault],
+  'Confección de cabezal de puente': [...plantillaDefault],
+  'Restauración de vías de Comunicación': [...plantillaDefault],
   'Operativo de Emergencia': [...plantillaDefault],
   'Limpieza de alcantarillas': [...plantillaDefault],
-  'Confecciâ”œâ”‚n de puente': [{ key: 'tipo_puente', label: 'Seleccionar tipo de puente (Alcantarilla / Viga)', type: 'text', unit: '' }, ...plantillaDefault],
-  'Limpieza de Caâ”œâ–’ada': [{ key: 'nombre_canada', label: 'Nombre caâ”œâ–’ada', type: 'text', unit: '' }, ...plantillaDefault],
-  'Colocaciâ”œâ”‚n de alcantarillas': [...plantillaDefault],
+  'Confección de puente': [{ key: 'tipo_puente', label: 'Seleccionar tipo de puente (Alcantarilla / Viga)', type: 'text', unit: '' }, ...plantillaDefault],
+  'Limpieza de Cañada': [{ key: 'nombre_canada', label: 'Nombre cañada', type: 'text', unit: '' }, ...plantillaDefault],
+  'Colocación de alcantarillas': [...plantillaDefault],
   'Desalojo': [...plantillaDefault],
-  'Habilitaciâ”œâ”‚n Zona protegida o Espacio pâ”œâ•‘blico': [...plantillaDefault],
-  'Canalizaciâ”œâ”‚n:Râ”œÂ¡o': [...plantillaDefault],
-  'Canalizaciâ”œâ”‚n:Arroyo': [...plantillaDefault],
-  'Canalizaciâ”œâ”‚n:Caâ”œâ–’ada': [...plantillaDefault]
+  'Habilitación Zona protegida o Espacio público': [...plantillaDefault],
+  'Canalización:Río': [...plantillaDefault],
+  'Canalización:Arroyo': [...plantillaDefault],
+  'Canalización:Cañada': [...plantillaDefault]
 };
 
 const Dashboard: React.FC = () => {
@@ -664,7 +667,7 @@ const Dashboard: React.FC = () => {
   // Estado de pantalla completa
   const [isFullScreen, setIsFullScreen] = useState(false);
   
-  // Estado para el menâ”œâ•‘ desplegable del usuario
+  // Estado para el menú desplegable del usuario
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showMyReportsModal, setShowMyReportsModal] = useState(false);
@@ -675,7 +678,7 @@ const Dashboard: React.FC = () => {
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
   const ignoreChatOpenUntilRef = useRef(0);
 
-  // Estados del nuevo Ã”Ã‡Â£Nivel de EstabilidadÃ”Ã‡Ã˜ con giroscopio
+  // Estados del nuevo ÔÇ£Nivel de EstabilidadÔÇØ con giroscopio
   const [showStabilityModal, setShowStabilityModal] = useState(false);
   const [stabilityScore, setStabilityScore] = useState(100);
   const [stabilityText, setStabilityText] = useState('Listo para medir');
@@ -688,7 +691,7 @@ const Dashboard: React.FC = () => {
   const [fullName, setFullName] = useState<string>('');
   const [birthDate, setBirthDate] = useState<string>('');
   const [idCardPhoto, setIdCardPhoto] = useState<string>('');
-  const [idCardNumber, setIdCardNumber] = useState<string>(''); // Nuevo estado para câ”œÂ®dula
+  const [idCardNumber, setIdCardNumber] = useState<string>(''); // Nuevo estado para cédula
   const [showProfileIncompleteNotification, setShowProfileIncompleteNotification] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
 
@@ -699,7 +702,7 @@ const Dashboard: React.FC = () => {
   // Funci\u00f3n para actualizar el contador de pendientes del usuario actual
   const updatePendingCount = async () => {
     try {
-      // Obtener reportes con estado 'pendiente' de la colecciâ”œâ”‚n principal
+      // Obtener reportes con estado 'pendiente' de la colección principal
       const allPending = await firebaseReportStorage.getReportsByEstado('pendiente');
       
       // Filtrar solo los del usuario actual
@@ -708,9 +711,9 @@ const Dashboard: React.FC = () => {
       );
       
       setPendingCount(userPending.length);
-      console.log(`Â­Æ’Ã´Ã¨ Reportes pendientes del usuario ${user?.username}:`, userPending.length);
+      console.log(`­ƒôè Reportes pendientes del usuario ${user?.username}:`, userPending.length);
     } catch (error) {
-      console.error('Ã”Ã˜Ã® Error actualizando contador de pendientes:', error);
+      console.error('ÔØî Error actualizando contador de pendientes:', error);
       setPendingCount(0);
     }
   };
@@ -735,10 +738,10 @@ const Dashboard: React.FC = () => {
     return () => document.removeEventListener('fullscreenchange', onFullScreenChange);
   }, []);
 
-  // Funciâ”œâ”‚n para obtener lista detallada de reportes pendientes del usuario
+  // Función para obtener lista detallada de reportes pendientes del usuario
   const getPendingReports = async () => {
     try {
-      // Obtener reportes con estado 'pendiente' de la colecciâ”œâ”‚n principal
+      // Obtener reportes con estado 'pendiente' de la colección principal
       const allPending = await firebaseReportStorage.getReportsByEstado('pendiente');
       
       // Filtrar solo los del usuario actual
@@ -778,24 +781,24 @@ const Dashboard: React.FC = () => {
       setPendingReportsList(formatted);
       return formatted;
     } catch (error) {
-      console.error('Ã”Ã˜Ã® Error obteniendo reportes pendientes:', error);
+      console.error('ÔØî Error obteniendo reportes pendientes:', error);
       setPendingReportsList([]);
       return [];
     }
   };
 
-  // Funciâ”œâ”‚n para continuar un reporte pendiente
+  // Función para continuar un reporte pendiente
   const handleContinuePendingReport = async (reportId: string) => {
     try {
-      console.log('Â­Æ’Ã´Ã¯ Cargando reporte pendiente desde Firebase:', reportId);
+      console.log('­ƒôï Cargando reporte pendiente desde Firebase:', reportId);
       
-      // Cargar desde la colecciâ”œâ”‚n principal de reportes (no desde pendingReports)
+      // Cargar desde la colección principal de reportes (no desde pendingReports)
       const pendingReport = await firebaseReportStorage.getReport(reportId);
       
-      console.log('Â­Æ’Ã´Âª Datos del reporte desde Firebase:', pendingReport);
+      console.log('­ƒôª Datos del reporte desde Firebase:', pendingReport);
       
       if (pendingReport && pendingReport.estado === 'pendiente') {
-        // Convertir el reporte completo a formato de ediciâ”œâ”‚n
+        // Convertir el reporte completo a formato de edición
         const dataToLoad = {
           id: pendingReport.id,
           region: pendingReport.region,
@@ -813,14 +816,14 @@ const Dashboard: React.FC = () => {
           fechaFinal: pendingReport.fechaFinal || '',
           fechaReporte: pendingReport.fechaCreacion ? pendingReport.fechaCreacion.split('T')[0] : '',
           estado: pendingReport.estado,
-          // Restaurar datos multi-dâ”œÂ¡a si existen
+          // Restaurar datos multi-día si existen
           diasTrabajo: pendingReport.diasTrabajo || [],
           reportesPorDia: pendingReport.reportesPorDia || {},
           diaActual: pendingReport.diaActual || 0,
           _pendingReportId: pendingReport.id // ID del reporte pendiente para actualizar
         };
         
-        console.log('Ã”Â£Ã  Datos a cargar en el formulario:', dataToLoad);
+        console.log(' Datos a cargar en el formulario:', dataToLoad);
         
         setInterventionToEdit(dataToLoad);
         setShowPendingModal(false);
@@ -828,41 +831,41 @@ const Dashboard: React.FC = () => {
         setShowReportForm(true);
         setActiveNav('crear');
       } else {
-        console.error('Ã”Ã˜Ã® No se encontrâ”œâ”‚ el reporte pendiente en Firebase:', reportId);
+        console.error('ÔØî No se encontró el reporte pendiente en Firebase:', reportId);
         alert('No se pudo cargar el reporte pendiente');
       }
     } catch (error) {
-      console.error('Ã”Ã˜Ã® Error al cargar el reporte pendiente desde Firebase:', error);
+      console.error('ÔØî Error al cargar el reporte pendiente desde Firebase:', error);
       alert('Error al cargar el reporte pendiente');
     }
   };
 
-  // Funciâ”œâ”‚n para cancelar/eliminar un reporte pendiente
+  // Función para cancelar/eliminar un reporte pendiente
   const handleCancelPendingReport = async (reportId: string) => {
     try {
-      // Eliminar de la colecciâ”œâ”‚n principal de Firebase
+      // Eliminar de la colección principal de Firebase
       await firebaseReportStorage.deleteReport(reportId);
-      console.log('Ã”Â£Ã  Reporte pendiente eliminado de Firebase');
+      console.log(' Reporte pendiente eliminado de Firebase');
       await updatePendingCount();
       // Actualizar la vista del modal
       setShowPendingModal(false);
       setTimeout(() => setShowPendingModal(true), 100);
     } catch (error) {
-      console.error('Ã”Ã˜Ã® Error eliminando reporte pendiente:', error);
-      alert('Error al eliminar el reporte pendiente. Verifique su conexiâ”œâ”‚n a internet.');
+      console.error('ÔØî Error eliminando reporte pendiente:', error);
+      alert('Error al eliminar el reporte pendiente. Verifique su conexión a internet.');
     }
   };
 
   // Funciones para ReportView
-  // reportIdOrNumber puede ser el ID del reporte o el nâ”œâ•‘mero de reporte (numeroReporte)
+  // reportIdOrNumber puede ser el ID del reporte o el número de reporte (numeroReporte)
   const handleOpenReportView = (reportIdOrNumber: string) => {
-    console.log('Â­Æ’Ã¶Ã¬ handleOpenReportView llamado con:', reportIdOrNumber);
-    console.log('Â­Æ’Ã¶Ã¬ Estado actual:', { showReportView, selectedReportId });
+    console.log('­ƒöì handleOpenReportView llamado con:', reportIdOrNumber);
+    console.log('­ƒöì Estado actual:', { showReportView, selectedReportId });
     
     setSelectedReportId(reportIdOrNumber);
     setShowReportView(true);
     
-    console.log('Â­Æ’Ã¶Ã¬ Despuâ”œÂ®s de actualizar estado:', { 
+    console.log('­ƒöì Después de actualizar estado:', { 
       showReportView: true, 
       selectedReportId: reportIdOrNumber 
     });
@@ -871,7 +874,7 @@ const Dashboard: React.FC = () => {
   const handleCloseReportView = () => {
     setShowReportView(false);
     setSelectedReportId(null);
-    setActiveNav('dashboard'); // Volver al botâ”œâ”‚n home
+    setActiveNav('dashboard'); // Volver al botón home
   };
 
   const handleEditReportFromView = (report: any) => {
@@ -894,7 +897,7 @@ const Dashboard: React.FC = () => {
       fechaFinal: report.fechaFinal || '',
       fechaReporte: report.fechaCreacion ? report.fechaCreacion.split('T')[0] : '',
       estado: report.estado,
-      // Restaurar datos multi-dâ”œÂ¡a si existen
+      // Restaurar datos multi-día si existen
       diasTrabajo: report.diasTrabajo || [],
       reportesPorDia: report.reportesPorDia || {},
       diaActual: report.diaActual || 0,
@@ -907,14 +910,14 @@ const Dashboard: React.FC = () => {
 
   const handleDeleteReportFromView = (reportId: string) => {
     console.log('Eliminando reporte desde ReportViewModern:', reportId);
-    // Aquâ”œÂ¡ puedes implementar la lâ”œâ”‚gica de eliminaciâ”œâ”‚n
-    alert('Funciâ”œâ”‚n de eliminaciâ”œâ”‚n no implementada aâ”œâ•‘n');
+    // Aquí puedes implementar la lógica de eliminación
+    alert('Función de eliminación no implementada aún');
   };
 
   const handleExportReportFromView = (report: any) => {
     console.log('Exportando reporte desde ReportViewModern:', report);
-    // Aquâ”œÂ¡ puedes implementar la lâ”œâ”‚gica de exportaciâ”œâ”‚n
-    alert('Funciâ”œâ”‚n de exportaciâ”œâ”‚n no implementada aâ”œâ•‘n');
+    // Aquí puedes implementar la lógica de exportación
+    alert('Función de exportación no implementada aún');
   };
 
   // Actualizar contador al cargar y cada vez que cambie localStorage
@@ -928,7 +931,7 @@ const Dashboard: React.FC = () => {
 
     window.addEventListener('storage', handleStorageChange);
     
-    // Tambiâ”œÂ®n verificar periâ”œâ”‚dicamente por si hay cambios internos
+    // También verificar periódicamente por si hay cambios internos
     const interval = setInterval(updatePendingCount, 2000);
 
     return () => {
@@ -942,7 +945,19 @@ const Dashboard: React.FC = () => {
     window.dispatchEvent(new CustomEvent('mopc_user_changed', { detail: user }));
   }, [user]);
 
-  // Suscribir al contador de mensajes no leÃ­dos del chat
+  // Reconectar Firestore automáticamente cuando el app vuelve al frente
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let handle: { remove: () => void } | null = null;
+    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        enableNetwork(db).catch(() => {});
+      }
+    }).then(l => { handle = l; });
+    return () => { handle?.remove(); };
+  }, []);
+
+  // Suscribir al contador de mensajes no leídos del chat
   useEffect(() => {
     if (!user) return;
     const userId = (user as any).id || user.username;
@@ -953,7 +968,7 @@ const Dashboard: React.FC = () => {
         (sum, c) => sum + (c.unreadCount?.[userId] || 0),
         0
       );
-      // Reproducir sonido y activar animaciÃ³n solo si aumentaron los no leÃ­dos
+      // Reproducir sonido y activar animación solo si aumentaron los no leídos
       if (prevChatUnreadRef.current >= 0 && total > prevChatUnreadRef.current) {
         playChatSound();
         setChatBadgeAnimate(true);
@@ -969,12 +984,12 @@ const Dashboard: React.FC = () => {
   // Cargar reportes pendientes cuando se abre el modal
   useEffect(() => {
     if (showPendingModal) {
-      console.log('Â­Æ’Ã´Ã‘ Modal de pendientes abierto, cargando reportes desde Firebase...');
+      console.log('­ƒôÑ Modal de pendientes abierto, cargando reportes desde Firebase...');
       getPendingReports();
     }
   }, [showPendingModal]);
 
-  // Cerrar menâ”œâ•‘ desplegable al hacer clic fuera
+  // Cerrar menú desplegable al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -989,30 +1004,30 @@ const Dashboard: React.FC = () => {
     };
   }, [showUserMenu]);
 
-  // Verificar si el perfil del usuario estâ”œÃ­ completo
+  // Verificar si el perfil del usuario está completo
   useEffect(() => {
     const checkVerification = async () => {
       if (user) {
-        // Verificar si el usuario requiere verificaciâ”œâ”‚n de perfil desde Firebase
+        // Verificar si el usuario requiere verificación de perfil desde Firebase
         const firebaseUser = await firebaseUserStorage.getUserByUsername(user.username);
         
-        console.log('Â­Æ’Ã¶Ã¬ Verificando usuario:', user.username);
-        console.log('Â­Æ’Ã´Âª Usuario Firebase:', firebaseUser);
-        console.log('Ã”Â£Ã  isVerified:', firebaseUser?.isVerified);
+        console.log('­ƒöì Verificando usuario:', user.username);
+        console.log('­ƒôª Usuario Firebase:', firebaseUser);
+        console.log(' isVerified:', firebaseUser?.isVerified);
         
-        // Si el usuario no existe en Firebase, no pedir verificaciâ”œâ”‚n (compatibilidad con localStorage)
+        // Si el usuario no existe en Firebase, no pedir verificación (compatibilidad con localStorage)
         if (!firebaseUser) {
-          console.log('Ã”Ã¤â•£Â´Â©Ã… Usuario solo en localStorage, sin verificaciâ”œâ”‚n requerida');
+          console.log('Ôä╣´©Å Usuario solo en localStorage, sin verificación requerida');
           setShowProfileIncompleteNotification(false);
           setIsProfileComplete(true);
           return;
         }
         
-        // Si el usuario existe en Firebase pero no estâ”œÃ­ verificado
+        // Si el usuario existe en Firebase pero no está verificado
         const requiresVerification = !firebaseUser.isVerified;
         
         if (requiresVerification) {
-          // Solo mostrar solicitud de verificaciâ”œâ”‚n si isVerified es false
+          // Solo mostrar solicitud de verificación si isVerified es false
           const profileData = localStorage.getItem(`profile_${user.username}`);
           if (profileData) {
             const profile = JSON.parse(profileData);
@@ -1021,7 +1036,7 @@ const Dashboard: React.FC = () => {
             setBirthDate(profile.birthDate || '');
             setIdCardPhoto(profile.idCardPhoto || '');
             
-            // Verificar si todos los campos estâ”œÃ­n completos
+            // Verificar si todos los campos están completos
             const isComplete = profile.profilePhoto && profile.fullName && profile.birthDate && profile.idCardPhoto;
             setShowProfileIncompleteNotification(!isComplete);
             setIsProfileComplete(isComplete);
@@ -1030,8 +1045,8 @@ const Dashboard: React.FC = () => {
             setIsProfileComplete(false);
           }
         } else {
-          // Usuario con isVerified = true no necesita verificaciâ”œâ”‚n de perfil
-          console.log('Ã”Â£Ã  Usuario verificado, ocultando notificaciâ”œâ”‚n');
+          // Usuario con isVerified = true no necesita verificación de perfil
+          console.log(' Usuario verificado, ocultando notificación');
           setShowProfileIncompleteNotification(false);
           setIsProfileComplete(true);
         }
@@ -1041,41 +1056,41 @@ const Dashboard: React.FC = () => {
     checkVerification();
   }, [user]);
 
-  // Iniciar tracking en vivo cuando el usuario inicie sesiâ”œâ”‚n
+  // Iniciar tracking en vivo cuando el usuario inicie sesión
   useEffect(() => {
     if (user && user.username) {
-      console.log('Â­Æ’Ã´Ã¬ Iniciando tracking en vivo para usuario:', user.username);
+      console.log('­ƒôì Iniciando tracking en vivo para usuario:', user.username);
       
       const liveLocationService = LiveLocationService.getInstance();
       
       // Iniciar tracking en vivo
       liveLocationService.startLiveTracking(user.username)
         .then(() => {
-          console.log('Ã”Â£Ã  Tracking en vivo iniciado exitosamente');
+          console.log(' Tracking en vivo iniciado exitosamente');
         })
         .catch((error) => {
-          console.error('Ã”Ã˜Ã® Error iniciando tracking en vivo:', error);
+          console.error('ÔØî Error iniciando tracking en vivo:', error);
         });
 
-      // Limpiar tracking cuando el usuario cierre sesiâ”œâ”‚n
+      // Limpiar tracking cuando el usuario cierre sesión
       return () => {
-        console.log('Â­Æ’Ã´Ã¬ Deteniendo tracking en vivo para usuario:', user.username);
+        console.log('­ƒôì Deteniendo tracking en vivo para usuario:', user.username);
         liveLocationService.stopLiveTracking();
       };
     }
   }, [user]);
 
-  // Aplicar tema segÃºn el rol del usuario e iniciar presencia web
+  // Aplicar tema según el rol del usuario e iniciar presencia web
   useEffect(() => {
     if (user && user.role) {
       // Aplicar tema del rol
       applyUserTheme(user.role);
 
-      // Iniciar rastreo de presencia si el usuario estÃ¡ logueado
+      // Iniciar rastreo de presencia si el usuario está logueado
       if (user.username) {
         userPresenceService.startPresenceTracking(user.username);
 
-        // Limpiar mensajes antiguos (>7 dÃ­as) en segundo plano
+        // Limpiar mensajes antiguos (>7 días) en segundo plano
         chatService.cleanOldMessages().catch(() => {});
       }
     } else {
@@ -1088,12 +1103,12 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
 
-  // Solicitar permisos GPS al cargar la aplicaciâ”œâ”‚n
+  // Solicitar permisos GPS al cargar la aplicación
   useEffect(() => {
     const requestGpsPermission = async () => {
       if ('geolocation' in navigator) {
         try {
-          // Solicitar permiso y obtener posiciâ”œâ”‚n inicial
+          // Solicitar permiso y obtener posición inicial
           navigator.geolocation.getCurrentPosition(
             (position) => {
               setGpsPosition({
@@ -1101,7 +1116,7 @@ const Dashboard: React.FC = () => {
                 lon: position.coords.longitude
               });
               setIsGpsEnabled(true);
-              console.log('GPS habilitado al cargar la aplicaciâ”œâ”‚n');
+              console.log('GPS habilitado al cargar la aplicación');
             },
             (error) => {
               console.warn('Error al obtener GPS inicial:', error.message);
@@ -1146,16 +1161,16 @@ const Dashboard: React.FC = () => {
     setActiveNav('dashboard');
   };
 
-  // Manejar botâ”œâ”‚n de retroceso de Android
+  // Manejar botón de retroceso de Android
   useEffect(() => {
     let backButtonListener: any = null;
 
     const handleBackButton = () => {
-      console.log('Â­Æ’Ã¶Ã– Botâ”œâ”‚n de retroceso presionado');
+      console.log('­ƒöÖ Botón de retroceso presionado');
 
-      // Si la câ”œÃ­mara estâ”œÃ­ abierta, cerrarla en lugar de salir de la app
+      // Si la cámara está abierta, cerrarla en lugar de salir de la app
       if ((window as any).cameraOpen) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando câ”œÃ­mara con botâ”œâ”‚n de retroceso');
+        console.log('­ƒöÖ Cerrando cámara con botón de retroceso');
         const cameraInterface = document.querySelector('[style*="z-index: 10000"]');
         if (cameraInterface) {
           cameraInterface.remove();
@@ -1165,34 +1180,34 @@ const Dashboard: React.FC = () => {
       }
 
       if (showReportView) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando ReportViewModern');
+        console.log('­ƒöÖ Cerrando ReportViewModern');
         handleCloseReportView();
         return;
       }
 
       if (showMyReportsModal) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando Mis Reportes');
+        console.log('­ƒöÖ Cerrando Mis Reportes');
         setShowMyReportsModal(false);
         setActiveNav('dashboard');
         return;
       }
 
       if (showPendingModal) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando Reportes Pendientes');
+        console.log('­ƒöÖ Cerrando Reportes Pendientes');
         setShowPendingModal(false);
         setActiveNav('dashboard');
         return;
       }
 
       if (showCompleteProfileModal) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando modal completo de perfil');
+        console.log('­ƒöÖ Cerrando modal completo de perfil');
         setShowCompleteProfileModal(false);
         return;
       }
 
       if (showReportForm) {
-        console.log('Â­Æ’Ã¶Ã– Saliendo del formulario de reporte');
-        if (window.confirm('â”¬â”Estâ”œÃ­ seguro que desea salir del formulario? Los datos no guardados se perderâ”œÃ­n.')) {
+        console.log('­ƒöÖ Saliendo del formulario de reporte');
+        if (window.confirm('¿Está seguro que desea salir del formulario? Los datos no guardados se perderán.')) {
           setShowReportForm(false);
           setInterventionToEdit(null);
           handleCloseReportView();
@@ -1201,31 +1216,32 @@ const Dashboard: React.FC = () => {
       }
 
       if (showStabilityModal) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando modal de estabilidad');
+        console.log('­ƒöÖ Cerrando modal de estabilidad');
         setShowStabilityModal(false);
         return;
       }
 
       if (showHeavyVehiclesPage) {
-        console.log('Â­Æ’Ã¶Ã– Cerrando vista de Vehâ”œÂ¡culos Pesados');
+        console.log('­ƒöÖ Cerrando vista de Vehículos Pesados');
         handleBackToDashboard();
         return;
       }
 
       if (showChatPage) {
-        console.log('ðŸ”™ Cerrando chat');
-        setShowChatPage(false);
-        setActiveNav('dashboard');
+        // ChatPage gestiona su propio botón de retroceso internamente
         return;
       }
 
       if (showReportsPage || showExportPage || showUsersPage || showGoogleMapView || showLeafletMapView || showHierarchy || showSettingsPage) {
-        console.log('Â­Æ’Ã¶Ã– Volviendo al dashboard');
+        console.log('­ƒöÖ Volviendo al dashboard');
         handleBackToDashboard();
         return;
       }
 
-      console.log('Â­Æ’Ã¶Ã– Ya estâ”œÃ­ en el dashboard - salir de la app');
+      // Si el BubbleFeedChat está abierto, no salir de la app
+      if ((window as any).bubbleChatOpen) return;
+
+      console.log('­ƒöÖ Ya está en el dashboard - salir de la app');
       CapacitorApp.exitApp();
     };
 
@@ -1242,7 +1258,7 @@ const Dashboard: React.FC = () => {
     };
   }, [showReportView, showMyReportsModal, showPendingModal, showCompleteProfileModal, showReportForm, showReportsPage, showExportPage, showUsersPage, showGoogleMapView, showLeafletMapView, showHeavyVehiclesPage, showHierarchy, showSettingsPage, showChatPage, showStabilityModal, handleBackToDashboard, handleCloseReportView, setInterventionToEdit]);
 
-  // Giroscopio + Acelerâ”œâ”‚metro (modo iOS Level)
+  // Giroscopio + Acelerómetro (modo iOS Level)
   useEffect(() => {
     let orientationListener: ((event: DeviceOrientationEvent) => void) | null = null;
     let motionListener: ((event: DeviceMotionEvent) => void) | null = null;
@@ -1266,12 +1282,12 @@ const Dashboard: React.FC = () => {
         try {
           const permission = await (DeviceMotionEvent as any).requestPermission();
           if (permission !== 'granted') {
-            setStabilityText('Permiso de acelerâ”œâ”‚metro denegado.');
+            setStabilityText('Permiso de acelerómetro denegado.');
             return;
           }
         } catch (error) {
-          console.error('Error solicitando permiso de acelerâ”œâ”‚metro:', error);
-          setStabilityText('No se pudo solicitar permiso de acelerâ”œâ”‚metro.');
+          console.error('Error solicitando permiso de acelerómetro:', error);
+          setStabilityText('No se pudo solicitar permiso de acelerómetro.');
           return;
         }
       }
@@ -1293,7 +1309,7 @@ const Dashboard: React.FC = () => {
         const acc = event.accelerationIncludingGravity;
         if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
 
-        // Calculamos inclinaciâ”œâ”‚n () basado en vector gravedad.
+        // Calculamos inclinación () basado en vector gravedad.
         const x = acc.x;
         const y = acc.y;
         const z = acc.z;
@@ -1340,7 +1356,7 @@ const Dashboard: React.FC = () => {
   const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginUser.trim() || !loginPass.trim()) {
-      setLoginError('Por favor ingrese usuario y contraseâ”œâ–’a');
+      setLoginError('Por favor ingrese usuario y contraseña');
       return;
     }
 
@@ -1350,7 +1366,7 @@ const Dashboard: React.FC = () => {
     await new Promise(r => setTimeout(r, 1000));
 
     try {
-      console.log('Â­Æ’Ã¶Ã‰ Intentando login con Firebase...');
+      console.log('­ƒöÉ Intentando login con Firebase...');
       
       // Intentar login con Firebase
       const result = await firebaseUserStorage.loginWithUsername(loginUser, loginPass);
@@ -1358,14 +1374,14 @@ const Dashboard: React.FC = () => {
       if (result.success && result.user) {
         const validatedUser = result.user;
         
-        // Verificar si la cuenta estâ”œÃ­ activa
+        // Verificar si la cuenta está activa
         if (!validatedUser.isActive) {
-          setLoginError('Ã”ÃœÃ¡Â´Â©Ã… Lo sentimos, su cuenta estâ”œÃ­ temporalmente desactivada. Comunâ”œÂ¡quese con su superior.');
+          setLoginError('ÔÜá´©Å Lo sentimos, su cuenta está temporalmente desactivada. Comuníquese con su superior.');
           setIsLoading(false);
           return;
         }
         
-        // Credenciales vâ”œÃ­lidas y cuenta activa - usuario autenticado
+        // Credenciales válidas y cuenta activa - usuario autenticado
         const userRole: UserRole = validatedUser.role === 'Administrador' ? UserRole.ADMIN :
                                      validatedUser.role === 'Supervisor' ? UserRole.SUPERVISOR :
                                      UserRole.TECNICO;
@@ -1383,21 +1399,21 @@ const Dashboard: React.FC = () => {
         setLoginUser('');
         setLoginPass('');
         
-        console.log(`Ã”Â£Ã  Usuario autenticado desde Firebase como: ${getRoleBadge(userRole)}`);
+        console.log(` Usuario autenticado desde Firebase como: ${getRoleBadge(userRole)}`);
         setIsLoading(false);
         return;
       }
       
       // Si Firebase falla, intentar con localStorage como fallback
-      console.log('Ã”ÃœÃ¡Â´Â©Ã… Firebase login fallâ”œâ”‚, intentando con localStorage...');
+      console.log('ÔÜá´©Å Firebase login falló, intentando con localStorage...');
       const allUsers = userStorage.getAllUsers();
-      console.log('Â­Æ’Ã´Ã¨ Usuarios en localStorage:', allUsers.length);
+      console.log('­ƒôè Usuarios en localStorage:', allUsers.length);
       
       const validatedUser = userStorage.validateCredentials(loginUser, loginPass);
       
       if (validatedUser) {
         if (!validatedUser.isActive) {
-          setLoginError('Ã”ÃœÃ¡Â´Â©Ã… Lo sentimos, su cuenta estâ”œÃ­ temporalmente desactivada. Comunâ”œÂ¡quese con su superior.');
+          setLoginError('ÔÜá´©Å Lo sentimos, su cuenta está temporalmente desactivada. Comuníquese con su superior.');
           setIsLoading(false);
           return;
         }
@@ -1418,18 +1434,18 @@ const Dashboard: React.FC = () => {
         setLoginUser('');
         setLoginPass('');
         
-        console.log(`Ã”Â£Ã  Usuario autenticado desde localStorage como: ${getRoleBadge(userRole)}`);
+        console.log(` Usuario autenticado desde localStorage como: ${getRoleBadge(userRole)}`);
         setIsLoading(false);
         return;
       }
       
-      // Usuario no encontrado en ningâ”œâ•‘n lado
-      setLoginError(result.error || `Ã”Ã˜Ã® Usuario "${loginUser}" no encontrado`);
+      // Usuario no encontrado en ningún lado
+      setLoginError(result.error || `ÔØî Usuario "${loginUser}" no encontrado`);
       setIsLoading(false);
       
     } catch (err) {
-      console.error('Ã”Ã˜Ã® Error en login:', err);
-      setLoginError('Ã”ÃœÃ¡Â´Â©Ã… Error del sistema. Recargue la pâ”œÃ­gina e intente nuevamente.');
+      console.error('ÔØî Error en login:', err);
+      setLoginError('ÔÜá´©Å Error del sistema. Recargue la página e intente nuevamente.');
       setIsLoading(false);
     }
   };
@@ -1455,7 +1471,7 @@ const Dashboard: React.FC = () => {
     setResetSuccess('');
 
     if (!resetUsername.trim() || !resetEmail.trim()) {
-      setResetError('Por favor ingrese usuario y correo electrâ”œâ”‚nico.');
+      setResetError('Por favor ingrese usuario y correo electrónico.');
       return;
     }
 
@@ -1463,7 +1479,7 @@ const Dashboard: React.FC = () => {
       const candidate = await firebaseUserStorage.getUserByUsernameInsensitive(resetUsername.trim());
 
       if (!candidate) {
-        setResetError('No se encontrâ”œâ”‚ usuario con ese nombre de usuario en Firebase. Verifique el usuario.');
+        setResetError('No se encontró usuario con ese nombre de usuario en Firebase. Verifique el usuario.');
         return;
       }
 
@@ -1479,7 +1495,7 @@ const Dashboard: React.FC = () => {
 
 
       if (!candidate) {
-        setResetError('No se encontrâ”œâ”‚ usuario con ese nombre de usuario en Firebase.');
+        setResetError('No se encontró usuario con ese nombre de usuario en Firebase.');
         return;
       }
 
@@ -1492,7 +1508,7 @@ const Dashboard: React.FC = () => {
       const password = localUser?.password;
 
       if (!password) {
-        setResetError('No se encontrâ”œâ”‚ la contraseâ”œâ–’a en el almacenamiento local. Si el usuario usa Firebase Auth, el administrador debe resetearla.');
+        setResetError('No se encontró la contraseña en el almacenamiento local. Si el usuario usa Firebase Auth, el administrador debe resetearla.');
         return;
       }
 
@@ -1501,19 +1517,19 @@ const Dashboard: React.FC = () => {
         username: candidate.username,
         email: candidate.email,
         password,
-        role: candidate.role || 'Tâ”œÂ®cnico'
+        role: candidate.role || 'Técnico'
       });
 
       if (!emailResult.success) {
-        setResetError(emailResult.error || 'Error enviando correo de recuperaciâ”œâ”‚n');
+        setResetError(emailResult.error || 'Error enviando correo de recuperación');
         return;
       }
 
-      setResetSuccess('Email enviado con â”œÂ®xito. Revise su bandeja de entrada.');
+      setResetSuccess('Email enviado con éxito. Revise su bandeja de entrada.');
       startResendTimer();
     } catch (err: any) {
-      console.error('Error enviando recuperaciâ”œâ”‚n de contraseâ”œâ–’a:', err);
-      setResetError('Ocurriâ”œâ”‚ un error interno. Intente mâ”œÃ­s tarde.');
+      console.error('Error enviando recuperación de contraseña:', err);
+      setResetError('Ocurrió un error interno. Intente más tarde.');
     }
   };
 
@@ -1543,25 +1559,25 @@ const Dashboard: React.FC = () => {
   const handleSaveProfile = () => {
     if (!user) return;
 
-    // Validar que todos los campos estâ”œÂ®n completos
+    // Validar que todos los campos estén completos
     if (!profilePhoto || !fullName || !idCardNumber || !idCardPhoto) {
-      alert('Ã”ÃœÃ¡Â´Â©Ã… Por favor complete todos los campos requeridos');
+      alert('ÔÜá´©Å Por favor complete todos los campos requeridos');
       return;
     }
 
-    // Verificar si el usuario estâ”œÃ­ en userStorage
+    // Verificar si el usuario está en userStorage
     const storedUser = userStorage.getUserByUsername(user.username);
     
     if (storedUser && storedUser.cedula) {
-      // Validar que el nâ”œâ•‘mero de câ”œÂ®dula coincida con el registrado
+      // Validar que el número de cédula coincida con el registrado
       const storedCedula = storedUser.cedula;
       
-      // Normalizar los nâ”œâ•‘meros de câ”œÂ®dula (quitar guiones, espacios, puntos)
+      // Normalizar los números de cédula (quitar guiones, espacios, puntos)
       const normalizedInput = idCardNumber.replace(/[-.\s]/g, '');
       const normalizedStored = storedCedula.replace(/[-.\s]/g, '');
       
       if (normalizedInput !== normalizedStored) {
-        alert('Ã”Ã˜Ã® Error de verificaciâ”œâ”‚n');
+        alert('ÔØî Error de verificación');
         return;
       }
     }
@@ -1586,11 +1602,11 @@ const Dashboard: React.FC = () => {
     setUser(updatedUser);
     localStorage.setItem('mopc_user', JSON.stringify(updatedUser));
 
-    // Actualizar estados de verificaciâ”œâ”‚n de perfil
+    // Actualizar estados de verificación de perfil
     setShowProfileIncompleteNotification(false);
     setIsProfileComplete(true);
     setShowCompleteProfileModal(false);
-    alert('Ã”Â£Ã  Perfil completado exitosamente. Ahora puede acceder a todas las funcionalidades.');
+    alert(' Perfil completado exitosamente. Ahora puede acceder a todas las funcionalidades.');
   };
 
   const handleLogout = () => {
@@ -1620,9 +1636,9 @@ const Dashboard: React.FC = () => {
   };
 
   // bandera para alternar entre el estilo tradicional de tarjetas y
-  // la nueva propuesta de iconos circulares tipo app mâ”œâ”‚vil.
+  // la nueva propuesta de iconos circulares tipo app móvil.
   const useIconButtons = true;
-  // algunos iconos no estarâ”œÃ­n activos aâ”œâ•‘n (Buscar, Usuarios, Exportar).
+  // algunos iconos no estarán activos aún (Buscar, Usuarios, Exportar).
   // en lugar de eliminarlos definitivamente los oculta permitiendo
   // reactivar en el futuro simplemente cambiando esta constante.
   const hideUnusedIcons = false;
@@ -1653,7 +1669,7 @@ const Dashboard: React.FC = () => {
     setInterventionToEdit(null);
   };
 
-  // Funciones para manejar la navegaciâ”œâ”‚n inferior
+  // Funciones para manejar la navegación inferior
   const handleBottomNavClick = (navId: string) => {
     setActiveNav(navId);
     
@@ -1681,7 +1697,7 @@ const Dashboard: React.FC = () => {
         setInterventionToEdit(null);
         break;
       case 'reportes':
-        // Cargar pâ”œÃ­gina completa de Mis Reportes
+        // Cargar página completa de Mis Reportes
         if (!isProfileComplete) {
           setShowCompleteProfileModal(true);
           return;
@@ -1775,14 +1791,14 @@ const Dashboard: React.FC = () => {
     setShowUsersPage(false);
   };
 
-  // Funciâ”œâ”‚n para manejar la câ”œÃ­mara con geolocalizaciâ”œâ”‚n en vivo, flash y giro
+  // Función para manejar la cámara con geolocalización en vivo, flash y giro
   const handleOpenCamera = async () => {
     if (!isProfileComplete) {
       setShowCompleteProfileModal(true);
       return;
     }
 
-    // Detectar modelo de dispositivo para configuraciâ”œâ”‚n especâ”œÂ¡fica
+    // Detectar modelo de dispositivo para configuración específica
     const getDeviceModel = () => {
       const userAgent = navigator.userAgent.toLowerCase();
       const screenWidth = window.screen.width;
@@ -1812,20 +1828,20 @@ const Dashboard: React.FC = () => {
       else if (userAgent.includes('redmi note 11') || (screenWidth === 1080 && screenHeight === 2400)) {
         return 'xiaomi-redmi-note11';
       }
-      // Default genâ”œÂ®rico
+      // Default genérico
       else {
         return 'generic';
       }
     };
 
     const deviceModel = getDeviceModel();
-    console.log('Â­Æ’Ã´â–’ Modelo detectado:', deviceModel);
+    console.log('­ƒô▒ Modelo detectado:', deviceModel);
 
-    // Variable global para controlar si la câ”œÃ­mara estâ”œÃ­ abierta
+    // Variable global para controlar si la cámara está abierta
     (window as any).cameraOpen = true;
 
     try {
-      console.log('Â­Æ’Ã´Ã€ Iniciando câ”œÃ­mara con geolocalizaciâ”œâ”‚n en vivo...');
+      console.log('­ƒôÀ Iniciando cámara con geolocalización en vivo...');
 
       // Limpiar guarda de foto previas para evitar duplicados indeseados
       try {
@@ -1834,7 +1850,7 @@ const Dashboard: React.FC = () => {
         console.warn('No se pudo limpiar gallery cache:', error);
       }
       
-      // Mostrar interfaz de câ”œÃ­mara con controles
+      // Mostrar interfaz de cámara con controles
       const cameraInterface = document.createElement('div');
       cameraInterface.style.cssText = `
         position: fixed;
@@ -1849,7 +1865,7 @@ const Dashboard: React.FC = () => {
         overflow: hidden;
       `;
       
-      // Header con geolocalizaciâ”œâ”‚n en vivo
+      // Header con geolocalización en vivo
       const header = document.createElement('div');
       header.style.cssText = `
         background: rgba(0, 0, 0, 0.8);
@@ -1858,15 +1874,15 @@ const Dashboard: React.FC = () => {
         text-align: center;
         font-size: 14px;
       `;
-      header.innerHTML = 'Â­Æ’Ã´Ã¬ Obteniendo ubicaciâ”œâ”‚n...<br/><small>Por favor espere</small>';
+      header.innerHTML = '­ƒôì Obteniendo ubicación...<br/><small>Por favor espere</small>';
       
       // Estados
       let currentPosition: any = null;
-      let currentAddress = 'Ubicaciâ”œâ”‚n desconocida';
+      let currentAddress = 'Ubicación desconocida';
       let flashMode = 'off'; // off, on, auto
       let cameraDirection = 'environment'; // environment (trasera) / user (frontal)
       let zoomLevel = 1; // 1x a 4x zoom
-      let textSizeLevel = 1; // 1x a 3x tamaâ”œâ–’o de letra
+      let textSizeLevel = 1; // 1x a 3x tamaño de letra
       
       // LIMPIEZA RADICAL - solo elementos esenciales
       const videoContainer = document.createElement('div');
@@ -1934,14 +1950,14 @@ const Dashboard: React.FC = () => {
         color: rgba(255, 255, 255, 0.7);
       `;
       const now = new Date();
-      dateTimeInfo.textContent = `Â­Æ’Ã²Ã† ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      dateTimeInfo.textContent = `­ƒòÆ ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
       
       const locationInfo = document.createElement('div');
       locationInfo.style.cssText = `
         font-size: 12px;
         color: white;
       `;
-      locationInfo.textContent = 'Â­Æ’Ã´Ã¬ Obteniendo ubicaciâ”œâ”‚n...';
+      locationInfo.textContent = '­ƒôì Obteniendo ubicación...';
       
       const coordinatesInfo = document.createElement('div');
       coordinatesInfo.style.cssText = `
@@ -1987,7 +2003,7 @@ const Dashboard: React.FC = () => {
         cursor: pointer;
       `;
       flashButton.title = 'Encender / Apagar flash';
-      flashButton.innerHTML = 'Ã”ÃœÃ­';
+      flashButton.innerHTML = 'ÔÜí';
       
       const captureButton = document.createElement('button');
       captureButton.style.cssText = `
@@ -2001,7 +2017,7 @@ const Dashboard: React.FC = () => {
         font-weight: bold;
       `;
       captureButton.title = 'Capturar foto';
-      captureButton.innerHTML = 'Â­Æ’Ã´Ã€';
+      captureButton.innerHTML = '­ƒôÀ';
       
       const flipButton = document.createElement('button');
       flipButton.style.cssText = `
@@ -2013,8 +2029,8 @@ const Dashboard: React.FC = () => {
         font-size: 20px;
         cursor: pointer;
       `;
-      flipButton.title = 'Cambiar câ”œÃ­mara frontal/trasera';
-      flipButton.innerHTML = 'Â­Æ’Ã¶Ã¤';
+      flipButton.title = 'Cambiar cámara frontal/trasera';
+      flipButton.innerHTML = '­ƒöä';
       flipButton.style.cssText = `
         background: rgba(255, 255, 255, 0.2);
         border: 2px solid white;
@@ -2024,7 +2040,7 @@ const Dashboard: React.FC = () => {
         font-size: 20px;
         cursor: pointer;
       `;
-      flipButton.innerHTML = 'Â­Æ’Ã¶Ã¤';
+      flipButton.innerHTML = '­ƒöä';
 
       const zoomLabel = document.createElement('div');
       zoomLabel.style.cssText = `
@@ -2088,7 +2104,7 @@ const Dashboard: React.FC = () => {
       controls.appendChild(zoomContainer);
       controls.appendChild(textSizeContainer);
 
-      // Iniciar geolocalizaciâ”œâ”‚n en vivo
+      // Iniciar geolocalización en vivo
       const watchPositionId = await Geolocation.watchPosition({
         enableHighAccuracy: true,
         timeout: 10000,
@@ -2099,17 +2115,17 @@ const Dashboard: React.FC = () => {
         // Actualizar overlay de georeferencia dentro del video
         try {
           if (!position || !position.coords) {
-            locationInfo.innerHTML = 'Â­Æ’Ã´Ã¬ Obteniendo ubicaciâ”œâ”‚n...';
+            locationInfo.innerHTML = '­ƒôì Obteniendo ubicación...';
             coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
             return;
           }
           
           // Actualizar coordenadas
           const currentTime = new Date();
-          dateTimeInfo.textContent = `Â­Æ’Ã²Ã† ${currentTime.toLocaleDateString()} ${currentTime.toLocaleTimeString()}`;
+          dateTimeInfo.textContent = `­ƒòÆ ${currentTime.toLocaleDateString()} ${currentTime.toLocaleTimeString()}`;
           coordinatesInfo.innerHTML = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           
-          // Obtener direcciâ”œâ”‚n con OpenStreetMap Nominatim
+          // Obtener dirección con OpenStreetMap Nominatim
           const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&accept-language=es`);
 
           if (response.ok) {
@@ -2124,20 +2140,20 @@ const Dashboard: React.FC = () => {
                 addr.country
               ].filter(Boolean);
               currentAddress = parts.join(', ');
-              locationInfo.innerHTML = `Â­Æ’Ã´Ã¬ ${currentAddress}`;
+              locationInfo.innerHTML = `­ƒôì ${currentAddress}`;
             } else {
-              locationInfo.innerHTML = `Â­Æ’Ã´Ã¬ Ubicaciâ”œâ”‚n desconocida`;
+              locationInfo.innerHTML = `­ƒôì Ubicación desconocida`;
             }
           } else {
-            locationInfo.innerHTML = `Â­Æ’Ã´Ã¬ Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+            locationInfo.innerHTML = `­ƒôì Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           }
         } catch (error) {
           const errorTime = new Date();
-          dateTimeInfo.textContent = `Â­Æ’Ã²Ã† ${errorTime.toLocaleDateString()} ${errorTime.toLocaleTimeString()}`;
+          dateTimeInfo.textContent = `­ƒòÆ ${errorTime.toLocaleDateString()} ${errorTime.toLocaleTimeString()}`;
           if (position && position.coords) {
-            locationInfo.innerHTML = `Â­Æ’Ã´Ã¬ Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+            locationInfo.innerHTML = `­ƒôì Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           } else {
-            locationInfo.innerHTML = 'Â­Æ’Ã´Ã¬ Error obteniendo ubicaciâ”œâ”‚n';
+            locationInfo.innerHTML = '­ƒôì Error obteniendo ubicación';
           }
         }
       });
@@ -2146,14 +2162,14 @@ const Dashboard: React.FC = () => {
       try {
         const constraints: any = {
           video: {
-            facingMode: 'environment', // Forzar câ”œÃ­mara trasera
+            facingMode: 'environment', // Forzar cámara trasera
             width: { ideal: 1920 },
             height: { ideal: 1080 }
           },
           audio: false
         };
         
-        // Configuraciâ”œâ”‚n especâ”œÂ¡fica segâ”œâ•‘n modelo
+        // Configuración específica según modelo
         switch (deviceModel) {
           case 'samsung-a04s':
           case 'samsung-a03s':
@@ -2169,18 +2185,18 @@ const Dashboard: React.FC = () => {
             break;
         }
         
-        // Agregar torch solo si estâ”œÃ­ soportado
+        // Agregar torch solo si está soportado
         if (flashMode === 'on') {
           constraints.video.torch = true;
         }
         
-        console.log('Â­Æ’Ã„Ã‘ Iniciando stream con constraints:', constraints);
+        console.log('­ƒÄÑ Iniciando stream con constraints:', constraints);
         let stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         video.srcObject = stream;
         video.play();
         
-        // Funciâ”œâ”‚n para capturar foto
+        // Función para capturar foto
         const capturePhoto = async () => {
           try {
             // Evitar taps repetidos que generen duplicados
@@ -2192,7 +2208,7 @@ const Dashboard: React.FC = () => {
             const videoContainer = document.querySelector('[style*="flex: 1"]');
             
             if (!videoContainer) {
-              console.error('No se encontrâ”œâ”‚ videoContainer');
+              console.error('No se encontró videoContainer');
               return;
             }
             
@@ -2202,7 +2218,7 @@ const Dashboard: React.FC = () => {
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
-              // Activar flash si estâ”œÃ­ en modo 'on' o 'auto'
+              // Activar flash si está en modo 'on' o 'auto'
               if (flashMode === 'on' || flashMode === 'auto') {
                 try {
                   const videoTrack = stream.getVideoTracks()[0];
@@ -2247,7 +2263,7 @@ const Dashboard: React.FC = () => {
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
 
-              // En esta versiâ”œâ”‚n seguimos con la câ”œÃ­mara abierta para continuar tomando.
+              // En esta versión seguimos con la cámara abierta para continuar tomando.
               // No cerramos stream ni removemos la interfaz.
               
               // Mostrar mensaje de procesamiento
@@ -2265,14 +2281,14 @@ const Dashboard: React.FC = () => {
                 font-size: 16px;
                 text-align: center;
               `;
-              processingMessage.innerHTML = 'Â­Æ’Ã´Ã€ Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
+              processingMessage.innerHTML = '­ƒôÀ Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
               document.body.appendChild(processingMessage);
               
               // Guardar directamente el fotograma tal cual viene de la vista en vivo,
-              // haciendo que el usuario vea en la galerâ”œÂ¡a lo mismo que ve en la câ”œÃ­mara.
+              // haciendo que el usuario vea en la galería lo mismo que ve en la cámara.
               await savePhotoToGallery(photoDataUrl, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
 
-              // Mensaje de â”œÂ®xito dentro de la propia interfaz
+              // Mensaje de éxito dentro de la propia interfaz
               const successMessage = document.createElement('div');
               successMessage.style.cssText = `
                 position: fixed;
@@ -2286,7 +2302,7 @@ const Dashboard: React.FC = () => {
                 z-index: 10001;
                 font-size: 14px;
               `;
-              successMessage.textContent = 'Â­Æ’Ã´Â© Foto guardada correctamente. Sigue tomando.';
+              successMessage.textContent = '­ƒô© Foto guardada correctamente. Sigue tomando.';
               document.body.appendChild(successMessage);
 
               setTimeout(() => {
@@ -2296,7 +2312,7 @@ const Dashboard: React.FC = () => {
               // Remover mensaje de procesamiento
               processingMessage.remove();
 
-              console.log('Ã”Â£Ã  Foto capturada y guardada con geolocalizaciâ”œâ”‚n en vivo');
+              console.log(' Foto capturada y guardada con geolocalización en vivo');
             }
           } catch (error: any) {
             console.error('Error capturando foto:', error);
@@ -2304,7 +2320,7 @@ const Dashboard: React.FC = () => {
           }
         };
         
-        // Funciâ”œâ”‚n para toggle flash
+        // Función para toggle flash
         const toggleFlash = async () => {
           try {
             if (flashMode === 'off') {
@@ -2317,19 +2333,19 @@ const Dashboard: React.FC = () => {
               flashButton.style.color = 'white';
             }
             
-            console.log('Â­Æ’Ã¶Âª Flash cambiado a:', flashMode);
-            // Flash real en WebRTC no estâ”œÃ­ implementado, solo visual
+            console.log('­ƒöª Flash cambiado a:', flashMode);
+            // Flash real en WebRTC no está implementado, solo visual
           } catch (error) {
             console.error('Error cambiando flash:', error);
           }
         };
         
-        // Funciâ”œâ”‚n para girar câ”œÃ­mara
+        // Función para girar cámara
         const flipCamera = async () => {
           try {
             cameraDirection = cameraDirection === 'environment' ? 'user' : 'environment';
             
-            // Reiniciar stream con nueva direcciâ”œâ”‚n
+            // Reiniciar stream con nueva dirección
             stream.getTracks().forEach(track => track.stop());
             
             const flipConstraints: any = {
@@ -2341,7 +2357,7 @@ const Dashboard: React.FC = () => {
               audio: false
             };
             
-            // Configuraciâ”œâ”‚n especâ”œÂ¡fica segâ”œâ•‘n modelo
+            // Configuración específica según modelo
             switch (deviceModel) {
               case 'samsung-a04s':
               case 'samsung-a03s':
@@ -2361,33 +2377,33 @@ const Dashboard: React.FC = () => {
               flipConstraints.video.torch = true;
             }
             
-            console.log('Â­Æ’Ã¶Ã¤ Cambiando a câ”œÃ­mara:', cameraDirection, flipConstraints);
+            console.log('­ƒöä Cambiando a cámara:', cameraDirection, flipConstraints);
             const newStream = await navigator.mediaDevices.getUserMedia(flipConstraints);
             stream = newStream; // Actualizar variable stream
             video.srcObject = newStream;
             video.play();
           } catch (error) {
-            console.error('Error girando câ”œÃ­mara:', error);
+            console.error('Error girando cámara:', error);
           }
         };
         
-        // Funciâ”œâ”‚n para controlar zoom con un solo slider
+        // Función para controlar zoom con un solo slider
         const adjustZoom = (value: number) => {
           zoomLevel = value;
           
-          // Aplicar zoom usando CSS transform al video (mâ”œÂ®todo compatible)
+          // Aplicar zoom usando CSS transform al video (método compatible)
           video.style.transform = `scale(${zoomLevel})`;
           video.style.transformOrigin = 'center center';
           video.style.transition = 'transform 0.3s ease';
           
-          console.log('Â­Æ’Ã¶Ã¬ Zoom aplicado:', zoomLevel);
+          console.log('­ƒöì Zoom aplicado:', zoomLevel);
         };
         
-        // Funciâ”œâ”‚n para controlar tamaâ”œâ–’o de texto con slider
+        // Función para controlar tamaño de texto con slider
         const adjustTextSize = (value: number) => {
           textSizeLevel = value;
           
-          // Ajustar tamaâ”œâ–’o de texto del overlay
+          // Ajustar tamaño de texto del overlay
           userName.style.fontSize = `${14 * textSizeLevel}px`;
           locationInfo.style.fontSize = `${11 * textSizeLevel}px`;
           coordinatesInfo.style.fontSize = `${10 * textSizeLevel}px`;
@@ -2411,24 +2427,24 @@ const Dashboard: React.FC = () => {
         });
         
       } catch (error) {
-        console.error('Error accediendo a la câ”œÃ­mara:', error);
+        console.error('Error accediendo a la cámara:', error);
         
-        // Fallback a câ”œÃ­mara Capacitor si WebRTC no funciona
+        // Fallback a cámara Capacitor si WebRTC no funciona
         Geolocation.clearWatch({ id: watchPositionId });
         cameraInterface.remove();
         
-        // Usar mâ”œÂ®todo original con Capacitor
-        console.log('Â­Æ’Ã´Ã€ Usando câ”œÃ­mara Capacitor como fallback...');
+        // Usar método original con Capacitor
+        console.log('­ƒôÀ Usando cámara Capacitor como fallback...');
         
-        // Obtener ubicaciâ”œâ”‚n actual
+        // Obtener ubicación actual
         const position = await Geolocation.getCurrentPosition({
           enableHighAccuracy: true,
           timeout: 15000,
           maximumAge: 60000
         });
         
-        // Obtener direcciâ”œâ”‚n
-        let address = 'Ubicaciâ”œâ”‚n desconocida';
+        // Obtener dirección
+        let address = 'Ubicación desconocida';
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`,
@@ -2456,7 +2472,7 @@ const Dashboard: React.FC = () => {
           address = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
         }
         
-        // Usar câ”œÃ­mara Capacitor
+        // Usar cámara Capacitor
         const result = await Camera.getPhoto({
           quality: 80,
           allowEditing: false,
@@ -2474,27 +2490,27 @@ const Dashboard: React.FC = () => {
             timestamp: new Date()
           });
           
-          // Guardar directamente en galerâ”œÂ¡a
+          // Guardar directamente en galería
           await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
           
-          console.log('Ã”Â£Ã  Foto capturada y guardada con mâ”œÂ®todo Capacitor');
+          console.log(' Foto capturada y guardada con método Capacitor');
         }
       }
       
     } catch (error: any) {
-      console.error('Ã”Ã˜Ã® Error al tomar foto:', error);
+      console.error('ÔØî Error al tomar foto:', error);
       alert('Error al tomar foto: ' + (error.message || error.toString()));
     }
   };
 
-  // Funciâ”œâ”‚n para guardar foto en galerâ”œÂ¡a
+  // Función para guardar foto en galería
   const handleSavePhotoToGallery = async (photoData: { photo: string; location: any; timestamp: string }) => {
     try {
-      // Crear un nombre de archivo â”œâ•‘nico
+      // Crear un nombre de archivo único
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `MOPC_Photo_${timestamp}.jpg`;
       
-      // Guardar en localStorage como galerâ”œÂ¡a simulada
+      // Guardar en localStorage como galería simulada
       const existingPhotos = JSON.parse(localStorage.getItem('mopc_photo_gallery') || '[]');
       const newPhoto = {
         id: Date.now().toString(),
@@ -2507,18 +2523,18 @@ const Dashboard: React.FC = () => {
       existingPhotos.push(newPhoto);
       localStorage.setItem('mopc_photo_gallery', JSON.stringify(existingPhotos));
       
-      console.log('Foto guardada en galerâ”œÂ¡a:', newPhoto);
+      console.log('Foto guardada en galería:', newPhoto);
       
-      // Aquâ”œÂ¡ tambiâ”œÂ®n se podrâ”œÂ¡a implementar el guardado real en el dispositivo
+      // Aquí también se podría implementar el guardado real en el dispositivo
       // usando el plugin de File System de Capacitor si se necesita
       
     } catch (error) {
-      console.error('Error guardando foto en galerâ”œÂ¡a:', error);
+      console.error('Error guardando foto en galería:', error);
       throw error;
     }
   };
 
-  // Si se debe mostrar la pâ”œÃ­gina de Mis Reportes
+  // Si se debe mostrar la página de Mis Reportes
   if (showMyReportsModal && user) {
     return (
       <div className="my-reports-page">
@@ -2555,12 +2571,12 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Si se debe mostrar la pâ”œÃ­gina de configuraciâ”œâ”‚n
+  // Si se debe mostrar la página de configuración
   if (showChatPage && user) {
     return (
       <ChatPage
         currentUser={user}
-        onBack={() => setShowChatPage(false)}
+        onBack={() => { setShowChatPage(false); setActiveNav('dashboard'); }}
       />
     );
   }
@@ -2575,7 +2591,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Si se debe mostrar la jerarquâ”œÂ¡a de reportes
+  // Si se debe mostrar la jerarquía de reportes
   if (showHierarchy && user) {
     return (
       <MyReportsHierarchy 
@@ -2586,7 +2602,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Si se debe mostrar la pâ”œÃ­gina de informes
+  // Si se debe mostrar la página de informes
   if (showReportsPage && user) {
     return (
       <ReportsPage 
@@ -2609,17 +2625,17 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Si se debe mostrar la pâ”œÃ­gina de exportar
+  // Si se debe mostrar la página de exportar
   if (showExportPage && user) {
     return <ExportPage user={user} onBack={handleBackToDashboard} />;
   }
 
-  // Si se debe mostrar la pâ”œÃ­gina de usuarios
+  // Si se debe mostrar la página de usuarios
   if (showUsersPage && user) {
     return <UsersPage user={user} onBack={handleBackToDashboard} />;
   }
 
-  // Si se debe mostrar la pâ”œÃ­gina de vehâ”œÂ¡culos pesados
+  // Si se debe mostrar la página de vehículos pesados
   if (showHeavyVehiclesPage && user) {
     return <HeavyVehiclesPage onClose={handleBackToDashboard} />;
   }
@@ -2628,7 +2644,7 @@ const Dashboard: React.FC = () => {
   if (showReportForm && user) {
     return (
       <ReportForm
-        key={interventionToEdit?._pendingReportId || interventionToEdit?.id || 'new-report'} // Ã”Â£Ã  Forzar remontaje
+        key={interventionToEdit?._pendingReportId || interventionToEdit?.id || 'new-report'} //  Forzar remontaje
         user={user}
         onBack={handleBackToDashboard}
         plantillaDefault={plantillaDefault}
@@ -2670,8 +2686,8 @@ const Dashboard: React.FC = () => {
                   <img src="/mopc-logo.png" alt="MOPC Logo" className="login-logo-left" />
                   <img src="/logo-left.png?refresh=202510180002" alt="Logo Derecho" className="login-logo-right" />
                 </div>
-                <h1 className="login-title">Direcciâ”œâ”‚n de Coordinaciâ”œâ”‚n Regional</h1>
-                <p className="login-subtitle">Sistema de Gestiâ”œâ”‚n de Obras Pâ”œâ•‘blicas</p>
+                <h1 className="login-title">Dirección de Coordinación Regional</h1>
+                <p className="login-subtitle">Sistema de Gestión de Obras Públicas</p>
               </div>
 
               <form className="login-form" onSubmit={submitLogin}>
@@ -2691,12 +2707,12 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Contraseâ”œâ–’a</label>
+              <label htmlFor="password">Contraseña</label>
               <input
                 id="password"
                 type="password"
                 className="form-input"
-                placeholder="Ingrese contraseâ”œâ–’a"
+                placeholder="Ingrese contraseña"
                 value={loginPass}
                 onChange={e => setLoginPass(e.target.value)}
                 autoComplete="current-password"
@@ -2715,7 +2731,7 @@ const Dashboard: React.FC = () => {
               className="login-button"
               disabled={isLoading}
             >
-              {isLoading ? 'Iniciando sesiâ”œâ”‚n...' : 'Iniciar Sesiâ”œâ”‚n'}
+              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
 
             <div className="forgot-password-row">
@@ -2725,7 +2741,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => setShowResetModal(true)}
                 disabled={isLoading}
               >
-                Recuperar contraseâ”œâ–’a
+                Recuperar contraseña
               </button>
             </div>
           </form>
@@ -2734,7 +2750,7 @@ const Dashboard: React.FC = () => {
             <div className="modal-overlay" onClick={() => setShowResetModal(false)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                  <h3>Recuperar contraseâ”œâ–’a</h3>
+                  <h3>Recuperar contraseña</h3>
                   <button className="modal-close" onClick={() => setShowResetModal(false)}>&times;</button>
                 </div>
                 <div className="modal-body">
@@ -2752,12 +2768,12 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="resetEmail">Correo electrâ”œâ”‚nico</label>
+                    <label htmlFor="resetEmail">Correo electrónico</label>
                     <input
                       id="resetEmail"
                       type="email"
                       className="form-input"
-                      placeholder="Ingrese su correo electrâ”œâ”‚nico"
+                      placeholder="Ingrese su correo electrónico"
                       value={resetEmail}
                       onChange={e => setResetEmail(e.target.value)}
                       autoComplete="email"
@@ -2781,7 +2797,7 @@ const Dashboard: React.FC = () => {
           )}
 
               <div className="login-footer">
-                <p> 2025 Ministerio de Obras Pâ”œâ•‘blicas y Comunicaciones</p>
+                <p> 2025 Ministerio de Obras Públicas y Comunicaciones</p>
               </div>
             </div>
           </div>
@@ -2848,11 +2864,11 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="dashboard-content">
-        {/* Notificaciâ”œâ”‚n de perfil incompleto */}
+        {/* Notificación de perfil incompleto */}
         {showProfileIncompleteNotification && (
           <div className="profile-incomplete-notification">
             <div className="notification-content">
-              <span className="notification-icon">Ã”ÃœÃ¡Â´Â©Ã…</span>
+              <span className="notification-icon">ÔÜá´©Å</span>
               <div className="notification-text">
                 <strong>Verificar cuenta</strong>
                 <p>Complete su perfil para acceder a todas las funcionalidades</p>
@@ -2874,15 +2890,15 @@ const Dashboard: React.FC = () => {
         </header>
 
         <div className="dashboard-main">
-          {/* TODO: el diseâ”œâ–’o original usaba "cards" para cada acciâ”œâ”‚n.
-              Para que el dashboard se parezca mâ”œÃ­s a una app mâ”œâ”‚vil podemos
-              usar iconos circulares y etiquetas pequeâ”œâ–’as. Se introduce el
+          {/* TODO: el diseño original usaba "cards" para cada acción.
+              Para que el dashboard se parezca más a una app móvil podemos
+              usar iconos circulares y etiquetas pequeñas. Se introduce el
               flag `useIconButtons` para alternar entre ambas versiones.
           */}
-          {/** Presionar este valor a `true` activa el modo botâ”œâ”‚n circular */}
+          {/** Presionar este valor a `true` activa el modo botón circular */}
           {useIconButtons ? (
             <div className="dashboard-icons-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-              {/* versiâ”œâ”‚n con botones redondos */}
+              {/* versión con botones redondos */}
               <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
                 <div className="dashboard-action-icon">
                   <AddIcon size={32} />
@@ -2903,12 +2919,12 @@ const Dashboard: React.FC = () => {
                 <div className="dashboard-action-icon">
                   <CameraIcon size={32} />
                 </div>
-                <div className="dashboard-action-label">Câ”œÃ­mara</div>
+                <div className="dashboard-action-label">Cámara</div>
               </div>
 
               <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenStabilityModal}>
                 <div className="dashboard-action-icon" style={{ fontSize: '26px' }}>
-                  Â­Æ’Ã´Ã…
+                  📊
                 </div>
                 <div className="dashboard-action-label">Nivel de Estabilidad</div>
               </div>
@@ -2922,7 +2938,7 @@ const Dashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Usuarios: oculto temporalmente en main, se puede volver a habilitar cambiando esta condiciâ”œâ”‚n */}
+              {/* Usuarios: oculto temporalmente en main, se puede volver a habilitar cambiando esta condición */}
               {user?.role !== UserRole.TECNICO && !hideUnusedIcons && false && (
                 <div className={`dashboard-action ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowUsersPage}>
                   <div className="dashboard-action-icon">
@@ -2937,7 +2953,7 @@ const Dashboard: React.FC = () => {
                   <div className="dashboard-action-icon">
                     <TruckIcon size={32} />
                   </div>
-                  <div className="dashboard-action-label">Vehâ”œÂ¡culos Pesados</div>
+                  <div className="dashboard-action-label">Vehículos Pesados</div>
                 </div>
               )}
 
@@ -2952,7 +2968,7 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="dashboard-icons-grid">
-              {/* diseâ”œâ–’o previo con tarjetas */}
+              {/* diseño previo con tarjetas */}
               {/* Icono Registrar */}
               <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReportForm}>
                 <div className="dashboard-icon">
@@ -2962,20 +2978,20 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Registrar nuevas obras y intervenciones realizadas
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
               </div>
 
-              {/* Icono Informes - Oculto para usuarios tâ”œÂ®cnicos */}
+              {/* Icono Informes - Oculto para usuarios técnicos */}
               {user?.role !== UserRole.TECNICO && (
                 <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleShowReports}>
                   <div className="dashboard-icon">
                     <BarChartIcon size={40} />
                   </div>
-                  <h3 className="dashboard-icon-title">Informes y Estadâ”œÂ¡sticas</h3>
+                  <h3 className="dashboard-icon-title">Informes y Estadísticas</h3>
                   <p className="dashboard-icon-description">
-                    Ver estadâ”œÂ¡sticas, reportes y anâ”œÃ­lisis de todas las intervenciones
+                    Ver estadísticas, reportes y análisis de todas las intervenciones
                   </p>
-                  {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                  {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
                 </div>
               )}
 
@@ -2989,33 +3005,33 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Buscar y visualizar intervenciones en mapa interactivo con GPS
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
                 </div>
               )}
-              {/* fin condicional Buscar - no cerrar grid aquâ”œÂ¡ */}
+              {/* fin condicional Buscar - no cerrar grid aquí */}
 
-              {/* Icono Câ”œÃ­mara - Disponible para todos los usuarios */}
+              {/* Icono Cámara - Disponible para todos los usuarios */}
               <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenCamera}>
                 <div className="dashboard-icon">
                   <CameraIcon size={40} />
                 </div>
-                <h3 className="dashboard-icon-title">Câ”œÃ­mara</h3>
+                <h3 className="dashboard-icon-title">Cámara</h3>
                 <p className="dashboard-icon-description">
-                  Tomar fotografâ”œÂ¡as georeferenciadas con datos de ubicaciâ”œâ”‚n
+                  Tomar fotografías georeferenciadas con datos de ubicación
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
               </div>
 
               {/* Icono Nivel de Estabilidad con Giroscopio */}
               <div className={`dashboard-icon-card ${!isProfileComplete ? 'profile-locked' : ''}`} onClick={handleOpenStabilityModal}>
                 <div className="dashboard-icon">
-                  <span style={{ fontSize: '1.5rem' }}>Â­Æ’Ã´Ã…</span>
+                  <span style={{ fontSize: '1.5rem' }}>📊</span>
                 </div>
                 <h3 className="dashboard-icon-title">Nivel de Estabilidad</h3>
                 <p className="dashboard-icon-description">
                   Monitorea la estabilidad con el giroscopio y muestra un valor en tiempo real
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
               </div>
 
               {/* Icono Usuarios - Oculto temporalmente en main */}
@@ -3026,9 +3042,9 @@ const Dashboard: React.FC = () => {
                   </div>
                   <h3 className="dashboard-icon-title">Usuarios</h3>
                   <p className="dashboard-icon-description">
-                    Gestiâ”œâ”‚n de usuarios activos e inactivos del sistema
+                    Gestión de usuarios activos e inactivos del sistema
                   </p>
-                  {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                  {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
                 </div>
               )}
 
@@ -3042,7 +3058,7 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Buscar y exportar reportes a Excel, PDF y Word
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">Â­Æ’Ã¶Ã†</div>}
+                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
               </div>
               )}
             </div>
@@ -3083,9 +3099,9 @@ const Dashboard: React.FC = () => {
               </div>
               <p className="stability-status">{stabilityText}</p>
               <div className="stability-data">
-                <div>Roll (izq/der): {gyroData.gamma.toFixed(1)}â”¬â–‘</div>
-                <div>Pitch (del/atrâ”œÃ­s): {gyroData.beta.toFixed(1)}â”¬â–‘</div>
-                <div>Yaw: {gyroData.alpha.toFixed(1)}â”¬â–‘</div>
+                <div>Roll (izq/der): {gyroData.gamma.toFixed(1)}°</div>
+                <div>Pitch (del/atrás): {gyroData.beta.toFixed(1)}°</div>
+                <div>Yaw: {gyroData.alpha.toFixed(1)}°</div>
               </div>
               {!gyroPermissionPrompted && <p className="stability-note">Activa el giroscopio cuando se te solicite para medir correctamente.</p>}
             </div>
@@ -3096,7 +3112,7 @@ const Dashboard: React.FC = () => {
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}
       {showReportView && selectedReportId && (
         <>
-          {console.log('Â­Æ’Ã¶Ã¬ Dashboard: Renderizando ReportViewModern con:', { showReportView, selectedReportId })}
+          {console.log('­ƒöì Dashboard: Renderizando ReportViewModern con:', { showReportView, selectedReportId })}
           <ReportViewModern
             reportId={selectedReportId}
             onClose={handleCloseReportView}
@@ -3112,8 +3128,8 @@ const Dashboard: React.FC = () => {
         <div className="modal-overlay" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>
           <div className="modal-content profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Â­Æ’Ã¦Ã± Mi Perfil</h2>
-              <button className="modal-close" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>Ã”Â£Ã²</button>
+              <h2>­ƒæñ Mi Perfil</h2>
+              <button className="modal-close" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>Ô£ò</button>
             </div>
             <div className="modal-body">
               <div className="profile-section">
@@ -3122,19 +3138,19 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="profile-info-group">
                   <div className="profile-info-item">
-                    <label>Â­Æ’Ã¦Ã± Nombre completo</label>
+                    <label>­ƒæñ Nombre completo</label>
                     <input type="text" value={user?.name || ''} readOnly className="form-input" />
                   </div>
                   <div className="profile-info-item">
-                    <label>Â­Æ’Ã¶Ã¦ Usuario</label>
+                    <label>­ƒöæ Usuario</label>
                     <input type="text" value={user?.username || ''} readOnly className="form-input" />
                   </div>
                   <div className="profile-info-item">
-                    <label>Â­Æ’Ã…Ã³ Departamento</label>
-                    <input type="text" value="Direcciâ”œâ”‚n de Coordinaciâ”œâ”‚n Regional" readOnly className="form-input" />
+                    <label>­ƒÅó Departamento</label>
+                    <input type="text" value="Dirección de Coordinación Regional" readOnly className="form-input" />
                   </div>
                   <div className="profile-info-item">
-                    <label>Â­Æ’Ã´Ã¬ Regiâ”œâ”‚n asignada</label>
+                    <label>­ƒôì Región asignada</label>
                     <input type="text" value="Todas las regiones" readOnly className="form-input" />
                   </div>
                 </div>
@@ -3154,8 +3170,8 @@ const Dashboard: React.FC = () => {
         <div className="modal-overlay" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>
           <div className="modal-content my-reports-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh' }}>
             <div className="modal-header">
-              <h2>Â­Æ’Ã´Ã¯ Mis Reportes</h2>
-              <button className="modal-close" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>Ã”Â£Ã²</button>
+              <h2>­ƒôï Mis Reportes</h2>
+              <button className="modal-close" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>Ô£ò</button>
             </div>
             <div className="modal-body" style={{ padding: '20px' }}>
               <MyReportsListModern 
@@ -3173,15 +3189,15 @@ const Dashboard: React.FC = () => {
         <div className="modal-overlay" onClick={() => setShowCompleteProfileModal(false)}>
           <div className="modal-content complete-profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Ã”Â£Â¿ Completar Perfil</h2>
-              <button className="modal-close" onClick={() => setShowCompleteProfileModal(false)}>Ã”Â£Ã²</button>
+              <h2>Ô£¿ Completar Perfil</h2>
+              <button className="modal-close" onClick={() => setShowCompleteProfileModal(false)}>Ô£ò</button>
             </div>
             <div className="modal-body">
-              <p className="modal-description">Complete toda su informaciâ”œâ”‚n para verificar su cuenta</p>
+              <p className="modal-description">Complete toda su información para verificar su cuenta</p>
               
               {/* Foto de Perfil */}
               <div className="profile-field-section">
-                <label className="profile-field-label">Â­Æ’Ã´Â© Foto de Perfil *</label>
+                <label className="profile-field-label">­ƒô© Foto de Perfil *</label>
                 <div className="profile-photo-upload">
                   {profilePhoto ? (
                     <div className="profile-photo-preview">
@@ -3193,7 +3209,7 @@ const Dashboard: React.FC = () => {
                   ) : (
                     <div className="profile-photo-placeholder">
                       <label htmlFor="profile-photo-input" className="upload-label">
-                        <span className="upload-icon">Â­Æ’Ã´Ã€</span>
+                        <span className="upload-icon">­ƒôÀ</span>
                         <span>Click para subir foto</span>
                         <input
                           id="profile-photo-input"
@@ -3210,19 +3226,19 @@ const Dashboard: React.FC = () => {
 
               {/* Nombre Completo */}
               <div className="profile-field-section">
-                <label className="profile-field-label">Â­Æ’Ã¦Ã± Nombre Completo *</label>
+                <label className="profile-field-label">­ƒæñ Nombre Completo *</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Ej: Juan Pâ”œÂ®rez Gâ”œâ”‚mez"
+                  placeholder="Ej: Juan Pérez Gómez"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
 
-              {/* Nâ”œâ•‘mero de Câ”œÂ®dula */}
+              {/* Número de Cédula */}
               <div className="profile-field-section">
-                <label className="profile-field-label">Â­Æ’Ã¥Ã¶ Nâ”œâ•‘mero de Câ”œÂ®dula *</label>
+                <label className="profile-field-label">­ƒåö Número de Cédula *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -3232,13 +3248,13 @@ const Dashboard: React.FC = () => {
                   maxLength={15}
                 />
                 <small style={{ color: '#6c757d', fontSize: '12px', marginTop: '5px', display: 'block' }}>
-                  Debe coincidir con el nâ”œâ•‘mero registrado en el sistema
+                  Debe coincidir con el número registrado en el sistema
                 </small>
               </div>
 
               {/* Foto del Carnet */}
               <div className="profile-field-section">
-                <label className="profile-field-label">Â­Æ’Â¬Â¬ Foto del Carnet de Identidad *</label>
+                <label className="profile-field-label">­ƒ¬¬ Foto del Carnet de Identidad *</label>
                 <div className="id-card-upload">
                   {idCardPhoto ? (
                     <div className="id-card-preview">
@@ -3250,7 +3266,7 @@ const Dashboard: React.FC = () => {
                   ) : (
                     <div className="id-card-placeholder">
                       <label htmlFor="id-card-input" className="upload-label">
-                        <span className="upload-icon">Â­Æ’Â¬Â¬</span>
+                        <span className="upload-icon">­ƒ¬¬</span>
                         <span>Click para subir foto del carnet</span>
                         <input
                           id="id-card-input"
@@ -3288,6 +3304,11 @@ const Dashboard: React.FC = () => {
         onOpenChat={handleOpenChatModal}
         onCloseChat={handleCloseChatModal}
       />
+
+      {/* Burbuja de chat flotante — siempre visible en la app */}
+      {!showChatPage && (
+        <BubbleFeedChat currentUser={user} autoShow={!showChatPage} />
+      )}
     </div>
     </AppLayout>
     </>

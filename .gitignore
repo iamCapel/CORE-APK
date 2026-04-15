@@ -19,6 +19,10 @@ package-lock.json
 .env.test.local
 .env.production.local
 
+# Firebase credentials (secretos - NUNCA subir a git)
+service-account.json
+android/app/google-services.json
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -62,3 +66,4 @@ GUIA_APK.md
 *.swo
 *~
 
+.vercel

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import { useNotificationSound } from '../hooks/useNotificationSound';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../config/firebase';
@@ -11,8 +13,86 @@ import {
   getOrCreateChat,
   sendMessage,
   markMessagesAsRead,
+  deleteChatRoom,
 } from '../services/firebaseChatService';
 import './ChatPage.css';
+
+/* ─── Swipe-to-delete ─── */
+const SWIPE_DELETE_WIDTH = 80;
+const SWIPE_THRESHOLD = 40;
+
+const TrashIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14H6L5 6" />
+    <path d="M10 11v6M14 11v6" />
+    <path d="M9 6V4h6v2" />
+  </svg>
+);
+
+function SwipeChatItem({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+  const [offset, setOffset] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const startXRef = useRef(0);
+  const currentOffsetRef = useRef(0);
+  const draggingRef = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startXRef.current = e.touches[0].clientX;
+    currentOffsetRef.current = isOpen ? -SWIPE_DELETE_WIDTH : 0;
+    draggingRef.current = true;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!draggingRef.current) return;
+    const dx = e.touches[0].clientX - startXRef.current + currentOffsetRef.current;
+    const clamped = Math.max(-SWIPE_DELETE_WIDTH, Math.min(0, dx));
+    setOffset(clamped);
+  };
+
+  const handleTouchEnd = () => {
+    draggingRef.current = false;
+    if (offset < -SWIPE_THRESHOLD) {
+      setOffset(-SWIPE_DELETE_WIDTH);
+      setIsOpen(true);
+    } else {
+      setOffset(0);
+      setIsOpen(false);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOffset(0);
+    setIsOpen(false);
+    onDelete();
+  };
+
+  const handleItemClick = () => {
+    if (isOpen) { setOffset(0); setIsOpen(false); }
+  };
+
+  return (
+    <div className="cp-swipe-row">
+      <div className="cp-swipe-actions">
+        <button className="cp-swipe-delete-btn" onClick={handleDelete}>
+          <TrashIcon />
+          <span>Borrar</span>
+        </button>
+      </div>
+      <div
+        className="cp-swipe-content"
+        style={{ transform: `translateX(${offset}px)`, transition: draggingRef.current ? 'none' : 'transform 0.22s cubic-bezier(.25,.46,.45,.94)' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={handleItemClick}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 interface ChatUser {
   id?: string;
@@ -127,20 +207,43 @@ function ConversationView({
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const prevMsgCountRef = useRef<number>(-1);
+  // Rastrear IDs vistos para detectar mensajes nuevos con precisión
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const isFirstSnapshotRef = useRef(true);
+  // IDs optimistas pendientes de confirmar por Firestore
+  const pendingOptimisticRef = useRef<Set<string>>(new Set());
   const { play: playSound } = useNotificationSound();
 
   useEffect(() => {
+    seenIdsRef.current = new Set();
+    isFirstSnapshotRef.current = true;
+    pendingOptimisticRef.current = new Set();
+
     const unsub = subscribeToMessages(chatId, (msgs) => {
-      // Reproducir sonido cuando llegue un nuevo mensaje del otro usuario
-      if (prevMsgCountRef.current >= 0 && msgs.length > prevMsgCountRef.current) {
-        const lastMsg = msgs[msgs.length - 1];
-        if (lastMsg && lastMsg.senderId !== currentUserId) {
-          playSound();
-        }
+      if (isFirstSnapshotRef.current) {
+        seenIdsRef.current = new Set(msgs.map(m => m.id));
+        isFirstSnapshotRef.current = false;
+        setMessages(msgs);
+        return;
       }
-      prevMsgCountRef.current = msgs.length;
-      setMessages(msgs);
+      const newFromOther = msgs.filter(
+        m => !seenIdsRef.current.has(m.id) && m.senderId !== currentUserId
+      );
+      seenIdsRef.current = new Set(msgs.map(m => m.id));
+      if (newFromOther.length > 0) {
+        playSound();
+        try { navigator.vibrate?.([80]); } catch (_) {}
+        markMessagesAsRead(chatId, currentUserId);
+      }
+      // Reemplazar mensajes optimistas por los confirmados de Firestore
+      setMessages(prev => {
+        const firестoreIds = new Set(msgs.map(m => m.id));
+        // Conservar optimistas que aún no llegaron de Firestore
+        const stillPending = prev.filter(
+          m => m.id.startsWith('optimistic_') && !firестoreIds.has(m.id)
+        );
+        return [...msgs, ...stillPending];
+      });
     });
     markMessagesAsRead(chatId, currentUserId);
     return () => unsub();
@@ -152,12 +255,29 @@ function ConversationView({
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
+    const trimmed = text.trim();
+    setText('');
+    // Optimistic update: mostrar el mensaje al instante
+    const optimisticId = `optimistic_${Date.now()}`;
+    const optimisticMsg: ChatMessage = {
+      id: optimisticId,
+      senderId: currentUserId,
+      senderName: currentUserName,
+      text: trimmed,
+      timestamp: null,
+      read: false,
+    };
+    setMessages(prev => [...prev, optimisticMsg]);
+    pendingOptimisticRef.current.add(optimisticId);
     setSending(true);
     try {
-      await sendMessage(chatId, currentUserId, currentUserName, text, otherUser.id);
-      setText('');
+      await sendMessage(chatId, currentUserId, currentUserName, trimmed, otherUser.id);
+    } catch (_) {
+      // Revertir optimista si falló
+      setMessages(prev => prev.filter(m => m.id !== optimisticId));
     } finally {
       setSending(false);
+      pendingOptimisticRef.current.delete(optimisticId);
     }
   };
 
@@ -351,6 +471,7 @@ function NewChatModal({
 ───────────────────────────────────────────── */
 const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
   const [chats, setChats] = useState<ChatRoom[]>([]);
+  const [allUsers, setAllUsers] = useState<import('../services/firebaseUserStorage').UserData[]>([]);
   const [search, setSearch] = useState('');
   const [selectedChat, setSelectedChat] = useState<{
     chatId: string;
@@ -363,6 +484,31 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
   const currentUserName = currentUser.name;
   const prevUnreadRef = useRef<number>(-1);
   const { play: playSoundInList } = useNotificationSound();
+
+  // Refs para acceder siempre al valor más reciente sin re-registrar el listener
+  const selectedChatRef = useRef(selectedChat);
+  const onBackRef = useRef(onBack);
+  useEffect(() => { selectedChatRef.current = selectedChat; }, [selectedChat]);
+  useEffect(() => { onBackRef.current = onBack; }, [onBack]);
+
+  // Registrar el backButton UNA SOLA VEZ para evitar la brecha entre re-registros
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let handle: { remove: () => void } | null = null;
+    CapacitorApp.addListener('backButton', () => {
+      if (selectedChatRef.current) {
+        setSelectedChat(null);
+      } else {
+        onBackRef.current();
+      }
+    }).then(l => { handle = l; });
+    return () => { handle?.remove(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cargar usuarios para resolver nombres faltantes
+  useEffect(() => {
+    getAllUsers().then(setAllUsers);
+  }, []);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -382,9 +528,18 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
 
   const filteredChats = chats.filter((chat) => {
     const otherId = chat.participants.find((p) => p !== currentUserId) || '';
-    const otherName = chat.participantNames?.[otherId] || '';
+    const fromChat = chat.participantNames?.[otherId] || '';
+    const fromDb = allUsers.find(u => u.id === otherId || u.username === otherId);
+    const otherName = (fromChat && fromChat !== 'Usuario') ? fromChat : (fromDb?.name || fromDb?.username || otherId);
     return otherName.toLowerCase().includes(search.toLowerCase());
   });
+
+  const resolveOtherName = (chat: ChatRoom, otherId: string): string => {
+    const fromChat = chat.participantNames?.[otherId];
+    if (fromChat && fromChat !== 'Usuario') return fromChat;
+    const fromDb = allUsers.find(u => u.id === otherId || u.username === otherId);
+    return fromDb?.name || fromDb?.username || otherId || 'Usuario';
+  };
 
   const totalUnread = chats.reduce(
     (sum, c) => sum + (c.unreadCount?.[currentUserId] || 0),
@@ -393,7 +548,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
 
   const handleOpenChat = (chat: ChatRoom) => {
     const otherId = chat.participants.find((p) => p !== currentUserId) || '';
-    const otherName = chat.participantNames?.[otherId] || 'Usuario';
+    const otherName = resolveOtherName(chat, otherId);
     const otherPhoto = chat.participantAvatars?.[otherId];
     setSelectedChat({ chatId: chat.id, otherUser: { id: otherId, name: otherName, photo: otherPhoto } });
   };
@@ -416,16 +571,20 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
   /* ── Chat list view ── */
   return (
     <div className="chat-page">
-      {/* Topbar */}
+      {/* Topbar del Mural */}
       <div className="chat-topbar">
         <button className="chat-back-btn" onClick={onBack}>
           <BackIcon />
         </button>
-        <div className="chat-topbar-title">
-          <span>Mensajes</span>
-          {totalUnread > 0 && (
-            <span className="chat-topbar-badge">{totalUnread > 99 ? '99+' : totalUnread}</span>
-          )}
+        <div className="chat-mural-header">
+          <span className="chat-mural-title">Mural de Chats</span>
+          <span className="chat-mural-subtitle">
+            {chats.length === 0
+              ? 'Sin conversaciones aún'
+              : totalUnread > 0
+              ? <><strong>{totalUnread} sin leer</strong> &middot; {chats.length} conversaci{chats.length === 1 ? 'ón' : 'ones'}</>
+              : <>{chats.length} conversaci{chats.length === 1 ? 'ón' : 'ones'} &middot; Todo leído</>}
+          </span>
         </div>
         <button className="chat-new-btn" onClick={() => setShowNewChat(true)} title="Nuevo mensaje">
           <NewChatIcon />
@@ -457,32 +616,34 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
         )}
         {filteredChats.map((chat) => {
           const otherId = chat.participants.find((p) => p !== currentUserId) || '';
-          const otherName = chat.participantNames?.[otherId] || 'Usuario';
+          const otherName = resolveOtherName(chat, otherId);
           const otherPhoto = chat.participantAvatars?.[otherId];
           const unread = chat.unreadCount?.[currentUserId] || 0;
           const isLastMine = chat.lastMessageSenderId === currentUserId;
 
           return (
-            <button key={chat.id} className="chat-list-item" onClick={() => handleOpenChat(chat)}>
-              <div className="chat-list-avatar">
-                <AvatarBubble name={otherName} photo={otherPhoto} size={46} />
-                {unread > 0 && (
-                  <span className="chat-list-unread">{unread > 99 ? '99+' : unread}</span>
-                )}
-              </div>
-              <div className="chat-list-info">
-                <div className="chat-list-row">
-                  <span className="chat-list-name">{otherName}</span>
-                  <span className="chat-list-time">{formatTime(chat.lastMessageTime)}</span>
+            <SwipeChatItem key={chat.id} onDelete={() => deleteChatRoom(chat.id)}>
+              <button className={`chat-list-item${unread > 0 ? ' has-unread' : ''}`} onClick={() => handleOpenChat(chat)}>
+                <div className="chat-list-avatar">
+                  <AvatarBubble name={otherName} photo={otherPhoto} size={46} />
+                  {unread > 0 && (
+                    <span className="chat-list-unread">{unread > 99 ? '99+' : unread}</span>
+                  )}
                 </div>
-                <div className="chat-list-row">
-                  <span className={`chat-list-preview ${unread > 0 ? 'unread' : ''}`}>
-                    {isLastMine && <span className="chat-preview-you">Tú: </span>}
-                    {chat.lastMessage || 'Inicia la conversación'}
-                  </span>
+                <div className="chat-list-info">
+                  <div className="chat-list-row">
+                    <span className="chat-list-name">{otherName}</span>
+                    <span className="chat-list-time">{formatTime(chat.lastMessageTime)}</span>
+                  </div>
+                  <div className="chat-list-row">
+                    <span className={`chat-list-preview ${unread > 0 ? 'unread' : ''}`}>
+                      {isLastMine && <span className="chat-preview-you">Tú: </span>}
+                      {chat.lastMessage || 'Inicia la conversación'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </SwipeChatItem>
           );
         })}
       </div>
