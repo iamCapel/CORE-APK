@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
+import { getUserById, getUserByUsername } from './firebaseUserStorage';
 
 export interface ChatMessage {
   id: string;
@@ -39,11 +40,37 @@ class ChatService {
   private messagesSubcollection = 'messages';
 
   /**
+   * Detecta si un string es un Firebase UID (28 caracteres) o un username
+   */
+  private looksLikeFirebaseUID(str: string): boolean {
+    return str.length > 20 && /^[a-zA-Z0-9_-]+$/.test(str);
+  }
+
+  /**
+   * Resuelve un identificador (UID o username) a username
+   */
+  private async resolveToUsername(identifier: string): Promise<string> {
+    if (!identifier) return identifier;
+    
+    // Si parece un UID, resolver a username
+    if (this.looksLikeFirebaseUID(identifier)) {
+      const user = await getUserById(identifier);
+      return user?.username || identifier;
+    }
+    
+    // Si ya es un username, verificar que exista
+    const user = await getUserByUsername(identifier);
+    return user?.username || identifier;
+  }
+
+  /**
    * Genera un ID único para el chat basado en los participantes
    * Siempre en orden alfabético para consistencia
    */
-  private getChatId(user1: string, user2: string): string {
-    const sorted = [user1, user2].sort();
+  private async getChatId(user1: string, user2: string): Promise<string> {
+    const username1 = await this.resolveToUsername(user1);
+    const username2 = await this.resolveToUsername(user2);
+    const sorted = [username1, username2].sort();
     return `${sorted[0]}_${sorted[1]}`;
   }
 
@@ -51,15 +78,19 @@ class ChatService {
    * Obtiene o crea un chat entre dos usuarios
    */
   async getOrCreateChat(currentUser: string, otherUser: string): Promise<string> {
-    const chatId = this.getChatId(currentUser, otherUser);
+    // Resolver ambos a usernames
+    const currentUsername = await this.resolveToUsername(currentUser);
+    const otherUsername = await this.resolveToUsername(otherUser);
+    
+    const chatId = await this.getChatId(currentUser, otherUser);
     const chatRef = doc(db, this.chatsCollection, chatId);
     
     const chatDoc = await getDoc(chatRef);
     
     if (!chatDoc.exists()) {
-      // Crear nuevo chat
+      // Crear nuevo chat con usernames
       await setDoc(chatRef, {
-        participants: [currentUser, otherUser],
+        participants: [currentUsername, otherUsername],
         lastMessage: '',
         lastMessageTime: Timestamp.now(),
         createdAt: Timestamp.now()
@@ -73,10 +104,13 @@ class ChatService {
    * Envía un mensaje de texto
    */
   async sendMessage(chatId: string, senderId: string, text: string): Promise<void> {
+    // Resolver senderId a username si es UID
+    const senderUsername = await this.resolveToUsername(senderId);
+    
     const messagesRef = collection(db, this.chatsCollection, chatId, this.messagesSubcollection);
     
     await addDoc(messagesRef, {
-      senderId,
+      senderId: senderUsername,
       text,
       timestamp: Timestamp.now(),
       type: 'text'
@@ -95,6 +129,9 @@ class ChatService {
    */
   async sendImageMessage(chatId: string, senderId: string, imageFile: File): Promise<void> {
     try {
+      // Resolver senderId a username si es UID
+      const senderUsername = await this.resolveToUsername(senderId);
+      
       // Subir imagen a Firebase Storage
       const timestamp = Date.now();
       const fileName = `chats/${chatId}/${timestamp}_${imageFile.name}`;
@@ -107,7 +144,7 @@ class ChatService {
       const messagesRef = collection(db, this.chatsCollection, chatId, this.messagesSubcollection);
       
       await addDoc(messagesRef, {
-        senderId,
+        senderId: senderUsername,
         text: '📷 Imagen',
         timestamp: Timestamp.now(),
         type: 'image',

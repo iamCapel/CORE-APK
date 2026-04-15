@@ -18,6 +18,7 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { getUserById, getUserByUsername } from './firebaseUserStorage';
 
 export interface ChatMessage {
   id: string;
@@ -40,8 +41,31 @@ export interface ChatRoom {
   createdAt: Timestamp | null;
 }
 
-function getChatId(uid1: string, uid2: string): string {
-  return [uid1, uid2].sort().join('_');
+// Detecta si un string es un Firebase UID (28 caracteres) o un username
+function looksLikeFirebaseUID(str: string): boolean {
+  return str.length > 20 && /^[a-zA-Z0-9_-]+$/.test(str);
+}
+
+// Resuelve un identificador (UID o username) a username
+async function resolveToUsername(identifier: string): Promise<string> {
+  if (!identifier) return identifier;
+  
+  // Si parece un UID, resolver a username
+  if (looksLikeFirebaseUID(identifier)) {
+    const user = await getUserById(identifier);
+    return user?.username || identifier;
+  }
+  
+  // Si ya es un username, verificar que exista
+  const user = await getUserByUsername(identifier);
+  return user?.username || identifier;
+}
+
+// Crea chatId usando usernames ordenados alfabéticamente
+async function getChatId(id1: string, id2: string): Promise<string> {
+  const username1 = await resolveToUsername(id1);
+  const username2 = await resolveToUsername(id2);
+  return [username1, username2].sort().join('_');
 }
 
 export async function getOrCreateChat(
@@ -52,30 +76,83 @@ export async function getOrCreateChat(
   currentUserAvatar = '',
   otherUserAvatar = ''
 ): Promise<string> {
-  const chatId = getChatId(currentUserId, otherUserId);
+  console.log('[chatService] 🔍 getOrCreateChat:', { currentUserId, otherUserId });
+  
+  // Resolver ambos identificadores a usernames y UIDs
+  let resolvedCurrentUsername = currentUserName;
+  let resolvedCurrentUid = currentUserId;
+  let resolvedOtherUsername = otherUserName;
+  let resolvedOtherUid = otherUserId;
+  
+  // Detectar y resolver currentUser
+  if (looksLikeFirebaseUID(currentUserId)) {
+    const user = await getUserById(currentUserId);
+    if (user) {
+      resolvedCurrentUsername = user.username;
+      resolvedCurrentUid = user.id;
+    }
+  } else {
+    const user = await getUserByUsername(currentUserId);
+    if (user) {
+      resolvedCurrentUsername = user.username;
+      resolvedCurrentUid = user.id;
+    }
+  }
+  
+  // Detectar y resolver otherUser
+  if (looksLikeFirebaseUID(otherUserId)) {
+    const user = await getUserById(otherUserId);
+    if (user) {
+      resolvedOtherUsername = user.username;
+      resolvedOtherUid = user.id;
+    }
+  } else {
+    const user = await getUserByUsername(otherUserId);
+    if (user) {
+      resolvedOtherUsername = user.username;
+      resolvedOtherUid = user.id;
+    }
+  }
+  
+  console.log('[chatService] 🔍 Usuarios resueltos:', {
+    currentInput: currentUserId,
+    currentUsername: resolvedCurrentUsername,
+    currentUid: resolvedCurrentUid,
+    otherInput: otherUserId,
+    otherUsername: resolvedOtherUsername,
+    otherUid: resolvedOtherUid
+  });
+  
+  // Crear chatId con usernames ordenados
+  const chatId = [resolvedCurrentUsername, resolvedOtherUsername].sort().join('_');
+  console.log('[chatService] 📝 ChatId creado:', chatId);
+  
   const chatRef = doc(db, 'chats', chatId);
   const chatSnap = await getDoc(chatRef);
 
   if (!chatSnap.exists()) {
+    console.log('[chatService] 🆕 Creando nuevo chat');
     await setDoc(chatRef, {
-      participants: [currentUserId, otherUserId],
+      participants: [resolvedCurrentUsername, resolvedOtherUsername],
       participantNames: {
-        [currentUserId]: currentUserName,
-        [otherUserId]: otherUserName,
+        [resolvedCurrentUsername]: currentUserName || resolvedCurrentUsername,
+        [resolvedOtherUsername]: otherUserName || resolvedOtherUsername,
       },
       participantAvatars: {
-        [currentUserId]: currentUserAvatar,
-        [otherUserId]: otherUserAvatar,
+        [resolvedCurrentUsername]: currentUserAvatar,
+        [resolvedOtherUsername]: otherUserAvatar,
       },
       lastMessage: '',
       lastMessageTime: null,
       lastMessageSenderId: '',
       unreadCount: {
-        [currentUserId]: 0,
-        [otherUserId]: 0,
+        [resolvedCurrentUsername]: 0,
+        [resolvedOtherUsername]: 0,
       },
       createdAt: serverTimestamp(),
     });
+  } else {
+    console.log('[chatService] ✅ Chat ya existe');
   }
 
   return chatId;
@@ -90,11 +167,55 @@ export async function sendMessage(
 ): Promise<void> {
   const trimmed = text.trim();
   if (!trimmed) return;
+  
+  // Resolver senderId y otherUserId a usernames si son UIDs
+  let resolvedSenderId = senderId;
+  let resolvedSenderUid = senderId;
+  let resolvedOtherUsername = otherUserId;
+  let resolvedOtherUid = otherUserId;
+  
+  if (looksLikeFirebaseUID(senderId)) {
+    const user = await getUserById(senderId);
+    if (user) {
+      resolvedSenderId = user.username;
+      resolvedSenderUid = user.id;
+    }
+  } else {
+    const user = await getUserByUsername(senderId);
+    if (user) {
+      resolvedSenderId = user.username;
+      resolvedSenderUid = user.id;
+    }
+  }
+  
+  if (looksLikeFirebaseUID(otherUserId)) {
+    const user = await getUserById(otherUserId);
+    if (user) {
+      resolvedOtherUsername = user.username;
+      resolvedOtherUid = user.id;
+    }
+  } else {
+    const user = await getUserByUsername(otherUserId);
+    if (user) {
+      resolvedOtherUsername = user.username;
+      resolvedOtherUid = user.id;
+    }
+  }
+  
+  console.log('[chatService] sendMessage:', {
+    chatId,
+    senderId: resolvedSenderId,
+    senderUsername: resolvedSenderId,
+    otherUserId: resolvedOtherUsername,
+    otherUsername: resolvedOtherUsername,
+    text: trimmed.substring(0, 50)
+  });
 
   const messagesRef = collection(db, 'chats', chatId, 'messages');
   await addDoc(messagesRef, {
-    senderId,
+    senderId: resolvedSenderId,
     senderName,
+    senderUid: resolvedSenderUid,
     text: trimmed,
     timestamp: serverTimestamp(),
     read: false,
@@ -104,12 +225,12 @@ export async function sendMessage(
   await updateDoc(chatRef, {
     lastMessage: trimmed,
     lastMessageTime: serverTimestamp(),
-    lastMessageSenderId: senderId,
-    [`unreadCount.${otherUserId}`]: increment(1),
+    lastMessageSenderId: resolvedSenderId,
+    [`unreadCount.${resolvedOtherUsername}`]: increment(1),
   });
 
-  // Enviar notificación push al destinatario (fire-and-forget, no bloquea el chat)
-  sendPushNotification(otherUserId, senderName, trimmed, chatId).catch(() => {});
+  // Enviar notificación push al destinatario usando el UID real
+  sendPushNotification(resolvedOtherUid, senderName, trimmed, chatId).catch(() => {});
 }
 
 /**
@@ -164,19 +285,47 @@ export async function markMessagesAsRead(
   chatId: string,
   userId: string
 ): Promise<void> {
+  // Resolver userId a username si es UID
+  let resolvedUsername = userId;
+  if (looksLikeFirebaseUID(userId)) {
+    const user = await getUserById(userId);
+    if (user) resolvedUsername = user.username;
+  } else {
+    const user = await getUserByUsername(userId);
+    if (user) resolvedUsername = user.username;
+  }
+  
   const chatRef = doc(db, 'chats', chatId);
   await updateDoc(chatRef, {
-    [`unreadCount.${userId}`]: 0,
+    [`unreadCount.${resolvedUsername}`]: 0,
   });
 }
 
-export function subscribeToUserChats(
+export async function subscribeToUserChats(
   userId: string,
   callback: (chats: ChatRoom[]) => void
-): Unsubscribe {
+): Promise<Unsubscribe> {
+  // Resolver userId a username si es UID
+  let resolvedUsername = userId;
+  let resolvedUid = userId;
+  
+  if (looksLikeFirebaseUID(userId)) {
+    const user = await getUserById(userId);
+    if (user) {
+      resolvedUsername = user.username;
+      resolvedUid = user.id;
+    }
+  } else {
+    const user = await getUserByUsername(userId);
+    if (user) {
+      resolvedUsername = user.username;
+      resolvedUid = user.id;
+    }
+  }
+  
   const q = query(
     collection(db, 'chats'),
-    where('participants', 'array-contains', userId)
+    where('participants', 'array-contains', resolvedUsername)
   );
 
   return onSnapshot(q, (snapshot) => {
@@ -195,7 +344,7 @@ export function subscribeToUserChats(
     // Deduplicar: un solo chat por usuario — conservar el más reciente
     const seen = new Set<string>();
     const deduped = chats.filter(chat => {
-      const otherId = chat.participants.find(p => p !== userId) || '';
+      const otherId = chat.participants.find(p => p !== resolvedUsername) || '';
       if (!otherId || seen.has(otherId)) return false;
       seen.add(otherId);
       return true;
