@@ -301,26 +301,28 @@ export async function markMessagesAsRead(
   });
 }
 
-export async function subscribeToUserChats(
+export function subscribeToUserChats(
   userId: string,
   callback: (chats: ChatRoom[]) => void
-): Promise<Unsubscribe> {
+): Unsubscribe {
   // Resolver userId a username si es UID
   let resolvedUsername = userId;
   let resolvedUid = userId;
   
   if (looksLikeFirebaseUID(userId)) {
-    const user = await getUserById(userId);
-    if (user) {
-      resolvedUsername = user.username;
-      resolvedUid = user.id;
-    }
+    getUserById(userId).then(user => {
+      if (user) {
+        resolvedUsername = user.username;
+        resolvedUid = user.id;
+      }
+    });
   } else {
-    const user = await getUserByUsername(userId);
-    if (user) {
-      resolvedUsername = user.username;
-      resolvedUid = user.id;
-    }
+    getUserByUsername(userId).then(user => {
+      if (user) {
+        resolvedUsername = user.username;
+        resolvedUid = user.id;
+      }
+    });
   }
   
   const q = query(
