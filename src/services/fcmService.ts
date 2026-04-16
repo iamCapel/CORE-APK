@@ -4,6 +4,15 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 let _removeListeners: (() => void) | null = null;
+let _onForegroundNotification: ((notification: PushNotificationSchema) => void) | null = null;
+
+/**
+ * Establece un callback para manejar notificaciones en primer plano.
+ * Se debe llamar antes de initializePushNotifications para capturar notificaciones.
+ */
+export function setForegroundNotificationHandler(handler: (notification: PushNotificationSchema) => void): void {
+  _onForegroundNotification = handler;
+}
 
 /**
  * Inicializa las notificaciones push para el dispositivo.
@@ -33,9 +42,11 @@ export async function initializePushNotifications(userId: string): Promise<void>
 
   // Notificación recibida mientras la app está en primer plano
   const onForeground = (notification: PushNotificationSchema) => {
-    console.log('[FCM] Notificación en primer plano:', notification.title);
-    // Android muestra la notificación automáticamente en segundo plano.
-    // En primer plano se puede mostrar una alerta o banner interno si se desea.
+    console.log('[FCM] 🔔 Notificación en primer plano:', notification.title);
+    // Llamar al handler personalizado si está definido
+    if (_onForegroundNotification) {
+      _onForegroundNotification(notification);
+    }
   };
 
   // Usuario tocó una notificación

@@ -54,43 +54,92 @@ if (typeof document !== 'undefined') {
 
 export function useNotificationSound() {
   const play = async () => {
+    console.log('[useNotificationSound] 🎵 Intentando reproducir sonido...');
+    
+    // Método 1: Web Audio API (preferido)
     try {
       const ctx = getCtx();
+      console.log('[useNotificationSound] AudioContext estado:', ctx.state);
+      
       // Si todavía está suspendido, intentar reanudar (puede ser que haya
       // un gesto en curso en este instante)
       if (ctx.state === 'suspended') {
+        console.log('[useNotificationSound] ⏸️ AudioContext suspendido, intentando reanudar...');
         await ctx.resume();
+        console.log('[useNotificationSound] ▶️ AudioContext estado después de resume:', ctx.state);
       }
-      const t = ctx.currentTime;
+      
+      if (ctx.state === 'running') {
+        const t = ctx.currentTime;
+        console.log('[useNotificationSound] ⏰ Tiempo actual:', t);
 
-      // Tono 1 – breve acento agudo
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(880, t);
-      osc1.frequency.exponentialRampToValueAtTime(1200, t + 0.08);
-      gain1.gain.setValueAtTime(0.18, t);
-      gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-      osc1.start(t);
-      osc1.stop(t + 0.18);
+        // Tono 1 – breve acento agudo
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, t);
+        osc1.frequency.exponentialRampToValueAtTime(1200, t + 0.08);
+        gain1.gain.setValueAtTime(0.18, t);
+        gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        osc1.start(t);
+        osc1.stop(t + 0.18);
 
-      // Tono 2 – nota más baja con pequeño delay
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(660, t + 0.1);
-      osc2.frequency.exponentialRampToValueAtTime(880, t + 0.22);
-      gain2.gain.setValueAtTime(0.0001, t + 0.1);
-      gain2.gain.linearRampToValueAtTime(0.14, t + 0.14);
-      gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
-      osc2.start(t + 0.1);
-      osc2.stop(t + 0.32);
-    } catch (_) {
-      // Silencio si el navegador no soporta Web Audio
+        // Tono 2 – nota más baja con pequeño delay
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(660, t + 0.1);
+        osc2.frequency.exponentialRampToValueAtTime(880, t + 0.22);
+        gain2.gain.setValueAtTime(0.0001, t + 0.1);
+        gain2.gain.linearRampToValueAtTime(0.14, t + 0.14);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        osc2.start(t + 0.1);
+        osc2.stop(t + 0.32);
+        
+        console.log('[useNotificationSound] ✅ Sonido Web Audio iniciado correctamente');
+        return;
+      } else {
+        console.warn('[useNotificationSound] ⚠️ AudioContext no está running, intentando método alternativo...');
+      }
+    } catch (error) {
+      console.error('[useNotificationSound] ❌ Error con Web Audio API:', error);
+    }
+    
+    // Método 2: HTML5 Audio (fallback)
+    console.log('[useNotificationSound] 🔄 Intentando método alternativo (HTML5 Audio)...');
+    try {
+      // Crear un audio con data URL (tono simple)
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 880;
+      oscillator.type = 'sine';
+      gainNode.gain.value = 0.3;
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+      
+      console.log('[useNotificationSound] ✅ Sonido HTML5 Audio iniciado');
+    } catch (altError) {
+      console.error('[useNotificationSound] ❌ Error con método alternativo:', altError);
+      
+      // Método 3: Vibración como último recurso
+      try {
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200]);
+          console.log('[useNotificationSound] 📳 Vibración como fallback');
+        }
+      } catch (vibError) {
+        console.error('[useNotificationSound] ❌ Error con vibración:', vibError);
+      }
     }
   };
 
