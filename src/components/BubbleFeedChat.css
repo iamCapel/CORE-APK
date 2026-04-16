@@ -747,11 +747,11 @@
 
 .fc-input {
   flex: 1;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.09);
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 18px;
   padding: 8px 14px;
-  color: rgba(255,255,255,0.9);
+  color: #ffffff;
   font-size: 13.5px;
   resize: none;
   outline: none;
@@ -759,16 +759,18 @@
   max-height: 90px;
   line-height: 1.4;
   font-family: inherit;
-  caret-color: #4a90e2;
+  caret-color: #ffffff;
   transition: border-color 0.15s;
 }
 
 .fc-input:focus {
   border-color: rgba(74, 144, 226, 0.4);
+  background: #1a1a1a !important;
+  color: #ffffff !important;
 }
 
 .fc-input::placeholder {
-  color: rgba(255,255,255,0.25);
+  color: #999 !important;
 }
 
 .fc-send-btn {

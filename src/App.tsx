@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import Dashboard from './components/Dashboard';
-import { initializePushNotifications, removePushListeners } from './services/fcmService';
+import { initializePushNotifications, removePushListeners, setForegroundNotificationHandler } from './services/fcmService';
+import { useNotificationSound } from './hooks/useNotificationSound';
 
 function App() {
   /* Usuario activo leído desde localStorage; se actualiza con el evento mopc_user_changed */
@@ -12,6 +13,9 @@ function App() {
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
+
+  // Hook para reproducir sonido de notificación
+  const { play: playNotificationSound } = useNotificationSound();
 
   /* Sincronizar usuario cuando Dashboard hace login/logout */
   useEffect(() => {
@@ -28,9 +32,22 @@ function App() {
       removePushListeners();
       return;
     }
+
+    // Configurar handler de notificaciones en primer plano
+    setForegroundNotificationHandler((notification) => {
+      console.log('🔔 App: Notificación FCM recibida en primer plano:', notification.title);
+      // Reproducir sonido usando el hook existente
+      playNotificationSound();
+      
+      // Disparar evento personalizado para que otros componentes puedan reaccionar
+      window.dispatchEvent(new CustomEvent('fcm_notification_received', {
+        detail: notification
+      }));
+    });
+
     initializePushNotifications(chatUser.id);
     return () => removePushListeners();
-  }, [chatUser?.id]);
+  }, [chatUser?.id, playNotificationSound]);
 
   /* ── Botón atrás nativo: gestionado por Dashboard y BubbleFeedChat directamente ── */
   /* Solo web fallback (Escape) se mantiene aquí */

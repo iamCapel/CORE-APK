@@ -720,15 +720,84 @@ const Dashboard: React.FC = () => {
 
   const toggleFullScreen = async () => {
     try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen?.();
+      if (!isFullScreen) {
+        // Entrar en modo pantalla completa - ocultar todo el sistema
+        if (Capacitor.isNativePlatform()) {
+          // En móvil: usar APIs nativas para ocultar sistema
+          if (Capacitor.getPlatform() === 'android') {
+            // Android: ocultar barra de navegación y estado
+            try {
+              // @ts-ignore - Métodos de Android WebView
+              const androidInterface = (window as any)['AndroidInterface'];
+              if (androidInterface) {
+                androidInterface.hideSystemUI();
+              }
+            } catch (e) {
+              console.log('No se pudo ocultar Android UI:', e);
+            }
+          }
+          
+          // Solicitar pantalla completa del sistema
+          if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+          }
+          
+          // Ocultar elementos de la UI del sistema
+          const body = document.body;
+          body.style.marginTop = '0';
+          body.style.marginBottom = '0';
+          body.style.overflow = 'hidden';
+          
+          // Ocultar scrollbars y UI del sistema
+          document.documentElement.style.setProperty('--scrollbar-width', '0px');
+          
+        } else {
+          // En web: solo fullscreen normal
+          if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+          }
+        }
         setIsFullScreen(true);
       } else {
-        await document.exitFullscreen?.();
+        // Salir de pantalla completa - mostrar sistema
+        if (Capacitor.isNativePlatform()) {
+          // En móvil: restaurar sistema
+          if (Capacitor.getPlatform() === 'android') {
+            try {
+              // @ts-ignore - Métodos de Android WebView
+              const androidInterface = (window as any)['AndroidInterface'];
+              if (androidInterface) {
+                androidInterface.showSystemUI();
+              }
+            } catch (e) {
+              console.log('No se pudo mostrar Android UI:', e);
+            }
+          }
+          
+          // Salir de fullscreen
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          }
+          
+          // Restaurar márgenes
+          const body = document.body;
+          body.style.marginTop = '';
+          body.style.marginBottom = '';
+          body.style.overflow = '';
+          
+          // Restaurar scrollbars
+          document.documentElement.style.setProperty('--scrollbar-width', '');
+          
+        } else {
+          // En web: solo salir de fullscreen
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          }
+        }
         setIsFullScreen(false);
       }
     } catch (err) {
-      console.warn('No se pudo alternar pantalla completa', err);
+      console.warn('No se pudo alternar pantalla completa:', err);
     }
   };
 
@@ -960,20 +1029,50 @@ const Dashboard: React.FC = () => {
   // Suscribir al contador de mensajes no leídos del chat
   useEffect(() => {
     if (!user) return;
-    const userId = (user as any).id || user.username;
+    // Usar username consistentemente
+    const userId = user.username;
     if (!userId) return;
 
+    console.log('📨 Dashboard: Suscribiendo a chats para username:', userId);
+
     const unsub = subscribeToUserChats(userId, (chats) => {
-      const total = chats.reduce(
-        (sum, c) => sum + (c.unreadCount?.[userId] || 0),
-        0
-      );
+      console.log('📨 Dashboard: Chats recibidos:', chats.length);
+      
+      // Calcular total de no leídos usando el username
+      const total = chats.reduce((sum, c) => {
+        // Buscar el contador con el username
+        const userUnread = c.unreadCount?.[userId] || 0;
+        console.log(`  - Chat ${c.id}: ${userUnread} no leídos (buscando key: "${userId}")`);
+        return sum + userUnread;
+      }, 0);
+      
+      const prevValue = prevChatUnreadRef.current;
+      
+      console.log('📨 Dashboard: Total no leídos:', total, '| Anterior:', prevValue);
+      console.log('📨 Dashboard: Condiciones:', {
+        prevInitialized: prevValue >= 0,
+        totalMayorQuePrev: total > prevValue,
+        shouldNotify: prevValue >= 0 && total > prevValue
+      });
+      
       // Reproducir sonido y activar animación solo si aumentaron los no leídos
-      if (prevChatUnreadRef.current >= 0 && total > prevChatUnreadRef.current) {
-        playChatSound();
+      const shouldNotify = prevValue >= 0 && total > prevValue;
+      
+      if (shouldNotify) {
+        console.log('🔔 Dashboard: ¡NOTIFICANDO! Reproduciendo sonido y animación');
+        console.log('🔔 Dashboard: Intentando ejecutar playChatSound...');
+        try {
+          playChatSound();
+          console.log('🔔 Dashboard: playChatSound ejecutado exitosamente');
+        } catch (error) {
+          console.error('❌ Dashboard: Error al ejecutar playChatSound:', error);
+        }
         setChatBadgeAnimate(true);
         setTimeout(() => setChatBadgeAnimate(false), 1000);
+      } else {
+        console.log('⏭️ Dashboard: No se notifica. Valor anterior:', prevValue, ', total:', total);
       }
+      
       prevChatUnreadRef.current = total;
       setChatUnreadCount(total);
     });

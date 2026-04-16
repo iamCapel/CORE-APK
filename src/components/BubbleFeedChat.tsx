@@ -212,8 +212,20 @@ function ConversationView({
   const handleSend = async () => {
     if (!text.trim() || sending) return;
     setSending(true);
-    try { await sendMessage(chatId, currentUserId, currentUserName, text, otherUser.id); setText(''); }
-    finally { setSending(false); }
+    try {
+      console.log('[BubbleFeedChat] 📤 Enviando mensaje:', {
+        chatId,
+        currentUserId,
+        currentUserName,
+        otherUserId: otherUser.id,
+        otherUserName: otherUser.name,
+        text: text.substring(0, 30)
+      });
+      await sendMessage(chatId, currentUserId, currentUserName, text, otherUser.id);
+      setText('');
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -300,8 +312,21 @@ function NewChatPicker({
   );
 
   const pick = async (u: UserData) => {
-    const chatId = await getOrCreateChat(currentUserId, currentUserName, u.id, u.name, currentUserAvatar, u.avatar || '');
-    onSelect(chatId, { id: u.id, name: u.name, photo: u.avatar });
+    console.log('[BubbleFeedChat] 👤 Usuario seleccionado para nuevo chat:', {
+      userId: u.id,
+      username: u.username,
+      name: u.name
+    });
+    
+    const chatId = await getOrCreateChat(currentUserId, currentUserName, u.username, u.name, currentUserAvatar, u.avatar || '');  // ← Usar username
+    
+    console.log('[BubbleFeedChat] ✅ Chat creado/obtenido:', {
+      chatId,
+      otherUserId: u.username,  // ← Usar username
+      otherUserName: u.name
+    });
+    
+    onSelect(chatId, { id: u.username, name: u.name, photo: u.avatar });  // ← Usar username
     onClose();
   };
 
@@ -357,7 +382,8 @@ const BubbleFeedChat: React.FC<BubbleFeedChatProps> = ({ currentUser, unreadCoun
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { play } = useNotificationSound();
 
-  const currentUserId = currentUser.id || currentUser.username;
+  // Usar username consistentemente en todo el sistema de chat
+  const currentUserId = currentUser.username;
   const currentUserAvatar = currentUser.profilePhoto || currentUser.avatar || '';
 
   /* ── Burbuja visible desde el inicio; el usuario la puede cerrar arrastrándola a la papelera ── */
@@ -409,7 +435,14 @@ const BubbleFeedChat: React.FC<BubbleFeedChatProps> = ({ currentUser, unreadCoun
     if (!currentUserId) return;
     const unsub = subscribeToUserChats(currentUserId, (updated) => {
       const total = updated.reduce((s, c) => s + (c.unreadCount?.[currentUserId] || 0), 0);
-      if (prevUnreadRef.current >= 0 && total > prevUnreadRef.current) {
+      const prevValue = prevUnreadRef.current;
+      console.log('[BubbleFeedChat] 📊 Contador actualizado:', {
+        total,
+        prevValue,
+        shouldNotify: prevValue >= 0 && total > prevValue
+      });
+      if (prevValue >= 0 && total > prevValue) {
+        console.log('[BubbleFeedChat] 🔔 Reproduciendo sonido + vibración');
         play();
         // Vibración háptica en dispositivos móviles
         try { navigator.vibrate?.([120, 60, 120]); } catch (_) {}
@@ -523,6 +556,14 @@ const BubbleFeedChat: React.FC<BubbleFeedChatProps> = ({ currentUser, unreadCoun
 
   const openChat = (chat: ChatRoom) => {
     const oid = chat.participants.find((p) => p !== currentUserId) || '';
+    console.log('[BubbleFeedChat] 🔓 Abriendo chat:', {
+      chatId: chat.id,
+      participants: chat.participants,
+      currentUserId,
+      otherId: oid,
+      otherName: resolveOtherName(chat, oid),
+      unreadCount: chat.unreadCount
+    });
     setActiveChat({
       chatId: chat.id,
       otherUser: { id: oid, name: resolveOtherName(chat, oid), photo: chat.participantAvatars?.[oid] },

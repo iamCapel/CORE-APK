@@ -76,7 +76,12 @@ export async function getOrCreateChat(
   currentUserAvatar = '',
   otherUserAvatar = ''
 ): Promise<string> {
-  console.log('[chatService] 🔍 getOrCreateChat:', { currentUserId, otherUserId });
+  console.log('[chatService] 🔍 getOrCreateChat - INPUT:', {
+    currentUserId,
+    currentUserName,
+    otherUserId,
+    otherUserName
+  });
   
   // Resolver ambos identificadores a usernames y UIDs
   let resolvedCurrentUsername = currentUserName;
@@ -168,46 +173,72 @@ export async function sendMessage(
   const trimmed = text.trim();
   if (!trimmed) return;
   
+  console.log('[chatService] 📤 sendMessage - INPUT:', {
+    chatId,
+    senderId,
+    senderName,
+    otherUserId,
+    text: trimmed.substring(0, 50)
+  });
+  
   // Resolver senderId y otherUserId a usernames si son UIDs
   let resolvedSenderId = senderId;
   let resolvedSenderUid = senderId;
   let resolvedOtherUsername = otherUserId;
   let resolvedOtherUid = otherUserId;
   
+  // Resolver senderId
   if (looksLikeFirebaseUID(senderId)) {
     const user = await getUserById(senderId);
     if (user) {
       resolvedSenderId = user.username;
       resolvedSenderUid = user.id;
+    } else {
+      console.warn('[chatService] ⚠️ No se pudo resolver senderId UID:', senderId);
     }
   } else {
+    // Es username, obtener el UID
     const user = await getUserByUsername(senderId);
     if (user) {
       resolvedSenderId = user.username;
       resolvedSenderUid = user.id;
+    } else {
+      // Si no se encuentra, asumir que es username válido
+      resolvedSenderId = senderId;
+      console.log('[chatService] ℹ️ senderId no encontrado en BD, usando como username:', senderId);
     }
   }
   
+  // Resolver otherUserId
   if (looksLikeFirebaseUID(otherUserId)) {
     const user = await getUserById(otherUserId);
     if (user) {
       resolvedOtherUsername = user.username;
       resolvedOtherUid = user.id;
+    } else {
+      console.warn('[chatService] ⚠️ No se pudo resolver otherUserId UID:', otherUserId);
     }
   } else {
+    // Es username, obtener el UID
     const user = await getUserByUsername(otherUserId);
     if (user) {
       resolvedOtherUsername = user.username;
       resolvedOtherUid = user.id;
+    } else {
+      // Si no se encuentra, asumir que es username válido
+      resolvedOtherUsername = otherUserId;
+      console.log('[chatService] ℹ️ otherUserId no encontrado en BD, usando como username:', otherUserId);
     }
   }
   
-  console.log('[chatService] sendMessage:', {
-    chatId,
-    senderId: resolvedSenderId,
-    senderUsername: resolvedSenderId,
-    otherUserId: resolvedOtherUsername,
-    otherUsername: resolvedOtherUsername,
+  console.log('[chatService] 📤 sendMessage - Identidades resueltas:', {
+    input_chatId: chatId,
+    input_senderId: senderId,
+    input_otherUserId: otherUserId,
+    resolved_senderUsername: resolvedSenderId,
+    resolved_senderUid: resolvedSenderUid,
+    resolved_otherUsername: resolvedOtherUsername,
+    resolved_otherUid: resolvedOtherUid,
     text: trimmed.substring(0, 50)
   });
 
@@ -221,13 +252,29 @@ export async function sendMessage(
     read: false,
   });
 
-  const chatRef = doc(db, 'chats', chatId);
-  await updateDoc(chatRef, {
-    lastMessage: trimmed,
-    lastMessageTime: serverTimestamp(),
+  console.log('[chatService] 💾 ANTES de updateDoc - Actualizando unreadCount para:', resolvedOtherUsername);
+  console.log('[chatService] 💾 updateDoc payload:', {
+    chatId,
+    lastMessage: trimmed.substring(0, 30),
     lastMessageSenderId: resolvedSenderId,
-    [`unreadCount.${resolvedOtherUsername}`]: increment(1),
+    unreadCountKey: `unreadCount.${resolvedOtherUsername}`,
+    incrementValue: 1
   });
+
+  const chatRef = doc(db, 'chats', chatId);
+  
+  try {
+    await updateDoc(chatRef, {
+      lastMessage: trimmed,
+      lastMessageTime: serverTimestamp(),
+      lastMessageSenderId: resolvedSenderId,
+      [`unreadCount.${resolvedOtherUsername}`]: increment(1),
+    });
+    console.log('[chatService] ✅ updateDoc EXITOSO - unreadCount incrementado para:', resolvedOtherUsername);
+  } catch (error) {
+    console.error('[chatService] ❌ ERROR en updateDoc:', error);
+    throw error;
+  }
 
   // Enviar notificación push al destinatario usando el UID real
   sendPushNotification(resolvedOtherUid, senderName, trimmed, chatId).catch(() => {});
@@ -285,6 +332,8 @@ export async function markMessagesAsRead(
   chatId: string,
   userId: string
 ): Promise<void> {
+  console.log('[chatService] 👁️ markMessagesAsRead - INPUT:', { chatId, userId });
+  
   // Resolver userId a username si es UID
   let resolvedUsername = userId;
   if (looksLikeFirebaseUID(userId)) {
@@ -293,67 +342,110 @@ export async function markMessagesAsRead(
   } else {
     const user = await getUserByUsername(userId);
     if (user) resolvedUsername = user.username;
+    else resolvedUsername = userId;  // Asumir que ya es username válido
   }
   
-  const chatRef = doc(db, 'chats', chatId);
-  await updateDoc(chatRef, {
-    [`unreadCount.${resolvedUsername}`]: 0,
+  console.log('[chatService] 👁️ markMessagesAsRead - ANTES de resetear unreadCount para:', resolvedUsername);
+  console.log('[chatService] 👁️ markMessagesAsRead payload:', {
+    chatId,
+    unreadCountKey: `unreadCount.${resolvedUsername}`,
+    newValue: 0
   });
+  
+  const chatRef = doc(db, 'chats', chatId);
+  
+  try {
+    await updateDoc(chatRef, {
+      [`unreadCount.${resolvedUsername}`]: 0,
+    });
+    console.log('[chatService] ✅ markMessagesAsRead EXITOSO - unreadCount reseteado a 0 para:', resolvedUsername);
+  } catch (error) {
+    console.error('[chatService] ❌ ERROR en markMessagesAsRead:', error);
+    throw error;
+  }
 }
 
 export function subscribeToUserChats(
   userId: string,
   callback: (chats: ChatRoom[]) => void
 ): Unsubscribe {
-  // Resolver userId a username si es UID
-  let resolvedUsername = userId;
-  let resolvedUid = userId;
-  
-  if (looksLikeFirebaseUID(userId)) {
-    getUserById(userId).then(user => {
-      if (user) {
-        resolvedUsername = user.username;
-        resolvedUid = user.id;
+  let unsubscribe: Unsubscribe | null = null;
+  let isActive = true;
+
+  // Resolver userId a username de forma async antes de suscribirse
+  (async () => {
+    try {
+      let resolvedUsername = userId;
+      let resolvedUid = userId;
+      
+      if (looksLikeFirebaseUID(userId)) {
+        const user = await getUserById(userId);
+        if (user) {
+          resolvedUsername = user.username;
+          resolvedUid = user.id;
+        }
+      } else {
+        const user = await getUserByUsername(userId);
+        if (user) {
+          resolvedUsername = user.username;
+          resolvedUid = user.id;
+        }
       }
-    });
-  } else {
-    getUserByUsername(userId).then(user => {
-      if (user) {
-        resolvedUsername = user.username;
-        resolvedUid = user.id;
-      }
-    });
-  }
-  
-  const q = query(
-    collection(db, 'chats'),
-    where('participants', 'array-contains', resolvedUsername)
-  );
+      
+      // Si se canceló antes de resolver, no hacer nada
+      if (!isActive) return;
+      
+      console.log('[chatService] 📡 Suscribiendo a chats de:', resolvedUsername);
+      
+      const q = query(
+        collection(db, 'chats'),
+        where('participants', 'array-contains', resolvedUsername)
+      );
 
-  return onSnapshot(q, (snapshot) => {
-    const chats: ChatRoom[] = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<ChatRoom, 'id'>),
-    }));
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const chats: ChatRoom[] = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<ChatRoom, 'id'>),
+        }));
+        console.log('[chatService] 📥 onSnapshot - Chats raw recibidos:', {
+          totalChats: chats.length,
+          userIdentifier: resolvedUsername,
+          chatsDetail: chats.map(c => ({
+            id: c.id,
+            participants: c.participants,
+            unreadCount: c.unreadCount,
+            lastMessage: c.lastMessage?.substring(0, 30)
+          }))
+        });
+        // Sort by lastMessageTime descending (most recent first)
+        chats.sort((a, b) => {
+          const ta = a.lastMessageTime?.toMillis() ?? 0;
+          const tb = b.lastMessageTime?.toMillis() ?? 0;
+          return tb - ta;
+        });
 
-    // Sort by lastMessageTime descending (most recent first)
-    chats.sort((a, b) => {
-      const ta = a.lastMessageTime?.toMillis() ?? 0;
-      const tb = b.lastMessageTime?.toMillis() ?? 0;
-      return tb - ta;
-    });
+        // Deduplicar: un solo chat por usuario — conservar el más reciente
+        const seen = new Set<string>();
+        const deduped = chats.filter(chat => {
+          const otherId = chat.participants.find(p => p !== resolvedUsername) || '';
+          if (!otherId || seen.has(otherId)) return false;
+          seen.add(otherId);
+          return true;
+        });
 
-    // Deduplicar: un solo chat por usuario — conservar el más reciente
-    const seen = new Set<string>();
-    const deduped = chats.filter(chat => {
-      const otherId = chat.participants.find(p => p !== resolvedUsername) || '';
-      if (!otherId || seen.has(otherId)) return false;
-      seen.add(otherId);
-      return true;
-    });
+        callback(deduped);
+      });
+    } catch (error) {
+      console.error('[chatService] Error al suscribirse a chats:', error);
+      callback([]);
+    }
+  })();
 
-    callback(deduped);
-  });
+  // Retornar función de cleanup
+  return () => {
+    isActive = false;
+    if (unsubscribe) unsubscribe();
+  };
 }
 
 export function subscribeToMessages(

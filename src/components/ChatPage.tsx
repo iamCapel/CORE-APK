@@ -271,6 +271,14 @@ function ConversationView({
     pendingOptimisticRef.current.add(optimisticId);
     setSending(true);
     try {
+      console.log('[ChatPage] 📤 Enviando mensaje desde ConversationView:', {
+        chatId,
+        currentUserId,
+        currentUserName,
+        otherUserId: otherUser.id,
+        otherUserName: otherUser.name,
+        text: trimmed.substring(0, 30)
+      });
       await sendMessage(chatId, currentUserId, currentUserName, trimmed, otherUser.id);
     } catch (_) {
       // Revertir optimista si falló
@@ -418,15 +426,28 @@ function NewChatModal({
   );
 
   const handleSelect = async (user: UserData) => {
+    console.log('[ChatPage] 👤 Usuario seleccionado para nuevo chat:', {
+      userId: user.id,
+      username: user.username,
+      name: user.name
+    });
+    
     const chatId = await getOrCreateChat(
       currentUserId,
       currentUserName,
-      user.id,
+      user.username,  // ← Usar username en lugar de user.id
       user.name,
       currentUserAvatar,
       user.avatar || ''
     );
-    onSelectUser(chatId, { id: user.id, name: user.name, photo: user.avatar });
+    
+    console.log('[ChatPage] ✅ Chat creado/obtenido:', {
+      chatId,
+      otherUserId: user.username,  // ← Usar username
+      otherUserName: user.name
+    });
+    
+    onSelectUser(chatId, { id: user.username, name: user.name, photo: user.avatar });  // ← Usar username
     onClose();
   };
 
@@ -479,7 +500,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
   } | null>(null);
   const [showNewChat, setShowNewChat] = useState(false);
 
-  const currentUserId = currentUser.id || currentUser.username;
+  // Usar username consistentemente en todo el sistema de chat
+  const currentUserId = currentUser.username;
   const currentUserAvatar = currentUser.profilePhoto || currentUser.avatar || '';
   const currentUserName = currentUser.name;
   const prevUnreadRef = useRef<number>(-1);
@@ -517,7 +539,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
         (sum, c) => sum + (c.unreadCount?.[currentUserId] || 0),
         0
       );
-      if (prevUnreadRef.current >= 0 && total > prevUnreadRef.current) {
+      const prevValue = prevUnreadRef.current;
+      console.log('[ChatPage] 📊 Contador actualizado:', {
+        total,
+        prevValue,
+        shouldNotify: prevValue >= 0 && total > prevValue
+      });
+      if (prevValue >= 0 && total > prevValue) {
+        console.log('[ChatPage] 🔔 Reproduciendo sonido');
         playSoundInList();
       }
       prevUnreadRef.current = total;
@@ -550,6 +579,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ currentUser, onBack }) => {
     const otherId = chat.participants.find((p) => p !== currentUserId) || '';
     const otherName = resolveOtherName(chat, otherId);
     const otherPhoto = chat.participantAvatars?.[otherId];
+    
+    console.log('[ChatPage] 🔓 Abriendo chat:', {
+      chatId: chat.id,
+      participants: chat.participants,
+      currentUserId,
+      otherId,
+      otherName,
+      unreadCount: chat.unreadCount
+    });
+    
     setSelectedChat({ chatId: chat.id, otherUser: { id: otherId, name: otherName, photo: otherPhoto } });
   };
 
