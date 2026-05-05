@@ -3,7 +3,18 @@
 	"appName": "MOPC Core",
 	"webDir": "build",
 	"server": {
-		"androidScheme": "https"
+		"androidScheme": "https",
+		"cleartext": true,
+		"allowNavigation": [
+			"*"
+		]
+	},
+	"android": {
+		"allowMixedContent": false,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false,
+		"appendUserAgent": "MOPC-Core-TCL",
+		"backgroundColor": "#FF7A00"
 	},
 	"plugins": {
 		"SplashScreen": {
@@ -11,7 +22,9 @@
 			"backgroundColor": "#FF7A00",
 			"showSpinner": false,
 			"splashFullScreen": true,
-			"splashImmersive": true
+			"splashImmersive": true,
+			"androidSplashResourceName": "splash",
+			"androidScaleType": "CENTER_CROP"
 		},
 		"Camera": {
 			"permissions": [
@@ -20,7 +33,9 @@
 			],
 			"resultType": "base64",
 			"quality": 80,
-			"saveToGallery": false
+			"saveToGallery": false,
+			"presentationStyle": "fullscreen",
+			"allowEditing": false
 		},
 		"Geolocation": {
 			"permissions": [
@@ -28,10 +43,11 @@
 				"coarseLocation"
 			],
 			"enableHighAccuracy": true,
-			"timeout": 10000
+			"timeout": 10000,
+			"maximumAge": 5000
 		},
 		"App": {
-			"appendUserAgent": "MOPC-Core/1.0"
+			"appendUserAgent": "MOPC-Core/1.0 Xiaomi-Optimized"
 		},
 		"PushNotifications": {
 			"presentationOptions": [
@@ -39,6 +55,26 @@
 				"sound",
 				"alert"
 			]
+		},
+		"LocalNotifications": {
+			"smallIcon": "ic_stat_name",
+			"iconColor": "#FF7A00",
+			"sound": "default"
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#00000000",
+			"overlaysWebView": true,
+			"androidSystemBarStyle": "DARK"
+		},
+		"Keyboard": {
+			"resize": "native",
+			"style": "DARK",
+			"resizeOnFullScreen": true
+		},
+		"FullScreen": {
+			"enabled": true,
+			"immersive": true
 		}
 	}
 }

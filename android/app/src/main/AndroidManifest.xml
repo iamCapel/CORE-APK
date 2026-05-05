@@ -23,13 +23,30 @@
             android:resizeableActivity="false"
             android:supportsPictureInPicture="false"
             android:windowSoftInputMode="adjustResize"
-            android:fitsSystemWindows="true"
-            android:windowLayoutInDisplayCutoutMode="shortEdges">
+            android:fitsSystemWindows="false"
+            android:windowLayoutInDisplayCutoutMode="shortEdges"
+            android:immersive="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            
+            <!-- Meta-data específica para Xiaomi MIUI -->
+            <meta-data
+                android:name="android.max_aspect"
+                android:value="2.4" />
+            <meta-data
+                android:name="android.notch_support"
+                android:value="true" />
+            
+            <!-- Meta-data específica para TCL -->
+            <meta-data
+                android:name="android.allow_cutout"
+                android:value="true" />
+            <meta-data
+                android:name="android.hardware.screen.immersive"
+                android:value="true" />
 
         </activity>
 

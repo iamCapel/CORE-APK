@@ -40,7 +40,7 @@ import './BottomNavigation.css';
 import './MyReportsPage.css';
 import './ModernDashboard.css';
 
-/* ÔöÇÔöÇ Iconos para navegación inferior ÔöÇÔöÇ */
+/* ── Iconos para navegación inferior ── */
 const HomeIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -62,7 +62,7 @@ const OptionsIcon = ({ size = 24, color = "currentColor" }: { size?: number; col
   </svg>
 );
 
-/* ÔöÇÔöÇ Icono de usuario cuadrado para la topbar ÔöÇÔöÇ */
+/* ── Icono de usuario cuadrado para la topbar ── */
 const UserAvatarIcon: React.FC<{ photoUrl?: string }> = ({ photoUrl }) => {
   if (photoUrl) {
     return <img src={photoUrl} alt="Avatar" className="topbar-av-photo topbar-av-md" style={{ objectFit: 'cover' }} />;
@@ -99,7 +99,7 @@ const TruckIcon = ({ size = 24, color = "currentColor" }: { size?: number; color
 );
 const FileUploadIcon = MdFileUpload as IconComponent;
 
-/* ÔöÇÔöÇ Icono de Cámara ÔöÇÔöÇ */
+/* ── Icono de Cámara ── */
 const CameraIcon = ({ size = 24, color = "currentColor" }: { size?: number; color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -678,7 +678,7 @@ const Dashboard: React.FC = () => {
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
   const ignoreChatOpenUntilRef = useRef(0);
 
-  // Estados del nuevo ÔÇ£Nivel de EstabilidadÔÇØ con giroscopio
+  // Estados del nuevo "Nivel de Estabilidad" con giroscopio
   const [showStabilityModal, setShowStabilityModal] = useState(false);
   const [stabilityScore, setStabilityScore] = useState(100);
   const [stabilityText, setStabilityText] = useState('Listo para medir');
@@ -711,9 +711,9 @@ const Dashboard: React.FC = () => {
       );
       
       setPendingCount(userPending.length);
-      console.log(`­ƒôè Reportes pendientes del usuario ${user?.username}:`, userPending.length);
+      console.log(`📊 Reportes pendientes del usuario ${user?.username}:`, userPending.length);
     } catch (error) {
-      console.error('ÔØî Error actualizando contador de pendientes:', error);
+      console.error('❌ Error actualizando contador de pendientes:', error);
       setPendingCount(0);
     }
   };
@@ -850,7 +850,7 @@ const Dashboard: React.FC = () => {
       setPendingReportsList(formatted);
       return formatted;
     } catch (error) {
-      console.error('ÔØî Error obteniendo reportes pendientes:', error);
+      console.error('❌ Error obteniendo reportes pendientes:', error);
       setPendingReportsList([]);
       return [];
     }
@@ -859,12 +859,12 @@ const Dashboard: React.FC = () => {
   // Función para continuar un reporte pendiente
   const handleContinuePendingReport = async (reportId: string) => {
     try {
-      console.log('­ƒôï Cargando reporte pendiente desde Firebase:', reportId);
+      console.log('📄 Cargando reporte pendiente desde Firebase:', reportId);
       
       // Cargar desde la colección principal de reportes (no desde pendingReports)
       const pendingReport = await firebaseReportStorage.getReport(reportId);
       
-      console.log('­ƒôª Datos del reporte desde Firebase:', pendingReport);
+      console.log('📦 Datos del reporte desde Firebase:', pendingReport);
       
       if (pendingReport && pendingReport.estado === 'pendiente') {
         // Convertir el reporte completo a formato de edición
@@ -900,11 +900,11 @@ const Dashboard: React.FC = () => {
         setShowReportForm(true);
         setActiveNav('crear');
       } else {
-        console.error('ÔØî No se encontró el reporte pendiente en Firebase:', reportId);
+        console.error('❌ No se encontró el reporte pendiente en Firebase:', reportId);
         alert('No se pudo cargar el reporte pendiente');
       }
     } catch (error) {
-      console.error('ÔØî Error al cargar el reporte pendiente desde Firebase:', error);
+      console.error('❌ Error al cargar el reporte pendiente desde Firebase:', error);
       alert('Error al cargar el reporte pendiente');
     }
   };
@@ -920,7 +920,7 @@ const Dashboard: React.FC = () => {
       setShowPendingModal(false);
       setTimeout(() => setShowPendingModal(true), 100);
     } catch (error) {
-      console.error('ÔØî Error eliminando reporte pendiente:', error);
+      console.error('❌ Error eliminando reporte pendiente:', error);
       alert('Error al eliminar el reporte pendiente. Verifique su conexión a internet.');
     }
   };
@@ -928,13 +928,13 @@ const Dashboard: React.FC = () => {
   // Funciones para ReportView
   // reportIdOrNumber puede ser el ID del reporte o el número de reporte (numeroReporte)
   const handleOpenReportView = (reportIdOrNumber: string) => {
-    console.log('­ƒöì handleOpenReportView llamado con:', reportIdOrNumber);
-    console.log('­ƒöì Estado actual:', { showReportView, selectedReportId });
+    console.log('🔍 handleOpenReportView llamado con:', reportIdOrNumber);
+    console.log('🔍 Estado actual:', { showReportView, selectedReportId });
     
     setSelectedReportId(reportIdOrNumber);
     setShowReportView(true);
     
-    console.log('­ƒöì Después de actualizar estado:', { 
+    console.log('🔍 Después de actualizar estado:', { 
       showReportView: true, 
       selectedReportId: reportIdOrNumber 
     });
@@ -1083,7 +1083,7 @@ const Dashboard: React.FC = () => {
   // Cargar reportes pendientes cuando se abre el modal
   useEffect(() => {
     if (showPendingModal) {
-      console.log('­ƒôÑ Modal de pendientes abierto, cargando reportes desde Firebase...');
+      console.log('📂 Modal de pendientes abierto, cargando reportes desde Firebase...');
       getPendingReports();
     }
   }, [showPendingModal]);
@@ -1110,13 +1110,13 @@ const Dashboard: React.FC = () => {
         // Verificar si el usuario requiere verificación de perfil desde Firebase
         const firebaseUser = await firebaseUserStorage.getUserByUsername(user.username);
         
-        console.log('­ƒöì Verificando usuario:', user.username);
-        console.log('­ƒôª Usuario Firebase:', firebaseUser);
+        console.log('🔍 Verificando usuario:', user.username);
+        console.log('📦 Usuario Firebase:', firebaseUser);
         console.log(' isVerified:', firebaseUser?.isVerified);
         
         // Si el usuario no existe en Firebase, no pedir verificación (compatibilidad con localStorage)
         if (!firebaseUser) {
-          console.log('Ôä╣´©Å Usuario solo en localStorage, sin verificación requerida');
+          console.log('✅ Usuario solo en localStorage, sin verificación requerida');
           setShowProfileIncompleteNotification(false);
           setIsProfileComplete(true);
           return;
@@ -1158,7 +1158,7 @@ const Dashboard: React.FC = () => {
   // Iniciar tracking en vivo cuando el usuario inicie sesión
   useEffect(() => {
     if (user && user.username) {
-      console.log('­ƒôì Iniciando tracking en vivo para usuario:', user.username);
+      console.log('📍 Iniciando tracking en vivo para usuario:', user.username);
       
       const liveLocationService = LiveLocationService.getInstance();
       
@@ -1168,12 +1168,12 @@ const Dashboard: React.FC = () => {
           console.log(' Tracking en vivo iniciado exitosamente');
         })
         .catch((error) => {
-          console.error('ÔØî Error iniciando tracking en vivo:', error);
+          console.error('❌ Error iniciando tracking en vivo:', error);
         });
 
       // Limpiar tracking cuando el usuario cierre sesión
       return () => {
-        console.log('­ƒôì Deteniendo tracking en vivo para usuario:', user.username);
+        console.log('📍 Deteniendo tracking en vivo para usuario:', user.username);
         liveLocationService.stopLiveTracking();
       };
     }
@@ -1265,11 +1265,11 @@ const Dashboard: React.FC = () => {
     let backButtonListener: any = null;
 
     const handleBackButton = () => {
-      console.log('­ƒöÖ Botón de retroceso presionado');
+      console.log('🔙 Botón de retroceso presionado');
 
       // Si la cámara está abierta, cerrarla en lugar de salir de la app
       if ((window as any).cameraOpen) {
-        console.log('­ƒöÖ Cerrando cámara con botón de retroceso');
+        console.log('🔙 Cerrando cámara con botón de retroceso');
         const cameraInterface = document.querySelector('[style*="z-index: 10000"]');
         if (cameraInterface) {
           cameraInterface.remove();
@@ -1279,33 +1279,33 @@ const Dashboard: React.FC = () => {
       }
 
       if (showReportView) {
-        console.log('­ƒöÖ Cerrando ReportViewModern');
+        console.log('🔙 Cerrando ReportViewModern');
         handleCloseReportView();
         return;
       }
 
       if (showMyReportsModal) {
-        console.log('­ƒöÖ Cerrando Mis Reportes');
+        console.log('🔙 Cerrando Mis Reportes');
         setShowMyReportsModal(false);
         setActiveNav('dashboard');
         return;
       }
 
       if (showPendingModal) {
-        console.log('­ƒöÖ Cerrando Reportes Pendientes');
+        console.log('🔙 Cerrando Reportes Pendientes');
         setShowPendingModal(false);
         setActiveNav('dashboard');
         return;
       }
 
       if (showCompleteProfileModal) {
-        console.log('­ƒöÖ Cerrando modal completo de perfil');
+        console.log('🔙 Cerrando modal completo de perfil');
         setShowCompleteProfileModal(false);
         return;
       }
 
       if (showReportForm) {
-        console.log('­ƒöÖ Saliendo del formulario de reporte');
+        console.log('🔙 Saliendo del formulario de reporte');
         if (window.confirm('¿Está seguro que desea salir del formulario? Los datos no guardados se perderán.')) {
           setShowReportForm(false);
           setInterventionToEdit(null);
@@ -1315,13 +1315,13 @@ const Dashboard: React.FC = () => {
       }
 
       if (showStabilityModal) {
-        console.log('­ƒöÖ Cerrando modal de estabilidad');
+        console.log('🔙 Cerrando modal de estabilidad');
         setShowStabilityModal(false);
         return;
       }
 
       if (showHeavyVehiclesPage) {
-        console.log('­ƒöÖ Cerrando vista de Vehículos Pesados');
+        console.log('🔙 Cerrando vista de Vehículos Pesados');
         handleBackToDashboard();
         return;
       }
@@ -1332,7 +1332,7 @@ const Dashboard: React.FC = () => {
       }
 
       if (showReportsPage || showExportPage || showUsersPage || showGoogleMapView || showLeafletMapView || showHierarchy || showSettingsPage) {
-        console.log('­ƒöÖ Volviendo al dashboard');
+        console.log('🔙 Volviendo al dashboard');
         handleBackToDashboard();
         return;
       }
@@ -1340,7 +1340,7 @@ const Dashboard: React.FC = () => {
       // Si el BubbleFeedChat está abierto, no salir de la app
       if ((window as any).bubbleChatOpen) return;
 
-      console.log('­ƒöÖ Ya está en el dashboard - salir de la app');
+      console.log('🔙 Ya está en el dashboard - salir de la app');
       CapacitorApp.exitApp();
     };
 
@@ -1465,7 +1465,7 @@ const Dashboard: React.FC = () => {
     await new Promise(r => setTimeout(r, 1000));
 
     try {
-      console.log('­ƒöÉ Intentando login con Firebase...');
+      console.log('🔐 Intentando login con Firebase...');
       
       // Intentar login con Firebase
       const result = await firebaseUserStorage.loginWithUsername(loginUser, loginPass);
@@ -1475,7 +1475,7 @@ const Dashboard: React.FC = () => {
         
         // Verificar si la cuenta está activa
         if (!validatedUser.isActive) {
-          setLoginError('ÔÜá´©Å Lo sentimos, su cuenta está temporalmente desactivada. Comuníquese con su superior.');
+          setLoginError('⚠️ Lo sentimos, su cuenta está temporalmente desactivada. Comuníquese con su superior.');
           setIsLoading(false);
           return;
         }
@@ -1504,15 +1504,15 @@ const Dashboard: React.FC = () => {
       }
       
       // Si Firebase falla, intentar con localStorage como fallback
-      console.log('ÔÜá´©Å Firebase login falló, intentando con localStorage...');
+      console.log('⚠️ Firebase login falló, intentando con localStorage...');
       const allUsers = userStorage.getAllUsers();
-      console.log('­ƒôè Usuarios en localStorage:', allUsers.length);
+      console.log('📊 Usuarios en localStorage:', allUsers.length);
       
       const validatedUser = userStorage.validateCredentials(loginUser, loginPass);
       
       if (validatedUser) {
         if (!validatedUser.isActive) {
-          setLoginError('ÔÜá´©Å Lo sentimos, su cuenta está temporalmente desactivada. Comuníquese con su superior.');
+          setLoginError('⚠️ Lo sentimos, su cuenta está temporalmente desactivada. Comuníquese con su superior.');
           setIsLoading(false);
           return;
         }
@@ -1539,12 +1539,12 @@ const Dashboard: React.FC = () => {
       }
       
       // Usuario no encontrado en ningún lado
-      setLoginError(result.error || `ÔØî Usuario "${loginUser}" no encontrado`);
+      setLoginError(result.error || `❌ Usuario "${loginUser}" no encontrado`);
       setIsLoading(false);
       
     } catch (err) {
-      console.error('ÔØî Error en login:', err);
-      setLoginError('ÔÜá´©Å Error del sistema. Recargue la página e intente nuevamente.');
+      console.error('❌ Error en login:', err);
+      setLoginError('⚠️ Error del sistema. Recargue la página e intente nuevamente.');
       setIsLoading(false);
     }
   };
@@ -1660,7 +1660,7 @@ const Dashboard: React.FC = () => {
 
     // Validar que todos los campos estén completos
     if (!profilePhoto || !fullName || !idCardNumber || !idCardPhoto) {
-      alert('ÔÜá´©Å Por favor complete todos los campos requeridos');
+      alert('⚠️ Por favor complete todos los campos requeridos');
       return;
     }
 
@@ -1676,7 +1676,7 @@ const Dashboard: React.FC = () => {
       const normalizedStored = storedCedula.replace(/[-.\s]/g, '');
       
       if (normalizedInput !== normalizedStored) {
-        alert('ÔØî Error de verificación');
+        alert('❌ Error de verificación');
         return;
       }
     }
@@ -1934,13 +1934,13 @@ const Dashboard: React.FC = () => {
     };
 
     const deviceModel = getDeviceModel();
-    console.log('­ƒô▒ Modelo detectado:', deviceModel);
+    console.log('📱 Modelo detectado:', deviceModel);
 
     // Variable global para controlar si la cámara está abierta
     (window as any).cameraOpen = true;
 
     try {
-      console.log('­ƒôÀ Iniciando cámara con geolocalización en vivo...');
+      console.log('📷 Iniciando cámara con geolocalización en vivo...');
 
       // Limpiar guarda de foto previas para evitar duplicados indeseados
       try {
@@ -1973,7 +1973,7 @@ const Dashboard: React.FC = () => {
         text-align: center;
         font-size: 14px;
       `;
-      header.innerHTML = '­ƒôì Obteniendo ubicación...<br/><small>Por favor espere</small>';
+      header.innerHTML = '📍 Obteniendo ubicación...<br/><small>Por favor espere</small>';
       
       // Estados
       let currentPosition: any = null;
@@ -2049,14 +2049,14 @@ const Dashboard: React.FC = () => {
         color: rgba(255, 255, 255, 0.7);
       `;
       const now = new Date();
-      dateTimeInfo.textContent = `­ƒòÆ ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      dateTimeInfo.textContent = `📅 ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
       
       const locationInfo = document.createElement('div');
       locationInfo.style.cssText = `
         font-size: 12px;
         color: white;
       `;
-      locationInfo.textContent = '­ƒôì Obteniendo ubicación...';
+      locationInfo.textContent = '📍 Obteniendo ubicación...';
       
       const coordinatesInfo = document.createElement('div');
       coordinatesInfo.style.cssText = `
@@ -2102,7 +2102,7 @@ const Dashboard: React.FC = () => {
         cursor: pointer;
       `;
       flashButton.title = 'Encender / Apagar flash';
-      flashButton.innerHTML = 'ÔÜí';
+      flashButton.innerHTML = '⚡';
       
       const captureButton = document.createElement('button');
       captureButton.style.cssText = `
@@ -2116,7 +2116,7 @@ const Dashboard: React.FC = () => {
         font-weight: bold;
       `;
       captureButton.title = 'Capturar foto';
-      captureButton.innerHTML = '­ƒôÀ';
+      captureButton.innerHTML = '📷';
       
       const flipButton = document.createElement('button');
       flipButton.style.cssText = `
@@ -2129,7 +2129,7 @@ const Dashboard: React.FC = () => {
         cursor: pointer;
       `;
       flipButton.title = 'Cambiar cámara frontal/trasera';
-      flipButton.innerHTML = '­ƒöä';
+      flipButton.innerHTML = '🔄';
       flipButton.style.cssText = `
         background: rgba(255, 255, 255, 0.2);
         border: 2px solid white;
@@ -2139,7 +2139,7 @@ const Dashboard: React.FC = () => {
         font-size: 20px;
         cursor: pointer;
       `;
-      flipButton.innerHTML = '­ƒöä';
+      flipButton.innerHTML = '🔄';
 
       const zoomLabel = document.createElement('div');
       zoomLabel.style.cssText = `
@@ -2214,14 +2214,14 @@ const Dashboard: React.FC = () => {
         // Actualizar overlay de georeferencia dentro del video
         try {
           if (!position || !position.coords) {
-            locationInfo.innerHTML = '­ƒôì Obteniendo ubicación...';
+            locationInfo.innerHTML = '📍 Obteniendo ubicación...';
             coordinatesInfo.innerHTML = 'Lat: --.------, Lon: --.------';
             return;
           }
           
           // Actualizar coordenadas
           const currentTime = new Date();
-          dateTimeInfo.textContent = `­ƒòÆ ${currentTime.toLocaleDateString()} ${currentTime.toLocaleTimeString()}`;
+          dateTimeInfo.textContent = `📅 ${currentTime.toLocaleDateString()} ${currentTime.toLocaleTimeString()}`;
           coordinatesInfo.innerHTML = `Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           
           // Obtener dirección con OpenStreetMap Nominatim
@@ -2239,20 +2239,20 @@ const Dashboard: React.FC = () => {
                 addr.country
               ].filter(Boolean);
               currentAddress = parts.join(', ');
-              locationInfo.innerHTML = `­ƒôì ${currentAddress}`;
+              locationInfo.innerHTML = `📍 ${currentAddress}`;
             } else {
-              locationInfo.innerHTML = `­ƒôì Ubicación desconocida`;
+              locationInfo.innerHTML = `📍 Ubicación desconocida`;
             }
           } else {
-            locationInfo.innerHTML = `­ƒôì Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+            locationInfo.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           }
         } catch (error) {
           const errorTime = new Date();
-          dateTimeInfo.textContent = `­ƒòÆ ${errorTime.toLocaleDateString()} ${errorTime.toLocaleTimeString()}`;
+          dateTimeInfo.textContent = `📅 ${errorTime.toLocaleDateString()} ${errorTime.toLocaleTimeString()}`;
           if (position && position.coords) {
-            locationInfo.innerHTML = `­ƒôì Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
+            locationInfo.innerHTML = `📍 Lat: ${position.coords.latitude.toFixed(6)}, Lon: ${position.coords.longitude.toFixed(6)}`;
           } else {
-            locationInfo.innerHTML = '­ƒôì Error obteniendo ubicación';
+            locationInfo.innerHTML = '📍 Error obteniendo ubicación';
           }
         }
       });
@@ -2289,7 +2289,7 @@ const Dashboard: React.FC = () => {
           constraints.video.torch = true;
         }
         
-        console.log('­ƒÄÑ Iniciando stream con constraints:', constraints);
+        console.log('🎥 Iniciando stream con constraints:', constraints);
         let stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         video.srcObject = stream;
@@ -2380,7 +2380,7 @@ const Dashboard: React.FC = () => {
                 font-size: 16px;
                 text-align: center;
               `;
-              processingMessage.innerHTML = '­ƒôÀ Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
+              processingMessage.innerHTML = '📷 Agregando marca de agua georeferenciada...<br/><small>Por favor espere</small>';
               document.body.appendChild(processingMessage);
               
               // Guardar directamente el fotograma tal cual viene de la vista en vivo,
@@ -2401,7 +2401,7 @@ const Dashboard: React.FC = () => {
                 z-index: 10001;
                 font-size: 14px;
               `;
-              successMessage.textContent = '­ƒô© Foto guardada correctamente. Sigue tomando.';
+              successMessage.textContent = '📸 Foto guardada correctamente. Sigue tomando.';
               document.body.appendChild(successMessage);
 
               setTimeout(() => {
@@ -2432,7 +2432,7 @@ const Dashboard: React.FC = () => {
               flashButton.style.color = 'white';
             }
             
-            console.log('­ƒöª Flash cambiado a:', flashMode);
+            console.log('💡 Flash cambiado a:', flashMode);
             // Flash real en WebRTC no está implementado, solo visual
           } catch (error) {
             console.error('Error cambiando flash:', error);
@@ -2476,7 +2476,7 @@ const Dashboard: React.FC = () => {
               flipConstraints.video.torch = true;
             }
             
-            console.log('­ƒöä Cambiando a cámara:', cameraDirection, flipConstraints);
+            console.log('🔄 Cambiando a cámara:', cameraDirection, flipConstraints);
             const newStream = await navigator.mediaDevices.getUserMedia(flipConstraints);
             stream = newStream; // Actualizar variable stream
             video.srcObject = newStream;
@@ -2495,7 +2495,7 @@ const Dashboard: React.FC = () => {
           video.style.transformOrigin = 'center center';
           video.style.transition = 'transform 0.3s ease';
           
-          console.log('­ƒöì Zoom aplicado:', zoomLevel);
+          console.log('🔍 Zoom aplicado:', zoomLevel);
         };
         
         // Función para controlar tamaño de texto con slider
@@ -2533,7 +2533,7 @@ const Dashboard: React.FC = () => {
         cameraInterface.remove();
         
         // Usar método original con Capacitor
-        console.log('­ƒôÀ Usando cámara Capacitor como fallback...');
+        console.log('📷 Usando cámara Capacitor como fallback...');
         
         // Obtener ubicación actual
         const position = await Geolocation.getCurrentPosition({
@@ -2597,7 +2597,7 @@ const Dashboard: React.FC = () => {
       }
       
     } catch (error: any) {
-      console.error('ÔØî Error al tomar foto:', error);
+      console.error('❌ Error al tomar foto:', error);
       alert('Error al tomar foto: ' + (error.message || error.toString()));
     }
   };
@@ -2967,7 +2967,7 @@ const Dashboard: React.FC = () => {
         {showProfileIncompleteNotification && (
           <div className="profile-incomplete-notification">
             <div className="notification-content">
-              <span className="notification-icon">ÔÜá´©Å</span>
+              <span className="notification-icon">⚠️</span>
               <div className="notification-text">
                 <strong>Verificar cuenta</strong>
                 <p>Complete su perfil para acceder a todas las funcionalidades</p>
@@ -3077,7 +3077,7 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Registrar nuevas obras y intervenciones realizadas
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
 
               {/* Icono Informes - Oculto para usuarios técnicos */}
@@ -3090,7 +3090,7 @@ const Dashboard: React.FC = () => {
                   <p className="dashboard-icon-description">
                     Ver estadísticas, reportes y análisis de todas las intervenciones
                   </p>
-                  {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                  {!isProfileComplete && <div className="locked-overlay">🔒</div>}
                 </div>
               )}
 
@@ -3104,7 +3104,7 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Buscar y visualizar intervenciones en mapa interactivo con GPS
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
                 </div>
               )}
               {/* fin condicional Buscar - no cerrar grid aquí */}
@@ -3118,7 +3118,7 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Tomar fotografías georeferenciadas con datos de ubicación
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
 
               {/* Icono Nivel de Estabilidad con Giroscopio */}
@@ -3130,7 +3130,7 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Monitorea la estabilidad con el giroscopio y muestra un valor en tiempo real
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
 
               {/* Icono Usuarios - Oculto temporalmente en main */}
@@ -3143,7 +3143,7 @@ const Dashboard: React.FC = () => {
                   <p className="dashboard-icon-description">
                     Gestión de usuarios activos e inactivos del sistema
                   </p>
-                  {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                  {!isProfileComplete && <div className="locked-overlay">🔒</div>}
                 </div>
               )}
 
@@ -3157,7 +3157,7 @@ const Dashboard: React.FC = () => {
                 <p className="dashboard-icon-description">
                   Buscar y exportar reportes a Excel, PDF y Word
                 </p>
-                {!isProfileComplete && <div className="locked-overlay">­ƒöÆ</div>}
+                {!isProfileComplete && <div className="locked-overlay">🔒</div>}
               </div>
               )}
             </div>
@@ -3211,7 +3211,7 @@ const Dashboard: React.FC = () => {
       {/* Modal ReportViewModern - Vista Detallada de Reportes */}
       {showReportView && selectedReportId && (
         <>
-          {console.log('­ƒöì Dashboard: Renderizando ReportViewModern con:', { showReportView, selectedReportId })}
+          {console.log('🔍 Dashboard: Renderizando ReportViewModern con:', { showReportView, selectedReportId })}
           <ReportViewModern
             reportId={selectedReportId}
             onClose={handleCloseReportView}
@@ -3227,8 +3227,8 @@ const Dashboard: React.FC = () => {
         <div className="modal-overlay" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>
           <div className="modal-content profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>­ƒæñ Mi Perfil</h2>
-              <button className="modal-close" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>Ô£ò</button>
+              <h2>👤 Mi Perfil</h2>
+              <button className="modal-close" onClick={() => { setShowProfileModal(false); setActiveNav('dashboard'); }}>✕</button>
             </div>
             <div className="modal-body">
               <div className="profile-section">
@@ -3237,19 +3237,19 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="profile-info-group">
                   <div className="profile-info-item">
-                    <label>­ƒæñ Nombre completo</label>
+                    <label>👤 Nombre completo</label>
                     <input type="text" value={user?.name || ''} readOnly className="form-input" />
                   </div>
                   <div className="profile-info-item">
-                    <label>­ƒöæ Usuario</label>
+                    <label>🆔 Usuario</label>
                     <input type="text" value={user?.username || ''} readOnly className="form-input" />
                   </div>
                   <div className="profile-info-item">
-                    <label>­ƒÅó Departamento</label>
+                    <label>🏢 Departamento</label>
                     <input type="text" value="Dirección de Coordinación Regional" readOnly className="form-input" />
                   </div>
                   <div className="profile-info-item">
-                    <label>­ƒôì Región asignada</label>
+                    <label>📍 Región asignada</label>
                     <input type="text" value="Todas las regiones" readOnly className="form-input" />
                   </div>
                 </div>
@@ -3269,8 +3269,8 @@ const Dashboard: React.FC = () => {
         <div className="modal-overlay" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>
           <div className="modal-content my-reports-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh' }}>
             <div className="modal-header">
-              <h2>­ƒôï Mis Reportes</h2>
-              <button className="modal-close" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>Ô£ò</button>
+              <h2>📄 Mis Reportes</h2>
+              <button className="modal-close" onClick={() => { setShowMyReportsModal(false); setActiveNav('dashboard'); }}>✕</button>
             </div>
             <div className="modal-body" style={{ padding: '20px' }}>
               <MyReportsListModern 
@@ -3288,15 +3288,15 @@ const Dashboard: React.FC = () => {
         <div className="modal-overlay" onClick={() => setShowCompleteProfileModal(false)}>
           <div className="modal-content complete-profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Ô£¿ Completar Perfil</h2>
-              <button className="modal-close" onClick={() => setShowCompleteProfileModal(false)}>Ô£ò</button>
+              <h2>✏️ Completar Perfil</h2>
+              <button className="modal-close" onClick={() => setShowCompleteProfileModal(false)}>✕</button>
             </div>
             <div className="modal-body">
               <p className="modal-description">Complete toda su información para verificar su cuenta</p>
               
               {/* Foto de Perfil */}
               <div className="profile-field-section">
-                <label className="profile-field-label">­ƒô© Foto de Perfil *</label>
+                <label className="profile-field-label">📸 Foto de Perfil *</label>
                 <div className="profile-photo-upload">
                   {profilePhoto ? (
                     <div className="profile-photo-preview">
@@ -3308,7 +3308,7 @@ const Dashboard: React.FC = () => {
                   ) : (
                     <div className="profile-photo-placeholder">
                       <label htmlFor="profile-photo-input" className="upload-label">
-                        <span className="upload-icon">­ƒôÀ</span>
+                        <span className="upload-icon">📷</span>
                         <span>Click para subir foto</span>
                         <input
                           id="profile-photo-input"
@@ -3325,7 +3325,7 @@ const Dashboard: React.FC = () => {
 
               {/* Nombre Completo */}
               <div className="profile-field-section">
-                <label className="profile-field-label">­ƒæñ Nombre Completo *</label>
+                <label className="profile-field-label">👤 Nombre Completo *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -3337,7 +3337,7 @@ const Dashboard: React.FC = () => {
 
               {/* Número de Cédula */}
               <div className="profile-field-section">
-                <label className="profile-field-label">­ƒåö Número de Cédula *</label>
+                <label className="profile-field-label">🆔 Número de Cédula *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -3353,7 +3353,7 @@ const Dashboard: React.FC = () => {
 
               {/* Foto del Carnet */}
               <div className="profile-field-section">
-                <label className="profile-field-label">­ƒ¬¬ Foto del Carnet de Identidad *</label>
+                <label className="profile-field-label">🊪 Foto del Carnet de Identidad *</label>
                 <div className="id-card-upload">
                   {idCardPhoto ? (
                     <div className="id-card-preview">
@@ -3365,7 +3365,7 @@ const Dashboard: React.FC = () => {
                   ) : (
                     <div className="id-card-placeholder">
                       <label htmlFor="id-card-input" className="upload-label">
-                        <span className="upload-icon">­ƒ¬¬</span>
+                        <span className="upload-icon">🊪</span>
                         <span>Click para subir foto del carnet</span>
                         <input
                           id="id-card-input"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores principales de MOPC -->
+    <color name="colorPrimary">#FF7A00</color>
+    <color name="colorPrimaryDark">#E66900</color>
+    <color name="colorAccent">#FF9933</color>
+    
+    <!-- Colores para pantalla completa -->>
+    <color name="transparent">#00000000</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    
+    <!-- Colores del splash screen -->
+    <color name="splash_background">#FF7A00</color>
+    
+    <!-- Colores de las barras del sistema (transparentes para modo inmersivo) -->
+    <color name="statusBarColor">@color/transparent</color>
+    <color name="navigationBarColor">@color/transparent</color>
+</resources>

@@ -15,6 +15,11 @@ import {
   markMessagesAsRead,
   deleteChatRoom,
 } from '../services/firebaseChatService';
+import { 
+  showChatMessageNotification, 
+  cancelChatNotifications,
+  shouldShowNotification 
+} from '../services/chatNotifications';
 import './BubbleFeedChat.css';
 
 /* ─── interfaces ─── */
@@ -203,7 +208,9 @@ function ConversationView({
       prevCountRef.current = msgs.length;
       setMessages(msgs);
     });
+    // Marcar como leídos y cancelar notificaciones al abrir la conversación
     markMessagesAsRead(chatId, currentUserId);
+    cancelChatNotifications(chatId);
     return () => unsub();
   }, [chatId, currentUserId]);
 
@@ -423,6 +430,38 @@ const BubbleFeedChat: React.FC<BubbleFeedChatProps> = ({ currentUser, unreadCoun
     getAllUsers().then(setAllUsers);
   }, []);
 
+  /* Listener para abrir chat desde notificación */
+  useEffect(() => {
+    const handleOpenChatFromNotification = (e: Event) => {
+      const { chatId, senderName } = (e as CustomEvent).detail;
+      console.log('[BubbleFeedChat] 📬 Abriendo chat desde notificación:', { chatId, senderName });
+      
+      // Encontrar el chat en la lista
+      const chat = chats.find(c => c.id === chatId);
+      if (chat) {
+        const oid = chat.participants.find(p => p !== currentUserId) || '';
+        const otherName = resolveOtherName(chat, oid);
+        const otherPhoto = chat.participantAvatars?.[oid] || '';
+        
+        // Abrir la conversación
+        setActiveChat({
+          chatId,
+          otherUser: { id: oid, name: otherName, photo: otherPhoto }
+        });
+        setModalState('conversation');
+        setBubbleVisible(true);
+      } else {
+        console.warn('[BubbleFeedChat] Chat no encontrado:', chatId);
+        // Si el chat no está en la lista, abrir el modal de lista
+        setModalState('list');
+        setBubbleVisible(true);
+      }
+    };
+
+    window.addEventListener('open_chat_from_notification', handleOpenChatFromNotification);
+    return () => window.removeEventListener('open_chat_from_notification', handleOpenChatFromNotification);
+  }, [chats, currentUserId, allUsers]);
+
   const resolveOtherName = (chat: ChatRoom, oid: string): string => {
     const fromChat = chat.participantNames?.[oid];
     if (fromChat && fromChat !== 'Usuario') return fromChat;
@@ -464,6 +503,16 @@ const BubbleFeedChat: React.FC<BubbleFeedChatProps> = ({ currentUser, unreadCoun
           setToast({ name, text: preview });
           if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
           toastTimerRef.current = setTimeout(() => setToast(null), 4500);
+
+          // ── Mostrar notificación local si no está en la conversación activa ──
+          const isCurrentChatOpen = activeChat?.chatId === newChat.id && modalState === 'conversation';
+          if (shouldShowNotification(newChat.id, isCurrentChatOpen, true)) {
+            console.log('[BubbleFeedChat] 📱 Mostrando notificación local para:', name);
+            const senderAvatar = newChat.participantAvatars?.[oid] || '';
+            showChatMessageNotification(name, rawText, newChat.id, senderAvatar).catch(err => {
+              console.error('[BubbleFeedChat] Error mostrando notificación:', err);
+            });
+          }
         }
       }
       // Actualizar mapa de no leídos por chat

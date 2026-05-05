@@ -4,6 +4,13 @@ import { Capacitor } from '@capacitor/core';
 import Dashboard from './components/Dashboard';
 import { initializePushNotifications, removePushListeners, setForegroundNotificationHandler } from './services/fcmService';
 import { useNotificationSound } from './hooks/useNotificationSound';
+import { 
+  scheduleReliableSixHourReminders, 
+  setupNotificationActionListeners, 
+  removeNotificationListeners,
+  checkPendingNotifications
+} from './services/reminderNotifications';
+import { setupChatNotificationListeners } from './services/chatNotifications';
 
 function App() {
   /* Usuario activo leído desde localStorage; se actualiza con el evento mopc_user_changed */
@@ -48,6 +55,39 @@ function App() {
     initializePushNotifications(chatUser.id);
     return () => removePushListeners();
   }, [chatUser?.id, playNotificationSound]);
+
+  /* Inicializar notificaciones recordatorias cada 6 horas */
+  useEffect(() => {
+    if (!chatUser?.id) {
+      // Si no hay usuario, limpiar listeners
+      removeNotificationListeners();
+      return;
+    }
+
+    // Configurar listeners para cuando el usuario toca una notificación
+    setupNotificationActionListeners();
+
+    // Configurar listeners para notificaciones de chat
+    setupChatNotificationListeners((chatId, senderName) => {
+      console.log('[App] Usuario tocó notificación de chat:', chatId);
+      // Disparar evento personalizado para que BubbleFeedChat abra la conversación
+      window.dispatchEvent(new CustomEvent('open_chat_from_notification', {
+        detail: { chatId, senderName }
+      }));
+    });
+
+    // Programar notificaciones cada 6 horas (00:00, 06:00, 12:00, 18:00)
+    scheduleReliableSixHourReminders();
+
+    // Verificar notificaciones pendientes (debug)
+    if (process.env.NODE_ENV === 'development') {
+      setTimeout(() => checkPendingNotifications(), 2000);
+    }
+
+    return () => {
+      removeNotificationListeners();
+    };
+  }, [chatUser?.id]);
 
   /* ── Botón atrás nativo: gestionado por Dashboard y BubbleFeedChat directamente ── */
   /* Solo web fallback (Escape) se mantiene aquí */
