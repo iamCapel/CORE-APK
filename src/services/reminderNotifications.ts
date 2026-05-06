@@ -54,7 +54,7 @@ export async function initializeReminderNotifications(): Promise<void> {
             allowWhileIdle: true
           },
           sound: 'default',
-          smallIcon: 'ic_stat_name',
+          smallIcon: 'ic_stat_vehicle',
           largeIcon: 'ic_launcher',
           channelId: 'vehicle-reminders',
           actionTypeId: 'OPEN_APP',
@@ -120,7 +120,7 @@ export async function scheduleExactSixHourReminders(): Promise<void> {
             allowWhileIdle: true
           },
           sound: 'default',
-          smallIcon: 'ic_stat_name', 
+          smallIcon: 'ic_stat_vehicle',
           channelId: 'vehicle-reminders',
           actionTypeId: 'OPEN_APP',
           extra: {
@@ -182,7 +182,7 @@ export async function scheduleReliableSixHourReminders(): Promise<void> {
           allowWhileIdle: true
         },
         sound: 'default',
-        smallIcon: 'ic_stat_name',
+        smallIcon: 'ic_stat_vehicle',
         channelId: 'vehicle-reminders',
         actionTypeId: 'OPEN_APP',
         extra: {

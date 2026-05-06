@@ -80,9 +80,9 @@ export async function showChatMessageNotification(
             allowWhileIdle: true
           },
           sound: 'default',
-          smallIcon: 'ic_stat_name',
+          smallIcon: 'ic_stat_chat',
           largeIcon: senderPhoto,
-          channelId: 'chat-messages',
+          channelId: 'chat_messages',
           actionTypeId: 'OPEN_CHAT',
           extra: {
             type: 'chat_message',
