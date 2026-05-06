@@ -147,6 +147,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
 
   const [mensaje, setMensaje] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [municipioAgregado, setMunicipioAgregado] = useState(false);
 
   const provinciasDisponibles = useMemo(() => (region ? provinciasPorRegion[region] || [] : []), [region]);
   const municipiosDisponibles = useMemo(() => (provincia ? municipiosPorProvinciaState[provincia] || [] : []), [provincia, municipiosPorProvinciaState]);
@@ -311,7 +312,15 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
     setMunicipio(nombre);
     setMostrarAgregarMunicipio(false);
     setNuevoMunicipio('');
+    
+    // Mostrar animación de "Agregado"
+    setMunicipioAgregado(true);
     setMensaje(`Municipio '${nombre}' agregado a ${provincia} y seleccionado.`);
+    
+    // Ocultar animación después de 3 segundos
+    setTimeout(() => {
+      setMunicipioAgregado(false);
+    }, 3000);
   };
 
   const handleAddDistrito = () => {
@@ -468,13 +477,13 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
           icon="🚚"
         >
           <form onSubmit={onSubmit}>
-            {/* Selector de tipo de intervención */}
+            {/* 1. Select de actividades - Tipo de Intervención */}
             <div className="form-row">
               <ModernSelect
                 id="tipoIntervencion"
                 icon="🛠️"
                 hint="Tipo de Intervención"
-                placeholder="Seleccionar tipo"
+                placeholder="Seleccionar actividad"
                 value={tipoIntervencion}
                 options={opcionesIntervencion.map(opcion => ({ value: opcion, label: opcion }))}
                 required
@@ -495,6 +504,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
               )}
             </div>
 
+            {/* 2. Select de regiones */}
             <div className="form-row">
               <ModernSelect
                 id="region"
@@ -506,7 +516,44 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                 required
                 onChange={setRegion}
               />
+            </div>
 
+            {/* 3. Filtro de búsqueda por municipios */}
+            <div className="form-row">
+              <ModernSelect
+                id="municipio"
+                icon="🏘️"
+                hint="Municipio (Filtro de búsqueda)"
+                placeholder={provincia ? 'Buscar municipio...' : '— seleccione provincia primero —'}
+                value={municipio}
+                options={municipiosDisponibles.map(m => ({ value: m, label: `${m}, ${provincia}` }))}
+                disabled={!provincia}
+                required
+                onChange={setMunicipio}
+              />
+            </div>
+
+            {/* 4. Botón agregar municipio */}
+            <div className="form-row">
+              <button
+                type="button"
+                className="btn-modern"
+                onClick={() => {
+                  if (!provincia) {
+                    setMensaje('Seleccione primero la provincia');
+                    return;
+                  }
+                  setNuevoMunicipio('');
+                  setMostrarAgregarMunicipio(true);
+                }}
+                style={{ background: '#2a9d8f', maxWidth: '300px' }}
+              >
+                ➕ Agregar municipio
+              </button>
+            </div>
+
+            {/* 5. Select de provincias de la región seleccionada */}
+            <div className="form-row">
               <ModernSelect
                 id="provincia"
                 icon="📍"
@@ -518,35 +565,14 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                 required
                 onChange={setProvincia}
               />
-
-              <ModernSelect
-                id="municipio"
-                icon="🏘️"
-                hint="Municipio"
-                placeholder={provincia ? 'Seleccionar municipio' : '— primero provincia —'}
-                value={municipio}
-                options={[
-                  ...municipiosDisponibles.map(m => ({ value: m, label: m })),
-                  { value: '__add_municipio', label: '➕ Agregar municipio existente', special: true }
-                ]}
-                disabled={!provincia}
-                required
-                onChange={(val) => {
-                  if (val === '__add_municipio') {
-                    setNuevoMunicipio('');
-                    setMostrarAgregarMunicipio(true);
-                  } else {
-                    setMunicipio(val);
-                  }
-                }}
-              />
             </div>
 
+            {/* Distrito municipal */}
             <div className="form-row">
               <ModernSelect
                 id="distrito"
                 icon="🏙️"
-                hint="Distrito"
+                hint="Distrito Municipal"
                 placeholder={municipio ? 'Seleccionar distrito' : '— primero municipio —'}
                 value={distrito}
                 options={[
@@ -566,6 +592,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
               />
             </div>
 
+            {/* 9. Select de fecha de inicio */}
             <div className="form-row">
               <ModernInput
                 id="fechaInicio"
@@ -603,27 +630,32 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
               />
             </div>
 
+            {/* 10. Select de total de vehículos (0-99) */}
             <div className="form-row" style={{ flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '12px' }}>
-                <h3>Vehículos ({vehiculosDetalles.length}) - BUILD-VERSION 042</h3>
-                <ModernInput
+                <h3>Total de vehículos: {vehiculosDetalles.length}</h3>
+                <ModernSelect
                   id="numVehiculos"
-                  type="number"
-                  label="Cantidad de vehículos"
-                  placeholder="Ej 5"
-                  value={numeroVehiculos}
-                  onChange={(val) => setCantidadVehiculos(val)}
+                  icon="🔢"
+                  hint="Cantidad de vehículos (0-99)"
+                  placeholder="Seleccionar cantidad"
+                  value={String(numeroVehiculos)}
+                  options={Array.from({ length: 100 }, (_, i) => ({ value: String(i), label: String(i) }))}
+                  onChange={(val) => setCantidadVehiculos(Number(val))}
                 />
               </div>
 
+              {/* 11. Mini informe - Select de modelo de vehículos pesados disponibles */}
               {vehiculosDetalles.map((vehiculo, index) => (
-                <div key={index} className="vehicle-row" style={{ border: '1px solid #444', padding: '12px', borderRadius: '8px' }}>
+                <div key={index} className="vehicle-row" style={{ border: '1px solid #444', padding: '12px', borderRadius: '8px', background: '#1a1d2e' }}>
+                  <h4 style={{ margin: '0 0 12px', color: '#2a9d8f' }}>Vehículo #{index + 1}</h4>
+                  
                   <div className="form-row" style={{ gap: '8px' }}>
                     <ModernSelect
                       id={`tipoVehiculo_${index}`}
                       icon="🚛"
-                      hint={`Tipo de vehículo #${index + 1}`}
-                      placeholder="Seleccionar tipo"
+                      hint={`Modelo de vehículo pesado`}
+                      placeholder="Seleccionar modelo"
                       value={vehiculo.tipo}
                       options={tipoVehiculosDisponibles.map(val => ({ value: val, label: val }))}
                       required
@@ -633,7 +665,7 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                     <ModernInput
                       id={`modelo_${index}`}
                       type="text"
-                      label="Modelo (opcional)"
+                      label="Marca/Modelo (opcional)"
                       placeholder="Ej. CAT 320"
                       value={vehiculo.modelo}
                       onChange={(val) => handleVehiculoChange(index, 'modelo', String(val))}
@@ -643,13 +675,17 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                   <ModernInput
                     id={`ficha_${index}`}
                     type="text"
-                    label={`Ficha del vehículo #${index + 1}`}
+                    label={`Ficha CV-${String(index + 1).padStart(5, '0')}`}
                     placeholder="Ej. AB-12345"
                     value={vehiculo.ficha}
                     onChange={(val) => handleVehiculoChange(index, 'ficha', String(val))}
                     required
                   />
-                  {vehiculo.fichaError && <p style={{ color: '#ffb703', marginTop: '-0.8rem' }}>{vehiculo.fichaError}</p>}
+                  {vehiculo.fichaError && (
+                    <p style={{ color: '#ffb703', marginTop: '-0.8rem', fontSize: '0.85rem' }}>
+                      {vehiculo.fichaError}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -754,6 +790,35 @@ const HeavyVehiclesPage: React.FC<HeavyVehiclesPageProps> = ({ onClose }) => {
                     Agregar distrito
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* 8. Animación de aguardado de municipio agregado */}
+          {municipioAgregado && (
+            <div style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #2a9d8f, #26866f)',
+              color: '#fff',
+              padding: '16px 24px',
+              borderRadius: '12px',
+              boxShadow: '0 8px 32px rgba(42, 157, 143, 0.4)',
+              zIndex: 10000,
+              animation: 'slideInRight 0.3s ease-out',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              minWidth: '280px'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <div>
+                <strong style={{ display: 'block', fontSize: '1rem' }}>¡Agregado!</strong>
+                <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>Municipio agregado exitosamente</span>
               </div>
             </div>
           )}
