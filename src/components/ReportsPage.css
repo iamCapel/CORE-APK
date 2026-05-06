@@ -74,14 +74,15 @@
 
 .stat-label {
   font-size: 12px;
-  color: #7f8c8d;
+  color: #b0b0b0;
   font-weight: 500;
 }
 
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: var(--primary-orange);
+  color: #FF8C00;
+  text-shadow: 0 0 8px rgba(255, 140, 0, 0.3);
 }
 
 /* Content */
@@ -1089,7 +1090,7 @@
 }
 
 .region-card {
-  background: white;
+  background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
@@ -1097,8 +1098,9 @@
   gap: 1.5rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid var(--region-color, #ff7a00);
+  box-shadow: 0 2px 8px rgba(204, 85, 0, 0.3);
+  border-left: 4px solid var(--region-color, #CC5500);
+  border: 1px solid #404040;
   position: relative;
   overflow: hidden;
 }
@@ -1110,29 +1112,31 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--region-color, #ff7a00) 0%, transparent 100%);
+  background: linear-gradient(135deg, var(--region-color, #CC5500) 0%, transparent 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .region-card:hover::before {
-  opacity: 0.05;
+  opacity: 0.15;
 }
 
 .region-card:hover {
   transform: translateY(-5px) translateX(5px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(255, 140, 0, 0.4);
   border-left-width: 6px;
+  border-left-color: #FF8C00;
 }
 
 .region-card.selected {
   border-left-width: 6px;
-  box-shadow: 0 8px 24px var(--region-color);
+  box-shadow: 0 8px 24px rgba(204, 85, 0, 0.5);
   transform: translateY(-3px);
+  border-left-color: #E67300;
 }
 
 .region-card.selected::before {
-  opacity: 0.1;
+  opacity: 0.2;
 }
 
 .region-icon {
@@ -1150,7 +1154,7 @@
 .region-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: #e0e0e0;
   margin: 0 0 0.75rem 0;
 }
 
@@ -1167,7 +1171,7 @@
 
 .region-stats .stat-label {
   font-size: 0.75rem;
-  color: #95a5a6;
+  color: #b0b0b0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -1176,7 +1180,8 @@
 .region-stats .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--region-color, #ff7a00);
+  color: var(--region-color, #FF8C00);
+  text-shadow: 0 0 8px rgba(255, 140, 0, 0.3);
 }
 
 /* Estadísticas de kilometraje */
@@ -1190,8 +1195,8 @@
 .stat-value-lg {
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--region-color, #ff7a00);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--region-color, #FF8C00);
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
 }
 
 .region-arrow {
@@ -2430,32 +2435,32 @@
   margin: 0 auto;
   max-width: 800px;
   position: relative;
-  background: white;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border: 1px solid #404040;
 }
 
 .no-data-message {
   text-align: center;
   padding: 60px 20px;
-  background: white;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border: 1px solid #404040;
 }
 
 .no-data-message p {
   font-size: 1.1rem;
-  color: #666;
+  color: #b0b0b0;
   margin: 10px 0;
 }
 
 .no-data-message p:first-child {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #333;
+  color: #e0e0e0;
 }
 
 .summary-stats {
@@ -2466,23 +2471,24 @@
 }
 
 .stat-card {
-  background: white;
+  background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
   padding: 20px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border: 1px solid #404040;
   transition: transform 0.2s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 20px rgba(204, 85, 0, 0.3);
+  border-color: #CC5500;
 }
 
 .stat-card h4 {
   margin: 0 0 10px 0;
-  color: #666;
+  color: #b0b0b0;
   font-size: 0.9rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -2493,8 +2499,9 @@
   display: block;
   font-size: 2.5rem;
   font-weight: bold;
-  color: #ff7a00;
+  color: #FF8C00;
   margin: 10px 0;
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
 }
 
 /* Responsividad para el gráfico */

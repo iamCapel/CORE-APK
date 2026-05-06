@@ -58,11 +58,14 @@
   display: block;
   font-size: 1.8rem;
   font-weight: bold;
+  color: #FF8C00;
+  text-shadow: 0 0 8px rgba(255, 140, 0, 0.4);
 }
 
 .stat-label {
   font-size: 0.9rem;
   opacity: 0.9;
+  color: #b0b0b0;
 }
 
 .refresh-button, .retry-button {

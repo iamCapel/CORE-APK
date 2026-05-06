@@ -3272,29 +3272,39 @@ select option[value="otros"] {
 }
 
 .stats-card {
-  background: white;
+  background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
   border-radius: 10px;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border-left: 4px solid #007bff;
+  box-shadow: 0 2px 8px rgba(204, 85, 0, 0.3);
+  border-left: 4px solid #CC5500;
+  border: 1px solid #404040;
+  transition: transform 0.2s ease;
 }
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+  border-left-color: #FF8C00;
+}
+
 .stats-icon {
   font-size: 2.5rem;
-  opacity: 0.8;
-  filter: drop-shadow(0 3px 6px rgba(255, 152, 0, 0.3));
+  opacity: 0.9;
+  filter: drop-shadow(0 3px 6px rgba(255, 140, 0, 0.5));
   transition: filter 0.3s ease;
+  color: #FF8C00;
 }
 
 .stats-icon:hover {
-  filter: drop-shadow(0 4px 8px rgba(255, 152, 0, 0.5));
+  filter: drop-shadow(0 4px 10px rgba(255, 140, 0, 0.7));
 }
 
 .stats-content h4 {
   margin: 0 0 8px 0;
-  color: #495057;
+  color: #b0b0b0;
   font-size: 0.9rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -3304,42 +3314,43 @@ select option[value="otros"] {
 .stats-number {
   font-size: 2rem;
   font-weight: 700;
-  color: #007bff;
+  color: #FF8C00;
   margin: 0;
   line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 140, 0, 0.4);
 }
 
 .stats-text {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #28a745;
+  color: #E67300;
   margin: 0;
   line-height: 1;
 }
 
 /* Colores específicos para diferentes tipos de tarjetas de estadísticas */
 .stats-card:nth-child(1) {
-  border-left-color: #28a745;
+  border-left-color: #CC5500;
 }
 
 .stats-card:nth-child(1) .stats-number {
-  color: #28a745;
+  color: #FF8C00;
 }
 
 .stats-card:nth-child(2) {
-  border-left-color: #ffc107;
+  border-left-color: #E67300;
 }
 
 .stats-card:nth-child(2) .stats-number {
-  color: #ffc107;
+  color: #FF8C00;
 }
 
 .stats-card:nth-child(3) {
-  border-left-color: #17a2b8;
+  border-left-color: #CC5500;
 }
 
 .stats-card:nth-child(3) .stats-text {
-  color: #17a2b8;
+  color: #E67300;
 }
 
 /* Responsive design para el nuevo dashboard */

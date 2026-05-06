@@ -149,18 +149,26 @@
 }
 
 .stat-card {
-  background: white;
+  background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
   border-radius: 12px;
   padding: 24px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-top: 4px solid var(--primary-orange);
+  box-shadow: 0 4px 12px rgba(204, 85, 0, 0.3);
+  border-top: 4px solid #CC5500;
+  border: 1px solid #404040;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 140, 0, 0.4);
+  border-top-color: #FF8C00;
 }
 
 .stat-card h3 {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #b0b0b0;
   margin: 0 0 12px 0;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -169,8 +177,9 @@
 .stat-number {
   font-size: 36px;
   font-weight: 700;
-  color: var(--primary-orange);
+  color: #FF8C00;
   margin: 0;
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
 }
 
 /* Responsive */
