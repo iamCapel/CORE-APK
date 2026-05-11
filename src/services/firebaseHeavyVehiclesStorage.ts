@@ -1,4 +1,4 @@
-import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import app from '../config/firebase';
 import firebaseReportStorage from './firebaseReportStorage';
 import { reportStorage, ReportData } from './reportStorage';
@@ -212,6 +212,24 @@ class FirebaseHeavyVehiclesStorage {
     } catch (error) {
       console.error('Error saving heavy vehicle record:', error);
       throw error;
+    }
+  }
+
+  async getRecentRecords(limitCount: number = 50): Promise<HeavyVehicleRecord[]> {
+    try {
+      const recordsRef = collection(db, HEAVY_VEHICLES_COLLECTION);
+      const q = query(recordsRef, orderBy('createdAt', 'desc'), limit(limitCount));
+      const snapshot = await getDocs(q);
+      
+      const records: HeavyVehicleRecord[] = [];
+      snapshot.forEach(doc => {
+        records.push({ id: doc.id, ...doc.data() } as HeavyVehicleRecord);
+      });
+      
+      return records;
+    } catch (error) {
+      console.error('Error fetching recent heavy vehicle records:', error);
+      return [];
     }
   }
 }
