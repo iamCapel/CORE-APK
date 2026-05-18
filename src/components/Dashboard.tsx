@@ -2013,7 +2013,9 @@ const Dashboard: React.FC = () => {
             align-items: center;
             gap: 2px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-            max-width: 80%;
+            max-width: 90vw;
+            box-sizing: border-box;
+            overflow: hidden;
           `;
         } else {
           // Modo vertical: parte inferior apilado verticalmente
@@ -2031,6 +2033,9 @@ const Dashboard: React.FC = () => {
             flex-direction: column;
             gap: 3px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            max-width: calc(100vw - 20px);
+            box-sizing: border-box;
+            overflow: hidden;
           `;
         }
       };
@@ -2070,58 +2075,148 @@ const Dashboard: React.FC = () => {
       coordinatesInfo.id = 'geo-coords';
       coordinatesInfo.textContent = 'Lat: --.------, Lon: --.------';
       
-      // Función para actualizar estilos de elementos geo según orientación
+      // 🔍 Sistema de detección automática de resolución nativa
+      const getDeviceResolution = () => {
+        const screenWidth = window.screen.width;
+        const screenHeight = window.screen.height;
+        const pixelRatio = window.devicePixelRatio || 1;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Resolución nativa física
+        const nativeWidth = screenWidth * pixelRatio;
+        const nativeHeight = screenHeight * pixelRatio;
+        
+        // Factor de escala base: usar el ancho del viewport como referencia
+        // Pantallas pequeñas (320-400px) → factor 1.0
+        // Pantallas medianas (400-600px) → factor 1.2-1.5
+        // Pantallas grandes (>600px) → factor 1.5-2.0
+        const baseFactor = Math.max(1.0, Math.min(2.5, viewportWidth / 360));
+        
+        return {
+          screenWidth,
+          screenHeight,
+          pixelRatio,
+          viewportWidth,
+          viewportHeight,
+          nativeWidth,
+          nativeHeight,
+          baseFactor,
+          isLandscape: viewportWidth > viewportHeight
+        };
+      };
+      
+      // Función para actualizar estilos de elementos geo según orientación y resolución
       const updateGeoElementsStyle = () => {
-        const isLandscape = window.innerWidth > window.innerHeight;
+        const device = getDeviceResolution();
+        const { isLandscape, baseFactor, viewportWidth } = device;
+        
+        // Calcular tamaños de fuente responsivos basados en el viewport
+        // Usamos vw (viewport width) para que escalen automáticamente
+        // Multiplicador base: 2.8vw ≈ 10-12px en pantallas típicas (360-428px)
+        const baseVw = 2.8;
+        const userNameSize = `${baseVw * 1.2}vw`; // ~12-15px
+        const dateTimeSize = `${baseVw * 0.85}vw`; // ~9-11px
+        const locationSize = `${baseVw * 0.95}vw`; // ~10-12px
+        const coordsSize = `${baseVw * 0.85}vw`; // ~9-11px
+        
+        // Límites de ancho: 90% del viewport para evitar salidas
+        const maxWidthConstraint = '90vw';
         
         if (isLandscape) {
           // Landscape: elementos centrados y apilados
           userName.style.cssText = `
             font-weight: bold;
-            font-size: 11px;
+            font-size: ${userNameSize};
             color: #FF6B00;
             text-align: center;
+            max-width: ${maxWidthConstraint};
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.3;
           `;
           dateTimeInfo.style.cssText = `
-            font-size: 9px;
+            font-size: ${dateTimeSize};
             color: rgba(255, 255, 255, 0.7);
             text-align: center;
-          `;
-          locationInfo.style.cssText = `
-            font-size: 9px;
-            color: white;
-            text-align: center;
-            max-width: 100%;
+            max-width: ${maxWidthConstraint};
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
           `;
+          locationInfo.style.cssText = `
+            font-size: ${locationSize};
+            color: white;
+            text-align: center;
+            max-width: ${maxWidthConstraint};
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.3;
+          `;
           coordinatesInfo.style.cssText = `
-            font-size: 9px;
+            font-size: ${coordsSize};
             color: rgba(255, 255, 255, 0.7);
             font-family: monospace;
             text-align: center;
+            max-width: ${maxWidthConstraint};
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           `;
         } else {
-          // Portrait: elementos apilados, tamaños normales
+          // Portrait: elementos apilados verticalmente
           userName.style.cssText = `
             font-weight: bold;
-            font-size: 12px;
+            font-size: ${userNameSize};
             color: #FF6B00;
+            text-align: left;
+            max-width: ${maxWidthConstraint};
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.3;
           `;
           dateTimeInfo.style.cssText = `
-            font-size: 9px;
+            font-size: ${dateTimeSize};
             color: rgba(255, 255, 255, 0.7);
+            text-align: left;
+            max-width: ${maxWidthConstraint};
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           `;
           locationInfo.style.cssText = `
-            font-size: 10px;
+            font-size: ${locationSize};
             color: white;
+            text-align: left;
+            max-width: ${maxWidthConstraint};
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.3;
           `;
           coordinatesInfo.style.cssText = `
-            font-size: 9px;
+            font-size: ${coordsSize};
             color: rgba(255, 255, 255, 0.7);
             font-family: monospace;
+            text-align: left;
+            max-width: ${maxWidthConstraint};
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           `;
         }
+        
+        // Log de diagnóstico (opcional, puede comentarse en producción)
+        console.log('📱 Resolución detectada:', device);
       };
       
       // Aplicar estilos iniciales
@@ -2662,67 +2757,122 @@ const Dashboard: React.FC = () => {
               const locationText = locationInfo.textContent || locationInfo.innerHTML || '';
               const coordsText = coordinatesInfo.textContent || '';
               
+              // Obtener tamaños de fuente REALES de los elementos HTML
+              const userNameStyle = window.getComputedStyle(userName);
+              const dateTimeStyle = window.getComputedStyle(dateTimeInfo);
+              const locationStyle = window.getComputedStyle(locationInfo);
+              const coordsStyle = window.getComputedStyle(coordinatesInfo);
+              
+              // Extraer tamaños en px y escalar según resolución del canvas
+              const viewportWidth = window.innerWidth;
+              const canvasScale = canvas.width / viewportWidth;
+              
+              const userNameFontSize = parseFloat(userNameStyle.fontSize) * canvasScale;
+              const dateTimeFontSize = parseFloat(dateTimeStyle.fontSize) * canvasScale;
+              const locationFontSize = parseFloat(locationStyle.fontSize) * canvasScale;
+              const coordsFontSize = parseFloat(coordsStyle.fontSize) * canvasScale;
+              
+              // ✨ Sistema de wrapping inteligente para textos largos
+              const wrapText = (text: string, maxWidth: number, fontSize: number, fontFamily: string = 'Arial') => {
+                ctx.font = `${fontSize}px ${fontFamily}`;
+                const words = text.split(' ');
+                const lines: string[] = [];
+                let currentLine = '';
+                
+                for (const word of words) {
+                  const testLine = currentLine ? `${currentLine} ${word}` : word;
+                  const metrics = ctx.measureText(testLine);
+                  
+                  if (metrics.width > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                  } else {
+                    currentLine = testLine;
+                  }
+                }
+                
+                if (currentLine) {
+                  lines.push(currentLine);
+                }
+                
+                return lines;
+              };
+              
               // SIEMPRE centrar el texto independientemente de la orientación
-              const x = canvas.width / 2;
-              const maxWidth = canvas.width * 0.9; // Usar máximo 90% del ancho
-              ctx.textAlign = 'center';
+              const maxWidth = canvas.width * 0.9; // 90% del ancho para margen seguro
+              const centerX = canvas.width / 2;
               
               let y;
               
               if (isLandscape) {
-                // Landscape: tamaños más pequeños, menos espacio entre líneas
+                // Landscape: texto centrado y apilado con wrapping
+                ctx.textAlign = 'center';
                 y = canvas.height - (160 * scale);
+                const lineSpacing = Math.max(userNameFontSize * 1.5, dateTimeFontSize * 1.5);
                 
-                // Dibujar nombre usuario
-                ctx.font = `bold ${22 * scale}px Arial`;
+                // Dibujar nombre usuario (con wrapping si es necesario)
+                ctx.font = `bold ${userNameFontSize}px Arial`;
                 ctx.fillStyle = '#FF6B00';
-                ctx.fillText(userNameText, x, y, maxWidth);
+                const userNameLines = wrapText(userNameText, maxWidth, userNameFontSize);
+                for (const line of userNameLines.slice(0, 2)) { // Máximo 2 líneas
+                  ctx.fillText(line, centerX, y, maxWidth);
+                  y += lineSpacing;
+                }
                 
-                // Dibujar fecha/hora
-                y += 28 * scale;
-                ctx.font = `${18 * scale}px Arial`;
+                // Dibujar fecha/hora (sin wrap - siempre cabe)
+                ctx.font = `${dateTimeFontSize}px Arial`;
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.fillText(dateTimeText, x, y, maxWidth);
+                ctx.fillText(dateTimeText, centerX, y, maxWidth);
+                y += lineSpacing * 0.9;
                 
-                // Dibujar ubicación
-                y += 28 * scale;
-                ctx.font = `${19 * scale}px Arial`;
+                // Dibujar ubicación (con wrapping, máximo 2 líneas)
+                ctx.font = `${locationFontSize}px Arial`;
                 ctx.fillStyle = 'white';
-                ctx.fillText(locationText, x, y, maxWidth);
+                const locationLines = wrapText(locationText, maxWidth, locationFontSize);
+                for (const line of locationLines.slice(0, 2)) {
+                  ctx.fillText(line, centerX, y, maxWidth);
+                  y += lineSpacing * 0.85;
+                }
                 
-                // Dibujar coordenadas
-                y += 26 * scale;
-                ctx.font = `${17 * scale}px monospace`;
+                // Dibujar coordenadas (sin wrap)
+                ctx.font = `${coordsFontSize}px monospace`;
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.fillText(coordsText, x, y, maxWidth);
+                ctx.fillText(coordsText, centerX, y, maxWidth);
                 
               } else {
-                // Portrait: tamaños más grandes, más espacio entre líneas
+                // Portrait: texto apilado verticalmente con wrapping
+                ctx.textAlign = 'center';
                 y = canvas.height - (240 * scale);
-                const lineHeight = 38 * scale;
+                const lineSpacing = Math.max(userNameFontSize * 1.5, dateTimeFontSize * 1.5);
                 
-                // Dibujar nombre usuario
-                ctx.font = `bold ${28 * scale}px Arial`;
+                // Dibujar nombre usuario (con wrapping si es necesario)
+                ctx.font = `bold ${userNameFontSize}px Arial`;
                 ctx.fillStyle = '#FF6B00';
-                ctx.fillText(userNameText, x, y, maxWidth);
+                const userNameLines = wrapText(userNameText, maxWidth, userNameFontSize);
+                for (const line of userNameLines.slice(0, 2)) { // Máximo 2 líneas
+                  ctx.fillText(line, centerX, y, maxWidth);
+                  y += lineSpacing;
+                }
                 
-                // Dibujar fecha/hora
-                y += lineHeight;
-                ctx.font = `${22 * scale}px Arial`;
+                // Dibujar fecha/hora (sin wrap)
+                ctx.font = `${dateTimeFontSize}px Arial`;
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.fillText(dateTimeText, x, y, maxWidth);
+                ctx.fillText(dateTimeText, centerX, y, maxWidth);
+                y += lineSpacing;
                 
-                // Dibujar ubicación
-                y += lineHeight;
-                ctx.font = `${24 * scale}px Arial`;
+                // Dibujar ubicación (con wrapping, máximo 2 líneas)
+                ctx.font = `${locationFontSize}px Arial`;
                 ctx.fillStyle = 'white';
-                ctx.fillText(locationText, x, y, maxWidth);
+                const locationLines = wrapText(locationText, maxWidth, locationFontSize);
+                for (const line of locationLines.slice(0, 2)) {
+                  ctx.fillText(line, centerX, y, maxWidth);
+                  y += lineSpacing * 0.85;
+                }
                 
-                // Dibujar coordenadas
-                y += lineHeight;
-                ctx.font = `${20 * scale}px monospace`;
+                // Dibujar coordenadas (sin wrap)
+                ctx.font = `${coordsFontSize}px monospace`;
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.fillText(coordsText, x, y, maxWidth);
+                ctx.fillText(coordsText, centerX, y, maxWidth);
               }
               
               // Dibujar logo MOPC arriba derecha
