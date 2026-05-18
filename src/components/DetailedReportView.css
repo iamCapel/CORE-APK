@@ -40,6 +40,10 @@
   padding: var(--spacing-lg);
   border-bottom: 3px solid var(--primary-orange);
   background: linear-gradient(135deg, var(--pale-orange) 0%, white 100%);
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 -2px 0 0 rgba(255, 107, 0, 0.3);
 }
 
 .detailed-report-header h2 {

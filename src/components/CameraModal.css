@@ -98,6 +98,9 @@
   height: 100%;
   object-fit: cover;
   border-radius: 12px;
+  transition: transform 0.3s ease-out;
+  transform-origin: center center;
+}
 }
 
 .camera-photo-placeholder {
@@ -343,6 +346,47 @@
 
   .camera-modal-footer {
     flex-direction: column;
+  }
+}
+
+/* Soporte para orientación landscape */
+@media screen and (orientation: landscape) {
+  .camera-modal-content {
+    max-width: 80vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .camera-modal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  .camera-photo-container {
+    height: 40vh;
+    max-height: 350px;
+  }
+  
+  .camera-info-overlay {
+    position: relative;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.75) 100%);
+  }
+  
+  .camera-modal-footer {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+  }
+  
+  .camera-action-btn {
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
   }
 }
 

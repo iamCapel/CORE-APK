@@ -9,7 +9,7 @@ import { ModernInput } from './ModernInput';
 import { ModernFormContainer } from './ModernFormContainer';
 import SimpleDateSelect from './SimpleDateSelect';
 import FichaInput from './FichaInput';
-import { getMunicipios, addUserMunicipio } from '../services/municipioService';
+import { getMunicipios, addUserMunicipio, addUserDistrito } from '../services/municipioService';
 import './ModernDashboard.css';
 
 type Field = { key: string; label: string; type: 'text' | 'number'; unit: string };
@@ -67,6 +67,9 @@ const ReportForm: React.FC<ReportFormProps> = ({
   const [mostrarAgregarMunicipio, setMostrarAgregarMunicipio] = useState(false);
   const [nuevoMunicipio, setNuevoMunicipio] = useState('');
   const [municipiosPorProvinciaState, setMunicipiosPorProvinciaState] = useState<Record<string, string[]>>(municipiosPorProvincia);
+  const [mostrarAgregarDistrito, setMostrarAgregarDistrito] = useState(false);
+  const [nuevoDistrito, setNuevoDistrito] = useState('');
+  const [distritosPorMunicipioState, setDistritosPorMunicipioState] = useState<Record<string, string[]>>(distritosPorMunicipio);
   const [fechaReporte, setFechaReporte] = useState('');
   
   // Generar opciones de fechas para los selects
@@ -207,12 +210,16 @@ const ReportForm: React.FC<ReportFormProps> = ({
   // Lógica de habilitación de campos
   const provinciasDisponibles = region ? provinciasPorRegion[region] || [] : [];
   const municipiosDisponibles = provincia ? (municipiosPorProvinciaState[provincia] || []) : [];
-  const distritosDisponibles = municipio ? distritosPorMunicipio[municipio] || [] : [];
+  const distritosDisponibles = municipio ? distritosPorMunicipioState[municipio] || [] : [];
   const sectoresDisponibles = provincia ? sectoresPorProvincia[provincia] || [] : [];
 
   useEffect(() => {
     setMunicipiosPorProvinciaState(municipiosPorProvincia);
   }, [municipiosPorProvincia]);
+
+  useEffect(() => {
+    setDistritosPorMunicipioState(distritosPorMunicipio);
+  }, [distritosPorMunicipio]);
   
   // Verificar si todos los campos geográficos están completos
   const distritoFinal = distrito === 'otros' ? distritoPersonalizado : distrito;
@@ -354,15 +361,56 @@ const ReportForm: React.FC<ReportFormProps> = ({
     alert(`Municipio "${nombre}" agregado y seleccionado.`);
   };
 
+  const handleAddDistrito = () => {
+    const nombre = nuevoDistrito.trim();
+
+    if (!municipio) {
+      alert('Seleccione primero el municipio antes de agregar el distrito municipal.');
+      return;
+    }
+
+    if (!nombre) {
+      alert('Ingrese el nombre del distrito municipal a agregar.');
+      return;
+    }
+
+    const existingDistritos = distritosPorMunicipioState[municipio] || [];
+    if (existingDistritos.includes(nombre)) {
+      alert('El distrito municipal ya existe en este municipio.');
+      return;
+    }
+
+    const updatedDistritos = [...existingDistritos, nombre].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    setDistritosPorMunicipioState(prev => ({
+      ...prev,
+      [municipio]: updatedDistritos
+    }));
+
+    addUserDistrito(municipio, nombre);
+    setDistrito(nombre);
+    setMostrarAgregarDistrito(false);
+    setNuevoDistrito('');
+
+    alert(`Distrito municipal "${nombre}" agregado y seleccionado.`);
+  };
+
   const handleDistritoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setDistrito(value);
     if (value === 'otros') {
-      setMostrarDistritoPersonalizado(true);
-    } else {
-      setMostrarDistritoPersonalizado(false);
-      setDistritoPersonalizado('');
+      setMostrarAgregarDistrito(true);
+      setDistrito('');
+      setSector('');
+      setSectorPersonalizado('');
+      setMostrarSectorPersonalizado(false);
+      setTipoIntervencion('');
+      setSubTipoCanal('');
+      return;
     }
+
+    setMostrarAgregarDistrito(false);
+    setDistrito(value);
+    setMostrarDistritoPersonalizado(false);
+    setDistritoPersonalizado('');
     setSector('');
     setSectorPersonalizado('');
     setMostrarSectorPersonalizado(false);
@@ -535,6 +583,10 @@ const ReportForm: React.FC<ReportFormProps> = ({
     setMostrarSectorPersonalizado(false);
     setDistritoPersonalizado('');
     setMostrarDistritoPersonalizado(false);
+    setMostrarAgregarMunicipio(false);
+    setNuevoMunicipio('');
+    setMostrarAgregarDistrito(false);
+    setNuevoDistrito('');
     setFechaReporte('');
     setFechaInicio('');
     setFechaFinal('');
@@ -1005,6 +1057,36 @@ const ReportForm: React.FC<ReportFormProps> = ({
               required
               onChange={val => handleDistritoChange({ target: { value: val } } as React.ChangeEvent<HTMLSelectElement>)}
             />
+
+            {mostrarAgregarDistrito && (
+              <div className="municipio-add-form" style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
+                <ModernInput
+                  id="nuevoDistrito"
+                  type="text"
+                  label="Agregar nuevo distrito municipal"
+                  placeholder="Ingrese nombre del distrito municipal"
+                  value={nuevoDistrito}
+                  onChange={(val) => setNuevoDistrito(String(val))}
+                  icon="🏙️"
+                />
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn-modern" onClick={handleAddDistrito}>
+                    Guardar distrito municipal
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-modern"
+                    style={{ background: '#565a69' }}
+                    onClick={() => {
+                      setMostrarAgregarDistrito(false);
+                      setNuevoDistrito('');
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
             
             {mostrarDistritoPersonalizado && (
               <ModernInput

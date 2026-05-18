@@ -13,6 +13,17 @@
   --text-sub: rgba(255,255,255,0.55);
 }
 
+/* ===== CONTENEDOR PRINCIPAL OSCURO ===== */
+.dashboard-container {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0c 0%, #1a1a1e 100%);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-top: 60px;
+}
+
 /* ===== TOPBAR MODERNA ===== */
 .topbar-modern {
   position: fixed;
@@ -48,19 +59,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .admin-modal {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 24px rgba(0,0,0,0.18);
-  padding: 32px 28px;
-  min-width: 320px;
-  max-width: 90vw;
+  background: linear-gradient(135deg, rgba(20, 20, 25, 0.95), rgba(15, 15, 20, 0.98));
+  border: 2px solid rgba(255, 140, 0, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 80px rgba(255, 140, 0, 0.2);
+  padding: 28px 24px;
+  width: 90%;
+  max-width: 380px;
+  max-height: 85vh;
+  overflow-y: auto;
   position: relative;
-  z-index: 10001;
+  z-index: 100001;
   text-align: center;
+  transform: scale(1);
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .admin-modal-backdrop {
@@ -69,9 +98,112 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.25);
-  z-index: 10000;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100000;
+  animation: backdropFadeIn 0.3s ease-out;
 }
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Estilos de contenido del modal */
+.admin-modal h1,
+.admin-modal h2,
+.admin-modal h3 {
+  color: #FFA500;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
+}
+
+.admin-modal p,
+.admin-modal label {
+  color: #ddd;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.admin-modal input,
+.admin-modal select,
+.admin-modal textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 140, 0, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.admin-modal input:focus,
+.admin-modal select:focus,
+.admin-modal textarea:focus {
+  border-color: rgba(255, 140, 0, 0.6);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+}
+
+.admin-modal button {
+  padding: 12px 24px;
+  margin: 8px 4px;
+  background: rgba(255, 140, 0, 0.2);
+  color: #FFA500;
+  border: 1px solid rgba(255, 140, 0, 0.5);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-modal button:hover {
+  background: rgba(255, 140, 0, 0.3);
+  border-color: rgba(255, 140, 0, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+}
+
+.admin-modal button:active {
+  transform: translateY(0);
+}
+
+.admin-modal button.primary {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.8), rgba(255, 165, 0, 0.9));
+  color: #000;
+  border-color: transparent;
+}
+
+.admin-modal button.primary:hover {
+  background: linear-gradient(135deg, rgba(255, 165, 0, 0.9), rgba(255, 180, 0, 1));
+  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.5);
+}
+
+/* Scrollbar para el modal */
+.admin-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.admin-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 140, 0, 0.4);
+  border-radius: 4px;
+}
+
+.admin-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 140, 0, 0.6);
+}
+
 /* ========================================
    MOPC DASHBOARD - ESTILOS MODERNOS
    Diseño: Naranja & Blanco Moderno
@@ -2298,43 +2430,244 @@ input[type="radio"]:disabled {
   color: #1f2b3a;
 }
 
-.stability-gauge-wrapper {
-  width: 160px;
-  height: 160px;
-  position: relative;
+/* Contenedor del nivel de burbuja */
+.bubble-level-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 10px;
 }
 
-.stability-gauge {
+/* Layout principal: centro + vertical a la derecha */
+.level-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
   width: 100%;
+}
+
+/* Wrapper para cada barra */
+.level-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.horizontal-wrapper {
+  flex-direction: column;
+  width: 90%;
+  max-width: 280px;
+}
+
+.horizontal-wrapper-side {
+  flex-direction: row;
+  height: 140px;
+}
+
+.vertical-wrapper {
+  flex-direction: row;
+  height: 140px;
+}
+
+.vertical-wrapper-bottom {
+  flex-direction: column;
+  width: 90%;
+  max-width: 280px;
+}
+
+.bar-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5a6c7d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Barras de nivel */
+.level-bar {
+  background: linear-gradient(135deg, #e8eef5 0%, #f3f6fb 100%);
+  border: 2px solid #c5d0de;
+  border-radius: 50px;
+  box-shadow: 
+    inset 0 2px 6px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.horizontal-wrapper-side .level-bar.horizontal-bar {
+  width: 50px;
+  height: 100%;
+  flex-direction: column;
+  padding: 12px 8px;
+}
+
+.horizontal-wrapper .level-bar.horizontal-bar {
+  width: 100%;
+  height: 50px;
+  flex-direction: row;
+}
+
+.vertical-wrapper .level-bar.vertical-bar {
+  width: 50px;
+  height: 100%;
+  flex-direction: column;
+  padding: 12px 8px;
+}
+
+.vertical-wrapper-bottom .level-bar.vertical-bar {
+  width: 100%;
+  height: 50px;
+  flex-direction: row;
+}
+
+/* Pista de la barra */
+.bar-track {
+  flex: 1;
+  background: rgba(200, 210, 225, 0.5);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.horizontal-wrapper .bar-track {
+  width: 100%;
+  height: 28px;
+}
+
+.horizontal-wrapper-side .bar-track {
+  width: 28px;
   height: 100%;
 }
 
-.stability-gauge circle {
-  fill: none;
-  stroke-width: 10;
-  transform: rotate(-90deg);
-  transform-origin: center;
+.vertical-wrapper .bar-track {
+  width: 28px;
+  height: 100%;
 }
 
-.gauge-bg {
-  stroke: rgba(24, 28, 36, 0.12);
+.vertical-wrapper-bottom .bar-track {
+  width: 100%;
+  height: 28px;
 }
 
-.gauge-fill {
-  stroke: #007aff;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.2s ease-out;
+/* Marca central */
+.center-mark {
+  position: absolute;
+  background: rgba(0, 122, 255, 0.4);
+  z-index: 1;
 }
 
-.gauge-value {
-  fill: #111;
-  font-size: 2rem;
+.horizontal-wrapper .center-mark,
+.vertical-wrapper-bottom .center-mark {
+  width: 3px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vertical-wrapper .center-mark,
+.horizontal-wrapper-side .center-mark {
+  width: 100%;
+  height: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Burbuja en la barra */
+.bar-bubble {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: radial-gradient(circle at 35% 35%, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(100, 180, 255, 0.9) 40%,
+    rgba(0, 122, 255, 0.85) 100%);
+  border-radius: 50%;
+  border: 2px solid rgba(0, 90, 200, 0.7);
+  box-shadow: 
+    0 2px 8px rgba(0, 122, 255, 0.5),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease-out;
+  z-index: 2;
+}
+
+.horizontal-wrapper .bar-bubble,
+.vertical-wrapper-bottom .bar-bubble {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.vertical-wrapper .bar-bubble,
+.horizontal-wrapper-side .bar-bubble {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Valor de ángulo */
+.bar-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #007aff;
+  min-width: 50px;
+  text-align: center;
+}
+
+.horizontal-wrapper-side .bar-value,
+.vertical-wrapper .bar-value {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  min-width: auto;
+  min-height: 50px;
+}
+
+/* Círculo objetivo central */
+.center-target {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f4ff 0%, #d0e8ff 100%);
+  border: 3px solid #007aff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.target-indicator {
+  font-size: 2.5rem;
+  color: #00c853;
   font-weight: bold;
+  transition: opacity 0.3s ease;
 }
 
-.gauge-label {
-  fill: #4a4e58;
-  font-size: 0.85rem;
+/* Indicador de precisión */
+.level-precision {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.precision-label {
+  color: #5a6c7d;
+}
+
+.precision-value {
+  color: #007aff;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .stability-status {

@@ -232,6 +232,25 @@ class FirebaseHeavyVehiclesStorage {
       return [];
     }
   }
+
+  async getAllRecords(): Promise<HeavyVehicleRecord[]> {
+    try {
+      const recordsRef = collection(db, HEAVY_VEHICLES_COLLECTION);
+      const q = query(recordsRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      const records: HeavyVehicleRecord[] = [];
+      snapshot.forEach(doc => {
+        records.push({ id: doc.id, ...doc.data() } as HeavyVehicleRecord);
+      });
+      
+      console.log(`Total de vehículos históricos cargados: ${records.length}`);
+      return records;
+    } catch (error) {
+      console.error('Error fetching all heavy vehicle records:', error);
+      return [];
+    }
+  }
 }
 
 export const firebaseHeavyVehiclesStorage = new FirebaseHeavyVehiclesStorage();

@@ -4,8 +4,10 @@ const LOCAL_STORAGE_KEY = 'mopc_municipios_data';
 const LOCAL_STORAGE_TIMESTAMP = 'mopc_municipios_last_update';
 const LOCAL_STORAGE_USER_MUNICIPIOS = 'mopc_municipios_user_added';
 const LOCAL_STORAGE_USER_DISTRITOS = 'mopc_distritos_user_added';
+const LOCAL_STORAGE_LAST_CHECK = 'mopc_municipios_last_check';
 
-const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
+// Actualización automática cada 7 días (una semana)
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface MunicipiosByProvincia {
   [provincia: string]: {
@@ -49,6 +51,24 @@ const getLastUpdated = (): number => {
     return Number(raw) || 0;
   } catch {
     return 0;
+  }
+};
+
+const getLastCheck = (): number => {
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_LAST_CHECK);
+    if (!raw) return 0;
+    return Number(raw) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const setLastCheck = () => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_LAST_CHECK, Date.now().toString());
+  } catch (err) {
+    console.warn('Error guardando última verificación', err);
   }
 };
 
@@ -145,19 +165,33 @@ const refreshMunicipiosData = async (): Promise<MunicipiosData> => {
 
 export const getMunicipios = async (): Promise<MunicipiosData> => {
   const cached = loadFromLocalStorage();
-  const last = getLastUpdated();
+  const lastUpdate = getLastUpdated();
+  const lastCheck = getLastCheck();
   const now = Date.now();
 
+  // Si no hay caché, cargar datos por defecto
   if (!cached) {
+    console.log('📍 Inicializando datos de municipios...');
     const base = await defaultMunicipiosData();
     saveToLocalStorage(base);
+    setLastCheck();
     return mergeUserAdditions(base);
   }
 
-  if (now - last >= FIFTEEN_DAYS_MS) {
-    refreshMunicipiosData().catch(() => {
-      console.warn('Fallo actualización automática de municipios.');
+  // Actualización automática cada semana (7 días)
+  if (now - lastUpdate >= ONE_WEEK_MS) {
+    console.log('🔄 Actualizando municipios (han pasado más de 7 días)...');
+    refreshMunicipiosData().then(() => {
+      console.log('✅ Municipios actualizados correctamente');
+    }).catch((err) => {
+      console.warn('⚠️ Fallo actualización automática de municipios:', err);
     });
+  }
+
+  // Verificación ligera cada día sin bloquear
+  if (now - lastCheck >= 24 * 60 * 60 * 1000) {
+    setLastCheck();
+    console.log('✓ Verificación diaria de municipios completada');
   }
 
   return mergeUserAdditions(cached);
@@ -186,5 +220,3 @@ export const addUserDistrito = (municipio: string, distrito: string) => {
     saveUserAddedDistritos(existing);
   }
 };
-
-export const getRemoteRefreshInterval = () => FIFTEEN_DAYS_MS;

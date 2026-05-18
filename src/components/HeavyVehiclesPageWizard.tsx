@@ -296,8 +296,8 @@ const HeavyVehiclesPageWizard: React.FC<HeavyVehiclesPageWizardProps> = ({ onClo
         onClose();
       }, 2000);
     } catch (error) {
-      setMensaje('❌ Error guardando los registros');
-      console.error(error);
+      setMensaje('❌ Error al guardar el registro. Por favor, verifique su conexión a internet e intente nuevamente.');
+      console.error('Error al guardar vehículos:', error);
     } finally {
       setGuardando(false);
     }

@@ -29,6 +29,8 @@ body {
   background-color: var(--off-white); /* Fondo base limpio */
   color: var(--text-primary);
   overflow-x: hidden;
+  /* Permitir rotación suave */
+  transition: transform 0.3s ease-out;
 }
 
 /* Eliminamos los overlays radiales que causaban tonos extraños */
@@ -38,4 +40,26 @@ body::before, body::after {
 
 #root {
   width: 100%;
+  min-height: 100vh;
+  /* Asegurar que el contenido se ajuste en landscape */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Soporte para orientación landscape */
+@media screen and (orientation: landscape) {
+  body {
+    overflow-y: auto;
+  }
+  
+  #root {
+    min-height: 100vh;
+  }
+  
+  /* Ajustar contenedores principales en landscape */
+  .app-layout,
+  .dashboard,
+  .dashboard-content {
+    min-height: 100vh;
+  }
 }

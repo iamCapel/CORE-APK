@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './CameraModal.css';
+import { useDeviceOrientation, getRotationAngle } from '../hooks/useDeviceOrientation';
 
 interface CameraModalProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface CameraModalProps {
     address: string;
   } | null;
   userName: string;
-  onSaveToGallery?: (photoData: { photo: string; location: any; timestamp: string }) => void;
+  onSaveToGallery?: (photoData: { photo: string; location: any; timestamp: string; orientation: number }) => void;
 }
 
 const CameraModal: React.FC<CameraModalProps> = ({ 
@@ -23,6 +24,8 @@ const CameraModal: React.FC<CameraModalProps> = ({
   onSaveToGallery
 }) => {
   const [isSaving, setIsSaving] = useState(false);
+  const { orientation, angle } = useDeviceOrientation();
+  const rotationAngle = getRotationAngle(orientation);
 
   if (!isOpen) return null;
 
@@ -57,7 +60,8 @@ const CameraModal: React.FC<CameraModalProps> = ({
       const photoData = {
         photo,
         location,
-        timestamp: getTimestamp()
+        timestamp: getTimestamp(),
+        orientation: rotationAngle // Incluir la orientación del dispositivo
       };
       
       await onSaveToGallery(photoData);
@@ -87,9 +91,21 @@ const CameraModal: React.FC<CameraModalProps> = ({
     onClose();
   };
 
+  // Estilos para rotar solo la imagen de la foto según la orientación del dispositivo
+  const photoStyle: React.CSSProperties = {
+    transform: orientation !== 'portrait' 
+      ? `rotate(${rotationAngle}deg)` 
+      : 'none',
+    transition: 'transform 0.3s ease-out',
+    transformOrigin: 'center center'
+  };
+
   return (
     <div className="camera-modal-overlay" onClick={onClose}>
-      <div className="camera-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div 
+        className="camera-modal-content" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="camera-modal-header">
           <h3>📸 Foto Capturada</h3>
           <button className="camera-modal-close" onClick={onClose}>
@@ -104,6 +120,7 @@ const CameraModal: React.FC<CameraModalProps> = ({
                 src={photo} 
                 alt="Foto capturada" 
                 className="camera-photo"
+                style={photoStyle}
               />
             ) : (
               <div className="camera-photo-placeholder">

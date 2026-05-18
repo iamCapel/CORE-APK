@@ -57,8 +57,17 @@ android {
             buildConfigField "String", "DEVICE_MODEL", '"Sunshine T1 Elite"'
         }
     }
+    signingConfigs {
+        release {
+            storeFile file('mopc-release.jks')
+            storePassword 'mopc2026'
+            keyAlias 'mopc-key'
+            keyPassword 'mopc2026'
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

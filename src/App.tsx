@@ -40,19 +40,26 @@ function App() {
       return;
     }
 
-    // Configurar handler de notificaciones en primer plano
-    setForegroundNotificationHandler((notification) => {
-      console.log('🔔 App: Notificación FCM recibida en primer plano:', notification.title);
-      // Reproducir sonido usando el hook existente
-      playNotificationSound();
-      
-      // Disparar evento personalizado para que otros componentes puedan reaccionar
-      window.dispatchEvent(new CustomEvent('fcm_notification_received', {
-        detail: notification
-      }));
-    });
+    try {
+      // Configurar handler de notificaciones en primer plano
+      setForegroundNotificationHandler((notification) => {
+        console.log('🔔 App: Notificación FCM recibida en primer plano:', notification.title);
+        // Reproducir sonido usando el hook existente
+        playNotificationSound();
+        
+        // Disparar evento personalizado para que otros componentes puedan reaccionar
+        window.dispatchEvent(new CustomEvent('fcm_notification_received', {
+          detail: notification
+        }));
+      });
 
-    initializePushNotifications(chatUser.id);
+      initializePushNotifications(chatUser.id).catch(err => {
+        console.error('Error inicializando push notifications:', err);
+      });
+    } catch (error) {
+      console.error('Error en setup de push notifications:', error);
+    }
+
     return () => removePushListeners();
   }, [chatUser?.id, playNotificationSound]);
 
@@ -64,24 +71,30 @@ function App() {
       return;
     }
 
-    // Configurar listeners para cuando el usuario toca una notificación
-    setupNotificationActionListeners();
+    try {
+      // Configurar listeners para cuando el usuario toca una notificación
+      setupNotificationActionListeners();
 
-    // Configurar listeners para notificaciones de chat
-    setupChatNotificationListeners((chatId, senderName) => {
-      console.log('[App] Usuario tocó notificación de chat:', chatId);
-      // Disparar evento personalizado para que BubbleFeedChat abra la conversación
-      window.dispatchEvent(new CustomEvent('open_chat_from_notification', {
-        detail: { chatId, senderName }
-      }));
-    });
+      // Configurar listeners para notificaciones de chat
+      setupChatNotificationListeners((chatId, senderName) => {
+        console.log('[App] Usuario tocó notificación de chat:', chatId);
+        // Disparar evento personalizado para que BubbleFeedChat abra la conversación
+        window.dispatchEvent(new CustomEvent('open_chat_from_notification', {
+          detail: { chatId, senderName }
+        }));
+      });
 
-    // Programar notificaciones cada 6 horas (00:00, 06:00, 12:00, 18:00)
-    scheduleReliableSixHourReminders();
+      // Programar notificaciones cada 6 horas (00:00, 06:00, 12:00, 18:00)
+      scheduleReliableSixHourReminders().catch(err => {
+        console.error('Error programando notificaciones recordatorias:', err);
+      });
 
-    // Verificar notificaciones pendientes (debug)
-    if (process.env.NODE_ENV === 'development') {
-      setTimeout(() => checkPendingNotifications(), 2000);
+      // Verificar notificaciones pendientes (debug)
+      if (process.env.NODE_ENV === 'development') {
+        setTimeout(() => checkPendingNotifications().catch(console.error), 2000);
+      }
+    } catch (error) {
+      console.error('Error en setup de notificaciones recordatorias:', error);
     }
 
     return () => {

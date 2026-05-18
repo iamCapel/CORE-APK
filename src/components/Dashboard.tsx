@@ -4,6 +4,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { addWatermarkToPhoto, savePhotoToGallery } from '../services/photoWatermark';
+import { getCurrentOrientation, getRotationAngle } from '../hooks/useDeviceOrientation';
 import ReportsPage from './ReportsPage';
 import ReportForm from './ReportForm';
 import ExportPage from './ExportPage';
@@ -1230,10 +1231,30 @@ const Dashboard: React.FC = () => {
       // Si la Cámara está abierta, cerrarla en lugar de salir de la app
       if ((window as any).cameraOpen) {
         console.log('📍 Cerrando Cámara con botón de retroceso');
+        
+        // Detener watchers y limpiar listeners
+        const watchId = (window as any).currentWatchId;
+        if (watchId) {
+          Geolocation.clearWatch({ id: watchId });
+        }
+        
+        // Detener stream de video
+        const videoElement = document.querySelector('video');
+        if (videoElement && videoElement.srcObject) {
+          const stream = videoElement.srcObject as MediaStream;
+          stream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Remover listeners de orientación
+        window.removeEventListener('resize', (window as any).handleOrientationChange);
+        window.removeEventListener('orientationchange', (window as any).handleOrientationChange);
+        
+        // Remover interfaz
         const cameraInterface = document.querySelector('[style*="z-index: 10000"]');
         if (cameraInterface) {
           cameraInterface.remove();
         }
+        
         (window as any).cameraOpen = false;
         return;
       }
@@ -1911,7 +1932,7 @@ const Dashboard: React.FC = () => {
         console.warn('No se pudo limpiar gallery cache:', error);
       }
       
-      // Mostrar interfaz de Cámara con controles
+      // Mostrar interfaz de Cámara con controles - PANTALLA COMPLETA
       const cameraInterface = document.createElement('div');
       cameraInterface.style.cssText = `
         position: fixed;
@@ -1945,11 +1966,14 @@ const Dashboard: React.FC = () => {
       let zoomLevel = 1; // 1x a 4x zoom
       let textSizeLevel = 1; // 1x a 3x tamaño de letra
       
-      // LIMPIEZA RADICAL - solo elementos esenciales
+      // Video container - ocupa toda la pantalla
       const videoContainer = document.createElement('div');
       videoContainer.style.cssText = `
-        flex: 1;
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1966,67 +1990,142 @@ const Dashboard: React.FC = () => {
       
       // Overlay simple - solo lo necesario
       const geoOverlay = document.createElement('div');
-      geoOverlay.style.cssText = `
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(8px);
-        border-radius: 12px;
-        padding: 12px 16px;
-        color: white;
-        font-size: 12px;
-        z-index: 5;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      `;
+      geoOverlay.id = 'geo-overlay';
+      
+      // Función para actualizar posición de georeferencia según orientación
+      const updateGeoOverlayLayout = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Modo horizontal: centrado en la parte inferior
+          geoOverlay.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: transparent;
+            padding: 6px 12px;
+            color: white;
+            font-size: 10px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            max-width: 80%;
+          `;
+        } else {
+          // Modo vertical: parte inferior apilado verticalmente
+          geoOverlay.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: transparent;
+            padding: 8px 12px;
+            color: white;
+            font-size: 11px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+          `;
+        }
+      };
+      
+      // Aplicar layout inicial de georeferencia
+      updateGeoOverlayLayout();
       
       // Logo simple - solo texto
       const mopcLogo = document.createElement('div');
       mopcLogo.style.cssText = `
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 10px;
+        right: 10px;
         font-weight: bold;
-        font-size: 20px;
+        font-size: 18px;
         color: rgba(255, 107, 0, 0.9);
         z-index: 10;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       `;
       mopcLogo.innerHTML = 'MOPC';
       
-      // Elementos de texto
+      // Elementos de texto del overlay
       const userName = document.createElement('div');
-      userName.style.cssText = `
-        font-weight: bold;
-        font-size: 14px;
-        color: #FF6B00;
-      `;
+      userName.id = 'geo-username';
       userName.textContent = user?.fullName || user?.name || user?.username || 'Miguel De Jesus Cabrera Cruz';
       
       const dateTimeInfo = document.createElement('div');
-      dateTimeInfo.style.cssText = `
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.7);
-      `;
+      dateTimeInfo.id = 'geo-datetime';
       const now = new Date();
       dateTimeInfo.textContent = `📍 ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
       
       const locationInfo = document.createElement('div');
-      locationInfo.style.cssText = `
-        font-size: 12px;
-        color: white;
-      `;
+      locationInfo.id = 'geo-location';
       locationInfo.textContent = '📍 Obteniendo ubicación...';
       
       const coordinatesInfo = document.createElement('div');
-      coordinatesInfo.style.cssText = `
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.7);
-        font-family: monospace;
-      `;
+      coordinatesInfo.id = 'geo-coords';
       coordinatesInfo.textContent = 'Lat: --.------, Lon: --.------';
+      
+      // Función para actualizar estilos de elementos geo según orientación
+      const updateGeoElementsStyle = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Landscape: elementos centrados y apilados
+          userName.style.cssText = `
+            font-weight: bold;
+            font-size: 11px;
+            color: #FF6B00;
+            text-align: center;
+          `;
+          dateTimeInfo.style.cssText = `
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+          `;
+          locationInfo.style.cssText = `
+            font-size: 9px;
+            color: white;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          `;
+          coordinatesInfo.style.cssText = `
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: monospace;
+            text-align: center;
+          `;
+        } else {
+          // Portrait: elementos apilados, tamaños normales
+          userName.style.cssText = `
+            font-weight: bold;
+            font-size: 12px;
+            color: #FF6B00;
+          `;
+          dateTimeInfo.style.cssText = `
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.7);
+          `;
+          locationInfo.style.cssText = `
+            font-size: 10px;
+            color: white;
+          `;
+          coordinatesInfo.style.cssText = `
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: monospace;
+          `;
+        }
+      };
+      
+      // Aplicar estilos iniciales
+      updateGeoElementsStyle();
       
       // Agregar solo lo necesario al overlay
       geoOverlay.appendChild(userName);
@@ -2039,78 +2138,119 @@ const Dashboard: React.FC = () => {
       videoContainer.appendChild(geoOverlay);
       videoContainer.appendChild(mopcLogo);
       
-      // Controles simples
+      // Panel de controles - diseño profesional con adaptación a orientación
       const controls = document.createElement('div');
-      controls.style.cssText = `
-        background: rgba(0, 0, 0, 0.9);
-        padding: 8px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        height: 70px;
-        flex-shrink: 0;
-      `;
+      controls.id = 'camera-controls';
       
-      // Botones simples
+      // Función para actualizar layout según orientación
+      const updateControlsLayout = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Modo horizontal: controles a la derecha verticalmente
+          controls.style.cssText = `
+            background: transparent;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 20px;
+            flex-shrink: 0;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: auto;
+            z-index: 20;
+          `;
+        } else {
+          // Modo vertical: controles abajo horizontalmente
+          controls.style.cssText = `
+            background: transparent;
+            padding: 20px 16px 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+          `;
+        }
+      };
+      
+      // Aplicar layout inicial
+      updateControlsLayout();
+      
+      // Botones principales con mejor diseño
       const flashButton = document.createElement('button');
       flashButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid white;
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.8);
         color: white;
-        padding: 12px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
-        font-size: 20px;
+        font-size: 24px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
       `;
       flashButton.title = 'Encender / Apagar flash';
-      flashButton.innerHTML = '?';
+      flashButton.innerHTML = '⚡';
       
       const captureButton = document.createElement('button');
       captureButton.style.cssText = `
         background: white;
-        border: 3px solid white;
+        border: 4px solid white;
         color: black;
-        padding: 20px;
+        width: 72px;
+        height: 72px;
         border-radius: 50%;
-        font-size: 24px;
+        font-size: 32px;
         cursor: pointer;
-        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        transition: all 0.2s;
       `;
       captureButton.title = 'Capturar foto';
-      captureButton.innerHTML = '📍';
+      captureButton.innerHTML = '📷';
       
       const flipButton = document.createElement('button');
       flipButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid white;
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.8);
         color: white;
-        padding: 12px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
-        font-size: 20px;
+        font-size: 24px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
       `;
       flipButton.title = 'Cambiar Cámara frontal/trasera';
-      flipButton.innerHTML = '📍';
-      flipButton.style.cssText = `
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid white;
-        color: white;
-        padding: 12px;
-        border-radius: 50%;
-        font-size: 20px;
-        cursor: pointer;
-      `;
-      flipButton.innerHTML = '📍';
+      flipButton.innerHTML = '🔄';
 
       const zoomLabel = document.createElement('div');
       zoomLabel.style.cssText = `
         color: white;
-        font-size: 11px;
+        font-size: 12px;
         text-align: center;
-        width: 120px;
+        min-width: 80px;
+        font-weight: 500;
       `;
-      zoomLabel.textContent = `Zoom: ${zoomLevel.toFixed(1)}x`;
+      zoomLabel.textContent = `Zoom ${zoomLevel.toFixed(1)}x`;
 
       const zoomSlider = document.createElement('input');
       zoomSlider.type = 'range';
@@ -2119,18 +2259,26 @@ const Dashboard: React.FC = () => {
       zoomSlider.step = '0.1';
       zoomSlider.value = String(zoomLevel);
       zoomSlider.style.cssText = `
-        width: 120px;
+        flex: 1;
+        max-width: 240px;
+        -webkit-appearance: none;
         appearance: none;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
       `;
 
       const textSizeLabel = document.createElement('div');
       textSizeLabel.style.cssText = `
         color: white;
-        font-size: 11px;
+        font-size: 12px;
         text-align: center;
-        width: 120px;
+        min-width: 80px;
+        font-weight: 500;
       `;
-      textSizeLabel.textContent = `Texto: ${textSizeLevel.toFixed(1)}x`;
+      textSizeLabel.textContent = `Texto ${textSizeLevel.toFixed(1)}x`;
 
       const textSizeSlider = document.createElement('input');
       textSizeSlider.type = 'range';
@@ -2139,31 +2287,223 @@ const Dashboard: React.FC = () => {
       textSizeSlider.step = '0.1';
       textSizeSlider.value = String(textSizeLevel);
       textSizeSlider.style.cssText = `
-        width: 120px;
+        flex: 1;
+        max-width: 240px;
+        -webkit-appearance: none;
         appearance: none;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
       `;
       
-      // Ensamblar interfaz
-      controls.appendChild(flashButton);      
-      controls.appendChild(captureButton);
-      controls.appendChild(flipButton);
-
-      cameraInterface.appendChild(videoContainer);
-      cameraInterface.appendChild(controls);
-      document.body.appendChild(cameraInterface);
-
+      // Contenedor de sliders
+      const slidersContainer = document.createElement('div');
+      slidersContainer.id = 'sliders-container';
+      
+      // Función para actualizar layout de sliders según orientación
+      const updateSlidersLayout = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Modo horizontal: sliders verticales a la izquierda de los botones
+          slidersContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: auto;
+          `;
+        } else {
+          // Modo vertical: sliders horizontales arriba de los botones
+          slidersContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+          `;
+        }
+      };
+      
+      // Aplicar layout inicial de sliders
+      updateSlidersLayout();
+      
+      // Contenedor de zoom
       const zoomContainer = document.createElement('div');
-      zoomContainer.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;';
+      zoomContainer.id = 'zoom-container';
+      
+      // Función para actualizar layout de zoom según orientación
+      const updateZoomLayout = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Modo horizontal: slider vertical
+          zoomContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: auto;
+          `;
+          zoomSlider.style.cssText = `
+            -webkit-appearance: slider-vertical;
+            writing-mode: bt-lr;
+            width: 6px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+          `;
+        } else {
+          // Modo vertical: slider horizontal
+          zoomContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+          `;
+          zoomSlider.style.cssText = `
+            flex: 1;
+            max-width: 240px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+          `;
+        }
+      };
+      
+      // Aplicar layout inicial de zoom
+      updateZoomLayout();
+      
       zoomContainer.appendChild(zoomLabel);
       zoomContainer.appendChild(zoomSlider);
 
+      // Contenedor de tamaño de texto
       const textSizeContainer = document.createElement('div');
-      textSizeContainer.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;';
+      textSizeContainer.id = 'textsize-container';
+      
+      // Función para actualizar layout de tamaño de texto según orientación
+      const updateTextSizeLayout = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Modo horizontal: slider vertical
+          textSizeContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: auto;
+          `;
+          textSizeSlider.style.cssText = `
+            -webkit-appearance: slider-vertical;
+            writing-mode: bt-lr;
+            width: 6px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+          `;
+        } else {
+          // Modo vertical: slider horizontal
+          textSizeContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+          `;
+          textSizeSlider.style.cssText = `
+            flex: 1;
+            max-width: 240px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+          `;
+        }
+      };
+      
+      // Aplicar layout inicial de tamaño de texto
+      updateTextSizeLayout();
+      
       textSizeContainer.appendChild(textSizeLabel);
       textSizeContainer.appendChild(textSizeSlider);
+      
+      slidersContainer.appendChild(zoomContainer);
+      slidersContainer.appendChild(textSizeContainer);
+      
+      // Contenedor de botones principales
+      const buttonRow = document.createElement('div');
+      buttonRow.id = 'button-row';
+      
+      // Función para actualizar layout de botones según orientación
+      const updateButtonRowLayout = () => {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (isLandscape) {
+          // Modo horizontal: botones en columna vertical
+          buttonRow.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+          `;
+        } else {
+          // Modo vertical: botones en fila horizontal
+          buttonRow.style.cssText = `
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            margin-top: 8px;
+          `;
+        }
+      };
+      
+      // Aplicar layout inicial de botones
+      updateButtonRowLayout();
+      
+      buttonRow.appendChild(flashButton);
+      buttonRow.appendChild(captureButton);
+      buttonRow.appendChild(flipButton);
+      
+      // Ensamblar controles: sliders a la izquierda, botones a la derecha (landscape) o sliders arriba, botones abajo (portrait)
+      controls.appendChild(slidersContainer);
+      controls.appendChild(buttonRow);
+      
+      // Listener para cambios de orientación
+      const handleOrientationChange = () => {
+        updateControlsLayout();
+        updateSlidersLayout();
+        updateZoomLayout();
+        updateTextSizeLayout();
+        updateButtonRowLayout();
+        updateGeoOverlayLayout();
+        updateGeoElementsStyle();
+      };
+      
+      // Guardar handler en window para limpieza posterior
+      (window as any).handleOrientationChange = handleOrientationChange;
+      
+      // Escuchar cambios de orientación
+      window.addEventListener('resize', handleOrientationChange);
+      window.addEventListener('orientationchange', handleOrientationChange);
 
-      controls.appendChild(zoomContainer);
-      controls.appendChild(textSizeContainer);
+      // Ensamblar interfaz completa
+      cameraInterface.appendChild(videoContainer);
+      cameraInterface.appendChild(controls);
+      document.body.appendChild(cameraInterface);
 
       // Iniciar geolocalización en vivo
       const watchPositionId = await Geolocation.watchPosition({
@@ -2172,6 +2512,9 @@ const Dashboard: React.FC = () => {
         maximumAge: 5000
       }, async (position) => {
         currentPosition = position;
+        
+        // Guardar watchId en window para limpieza posterior
+        (window as any).currentWatchId = watchPositionId;
         
         // Actualizar overlay de georeferencia dentro del video
         try {
@@ -2264,18 +2607,17 @@ const Dashboard: React.FC = () => {
             captureButton.disabled = true;
             setTimeout(() => { captureButton.disabled = false; }, 1500);
 
-            // Captura directa del videoContainer - solo video + overlay + logo, sin controles
+            // Captura directa del video + georeferencia dibujada
             const canvas = document.createElement('canvas');
-            const videoContainer = document.querySelector('[style*="flex: 1"]');
             
-            if (!videoContainer) {
-              console.error('No se encontró videoContainer');
+            // Usar dimensiones del video real
+            if (!video.videoWidth || !video.videoHeight) {
+              console.error('Video no tiene dimensiones aún');
               return;
             }
             
-            const videoRect = videoContainer.getBoundingClientRect();
-            canvas.width = videoRect.width;
-            canvas.height = videoRect.height;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
@@ -2301,25 +2643,93 @@ const Dashboard: React.FC = () => {
                 }
               }
               
-              // Capturar el video con zoom aplicado
-              ctx.save();
-              ctx.translate(canvas.width / 2, canvas.height / 2);
-              ctx.scale(zoomLevel, zoomLevel);
-              ctx.translate(-canvas.width / 2, -canvas.height / 2);
+              // Dibujar video directamente en canvas
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              ctx.restore();
               
-              // Capturar HTML completo del videoContainer y dibujarlo en canvas
-              const html2canvas = await import('html2canvas').then(m => m.default);
-              const videoContainerCanvas = await html2canvas(videoContainer as HTMLElement, {
-                backgroundColor: null,
-                scale: 1,
-                useCORS: true,
-                allowTaint: true
-              });
+              // Calcular escala basada en ancho real del canvas
+              const scale = canvas.width / 1080;
+              const isLandscape = canvas.width > canvas.height;
               
-              // Dibujar el overlay y logo desde el HTML capturado
-              ctx.drawImage(videoContainerCanvas, 0, 0);
+              // Configurar estilos de texto con sombra más pronunciada
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+              ctx.shadowBlur = 10;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 4;
+              
+              // Obtener textos actuales
+              const userNameText = userName.textContent || '';
+              const dateTimeText = dateTimeInfo.textContent || '';
+              const locationText = locationInfo.textContent || locationInfo.innerHTML || '';
+              const coordsText = coordinatesInfo.textContent || '';
+              
+              // SIEMPRE centrar el texto independientemente de la orientación
+              const x = canvas.width / 2;
+              const maxWidth = canvas.width * 0.9; // Usar máximo 90% del ancho
+              ctx.textAlign = 'center';
+              
+              let y;
+              
+              if (isLandscape) {
+                // Landscape: tamaños más pequeños, menos espacio entre líneas
+                y = canvas.height - (160 * scale);
+                
+                // Dibujar nombre usuario
+                ctx.font = `bold ${22 * scale}px Arial`;
+                ctx.fillStyle = '#FF6B00';
+                ctx.fillText(userNameText, x, y, maxWidth);
+                
+                // Dibujar fecha/hora
+                y += 28 * scale;
+                ctx.font = `${18 * scale}px Arial`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillText(dateTimeText, x, y, maxWidth);
+                
+                // Dibujar ubicación
+                y += 28 * scale;
+                ctx.font = `${19 * scale}px Arial`;
+                ctx.fillStyle = 'white';
+                ctx.fillText(locationText, x, y, maxWidth);
+                
+                // Dibujar coordenadas
+                y += 26 * scale;
+                ctx.font = `${17 * scale}px monospace`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillText(coordsText, x, y, maxWidth);
+                
+              } else {
+                // Portrait: tamaños más grandes, más espacio entre líneas
+                y = canvas.height - (240 * scale);
+                const lineHeight = 38 * scale;
+                
+                // Dibujar nombre usuario
+                ctx.font = `bold ${28 * scale}px Arial`;
+                ctx.fillStyle = '#FF6B00';
+                ctx.fillText(userNameText, x, y, maxWidth);
+                
+                // Dibujar fecha/hora
+                y += lineHeight;
+                ctx.font = `${22 * scale}px Arial`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillText(dateTimeText, x, y, maxWidth);
+                
+                // Dibujar ubicación
+                y += lineHeight;
+                ctx.font = `${24 * scale}px Arial`;
+                ctx.fillStyle = 'white';
+                ctx.fillText(locationText, x, y, maxWidth);
+                
+                // Dibujar coordenadas
+                y += lineHeight;
+                ctx.font = `${20 * scale}px monospace`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillText(coordsText, x, y, maxWidth);
+              }
+              
+              // Dibujar logo MOPC arriba derecha
+              ctx.textAlign = 'right';
+              ctx.font = `bold ${56 * scale}px Arial`;
+              ctx.fillStyle = 'rgba(255, 107, 0, 0.98)';
+              ctx.fillText('MOPC', canvas.width - (50 * scale), 80 * scale);
               
               // Convertir a data URL
               const photoDataUrl = canvas.toDataURL('image/jpeg', 0.95);
@@ -2349,29 +2759,32 @@ const Dashboard: React.FC = () => {
               // haciendo que el usuario vea en la galería lo mismo que ve en la Cámara.
               await savePhotoToGallery(photoDataUrl, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
 
-              // Mensaje de óxito dentro de la propia interfaz
+              // Remover mensaje de procesamiento PRIMERO
+              processingMessage.remove();
+              
+              // Mensaje de éxito dentro de la propia interfaz
               const successMessage = document.createElement('div');
               successMessage.style.cssText = `
                 position: fixed;
-                top: 20px;
+                top: 50%;
                 left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.8);
+                transform: translate(-50%, -50%);
+                background: rgba(34, 197, 94, 0.95);
                 color: white;
-                padding: 10px 16px;
-                border-radius: 10px;
-                z-index: 10001;
-                font-size: 14px;
+                padding: 20px 30px;
+                border-radius: 12px;
+                z-index: 100000;
+                font-size: 18px;
+                font-weight: bold;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
               `;
-              successMessage.textContent = '📍 Foto guardada correctamente. Sigue tomando.';
+              successMessage.textContent = '✅ Foto guardada correctamente';
               document.body.appendChild(successMessage);
 
               setTimeout(() => {
                 successMessage.remove();
-              }, 1800);
-
-              // Remover mensaje de procesamiento
-              processingMessage.remove();
+              }, 2000);
 
               console.log('📸 Foto capturada y guardada con geolocalización en vivo');
             }
@@ -2542,19 +2955,24 @@ const Dashboard: React.FC = () => {
         });
         
         if (result.dataUrl) {
-          // Aplicar marca de agua
+          // Obtener la orientación actual del dispositivo
+          const orientationData = getCurrentOrientation();
+          const rotationAngle = getRotationAngle(orientationData.orientation);
+          
+          // Aplicar marca de agua con orientación
           const watermarkedImage = await addWatermarkToPhoto(result.dataUrl, {
             userName: user?.name || 'Usuario',
             address: address,
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-            timestamp: new Date()
+            timestamp: new Date(),
+            orientation: rotationAngle
           });
           
           // Guardar directamente en galería
           await savePhotoToGallery(watermarkedImage, `MOPC_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`);
           
-          console.log('📸 Foto capturada y guardada con método Capacitor');
+          console.log('📸 Foto capturada y guardada con método Capacitor con orientación:', rotationAngle);
         }
       }
       
@@ -2565,9 +2983,9 @@ const Dashboard: React.FC = () => {
   };
 
   // Función para guardar foto en galería
-  const handleSavePhotoToGallery = async (photoData: { photo: string; location: any; timestamp: string }) => {
+  const handleSavePhotoToGallery = async (photoData: { photo: string; location: any; timestamp: string; orientation?: number }) => {
     try {
-      // Crear un nombre de archivo ónico
+      // Crear un nombre de archivo único
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `MOPC_Photo_${timestamp}.jpg`;
       
@@ -2584,9 +3002,9 @@ const Dashboard: React.FC = () => {
       existingPhotos.push(newPhoto);
       localStorage.setItem('mopc_photo_gallery', JSON.stringify(existingPhotos));
       
-      console.log('Foto guardada en galería:', newPhoto);
+      console.log('Foto guardada en galería con orientación:', photoData.orientation || 0, newPhoto);
       
-      // Aquó tambión se podróa implementar el guardado real en el dispositivo
+      // Aquí también se podría implementar el guardado real en el dispositivo
       // usando el plugin de File System de Capacitor si se necesita
       
     } catch (error) {

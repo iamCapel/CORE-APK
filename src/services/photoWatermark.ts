@@ -6,10 +6,12 @@ interface PhotoData {
   latitude: number;
   longitude: number;
   timestamp: Date;
+  orientation?: number; // Ángulo de rotación en grados (0, 90, -90, 180)
 }
 
 /**
  * Agrega marca de agua georeferenciada a una foto con tamaño de letra automático adaptativo
+ * Soporta rotación automática según la orientación del dispositivo
  */
 export async function addWatermarkToPhoto(
   imageUri: string,
@@ -29,12 +31,39 @@ export async function addWatermarkToPhoto(
           return;
         }
 
-        // Configurar canvas al tamaño de la imagen
-        canvas.width = img.width;
-        canvas.height = img.height;
+        // Determinar si la imagen necesita rotación
+        const orientation = data.orientation || 0;
+        const needsRotation = orientation === 90 || orientation === -90;
+        
+        // Si la imagen necesita rotación, intercambiar ancho y alto
+        if (needsRotation) {
+          canvas.width = img.height;
+          canvas.height = img.width;
+        } else {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
 
-        // Dibujar la imagen original
-        ctx.drawImage(img, 0, 0);
+        // Guardar el estado del contexto
+        ctx.save();
+
+        // Aplicar rotación si es necesario
+        if (orientation !== 0) {
+          // Mover el origen al centro
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          
+          // Rotar
+          ctx.rotate((orientation * Math.PI) / 180);
+          
+          // Dibujar la imagen centrada
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+          
+          // Restaurar el estado del contexto
+          ctx.restore();
+        } else {
+          // Dibujar la imagen sin rotación
+          ctx.drawImage(img, 0, 0);
+        }
 
         // Agregar logo MOPC como marca de agua arriba a la derecha
         const logoSize = Math.min(canvas.width * 0.08, 80); // 8% del ancho o máximo 80px

@@ -21,50 +21,66 @@ export function setForegroundNotificationHandler(handler: (notification: PushNot
 export async function initializePushNotifications(userId: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
-  // Eliminar listeners anteriores si existen
-  removePushListeners();
+  try {
+    // Eliminar listeners anteriores si existen
+    removePushListeners();
 
-  // Solicitar permiso
-  const { receive } = await PushNotifications.requestPermissions();
-  if (receive !== 'granted') {
-    console.warn('[FCM] Permiso de notificaciones denegado');
-    return;
-  }
-
-  // Registrar en FCM
-  await PushNotifications.register();
-
-  // Guardar token cuando se recibe
-  const onRegistration = async (token: Token) => {
-    console.log('[FCM] Token registrado:', token.value.substring(0, 20) + '...');
-    await saveFcmToken(userId, token.value);
-  };
-
-  // Notificación recibida mientras la app está en primer plano
-  const onForeground = (notification: PushNotificationSchema) => {
-    console.log('[FCM] 🔔 Notificación en primer plano:', notification.title);
-    // Llamar al handler personalizado si está definido
-    if (_onForegroundNotification) {
-      _onForegroundNotification(notification);
+    // Solicitar permiso
+    const { receive } = await PushNotifications.requestPermissions();
+    if (receive !== 'granted') {
+      console.warn('[FCM] Permiso de notificaciones denegado');
+      return;
     }
-  };
 
-  // Usuario tocó una notificación
-  const onActionPerformed = (action: ActionPerformed) => {
-    console.log('[FCM] Notificación tocada:', action.notification.data);
-    // Aquí se puede agregar navegación al chat específico si se desea
-  };
+    // Registrar en FCM
+    await PushNotifications.register();
 
-  PushNotifications.addListener('registration', onRegistration);
-  PushNotifications.addListener('registrationError', (err) => {
-    console.error('[FCM] Error de registro:', err.error);
-  });
-  PushNotifications.addListener('pushNotificationReceived', onForeground);
-  PushNotifications.addListener('pushNotificationActionPerformed', onActionPerformed);
+    // Guardar token cuando se recibe
+    const onRegistration = async (token: Token) => {
+      try {
+        console.log('[FCM] Token registrado:', token.value.substring(0, 20) + '...');
+        await saveFcmToken(userId, token.value);
+      } catch (err) {
+        console.error('[FCM] Error guardando token:', err);
+      }
+    };
 
-  _removeListeners = () => {
-    PushNotifications.removeAllListeners();
-  };
+    // Notificación recibida mientras la app está en primer plano
+    const onForeground = (notification: PushNotificationSchema) => {
+      try {
+        console.log('[FCM] 🔔 Notificación en primer plano:', notification.title);
+        // Llamar al handler personalizado si está definido
+        if (_onForegroundNotification) {
+          _onForegroundNotification(notification);
+        }
+      } catch (err) {
+        console.error('[FCM] Error en foreground handler:', err);
+      }
+    };
+
+    // Usuario tocó una notificación
+    const onActionPerformed = (action: ActionPerformed) => {
+      try {
+        console.log('[FCM] Notificación tocada:', action.notification.data);
+        // Aquí se puede agregar navegación al chat específico si se desea
+      } catch (err) {
+        console.error('[FCM] Error en action handler:', err);
+      }
+    };
+
+    PushNotifications.addListener('registration', onRegistration);
+    PushNotifications.addListener('registrationError', (err) => {
+      console.error('[FCM] Error de registro:', err.error);
+    });
+    PushNotifications.addListener('pushNotificationReceived', onForeground);
+    PushNotifications.addListener('pushNotificationActionPerformed', onActionPerformed);
+
+    _removeListeners = () => {
+      PushNotifications.removeAllListeners();
+    };
+  } catch (error) {
+    console.error('[FCM] Error inicializando notificaciones push:', error);
+  }
 }
 
 /**
